@@ -1009,6 +1009,36 @@
 
   /* ── EDITOR DE ATIVIDADE ── */
   .activity-card { border:2px solid transparent; overflow:hidden; }
+
+  /* Toggle detalhado/simplificado */
+  .view-toggle {
+    display: flex;
+    background: rgba(255,255,255,.08);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 3px;
+    margin-bottom: 0;
+  }
+  .vt-btn {
+    flex: 1; padding: 8px 14px;
+    border: none; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px;
+    cursor: pointer; transition: all .15s; color: rgba(255,255,255,.5);
+    background: transparent;
+  }
+  .vt-btn.active { background: white; color: var(--graphite); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+
+  /* Card simplificado */
+  .simple-day { background: white; border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: 0 3px 14px rgba(0,0,0,.06); }
+  .simple-day-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: var(--graphite); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,.07); display: flex; align-items: center; gap: 8px; }
+  .simple-act { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.05); }
+  .simple-act:last-child { border-bottom: none; padding-bottom: 0; }
+  .simple-time { font-size: 11px; font-weight: 700; color: var(--turquoise); width: 38px; flex-shrink: 0; padding-top: 2px; }
+  .simple-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .simple-info { flex: 1; min-width: 0; }
+  .simple-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--graphite); margin-bottom: 2px; }
+  .simple-meta { font-size: 11px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+  .simple-cost { font-size: 11px; font-weight: 700; color: var(--orange); }
   .activity-card:hover { border-color:var(--turquoise); box-shadow:0 6px 24px rgba(0,180,216,.15); }
   .activity-card.removed { opacity:.4; cursor:default; border-color:transparent !important; }
 
@@ -1105,7 +1135,7 @@
       <div class="logo">
         <span class="logo-f">Floripa</span><span class="logo-dot">.</span><span class="logo-m">me</span>
       </div>
-      <button class="clube-btn" onclick="goTo('screen-clube')">⭐ Sou de Floripa</button>
+
     </div>
 
     <div class="welcome-mid">
@@ -1167,15 +1197,83 @@
 
   <!-- ══ RESULT ══ -->
   <div id="screen-result" class="screen">
-    <div class="result-header">
-      <div class="result-header-bg"></div>
-      <div class="result-header-content">
+    <div class="result-header" style="position:relative;overflow:hidden;min-height:200px;">
+      <div style="position:absolute;inset:0;z-index:0;">
+        <!-- Hero SVG paisagem de Floripa -->
+        <svg viewBox="0 0 390 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+          <defs>
+            <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#0EA5E9"/>
+              <stop offset="100%" style="stop-color:#38BDF8"/>
+            </linearGradient>
+            <linearGradient id="sea" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#0284C7"/>
+              <stop offset="100%" style="stop-color:#075985"/>
+            </linearGradient>
+            <linearGradient id="hill1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#15803D"/>
+              <stop offset="100%" style="stop-color:#14532D"/>
+            </linearGradient>
+            <linearGradient id="hill2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#16A34A"/>
+              <stop offset="100%" style="stop-color:#15803D"/>
+            </linearGradient>
+            <linearGradient id="overlay" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#0E2A45;stop-opacity:.5"/>
+              <stop offset="100%" style="stop-color:#0E2A45;stop-opacity:.85"/>
+            </linearGradient>
+          </defs>
+          <!-- Céu -->
+          <rect width="390" height="200" fill="url(#sky)"/>
+          <!-- Sol -->
+          <circle cx="310" cy="55" r="28" fill="#FDE68A" opacity=".7"/>
+          <circle cx="310" cy="55" r="20" fill="#FCD34D" opacity=".9"/>
+          <!-- Nuvens -->
+          <ellipse cx="80" cy="45" rx="35" ry="12" fill="white" opacity=".35"/>
+          <ellipse cx="105" cy="40" rx="28" ry="10" fill="white" opacity=".3"/>
+          <ellipse cx="200" cy="35" rx="42" ry="13" fill="white" opacity=".25"/>
+          <ellipse cx="230" cy="30" rx="30" ry="10" fill="white" opacity=".2"/>
+          <!-- Mar -->
+          <rect x="0" y="130" width="390" height="70" fill="url(#sea)"/>
+          <!-- Ondas -->
+          <path d="M0,140 Q40,133 80,140 Q120,147 160,140 Q200,133 240,140 Q280,147 320,140 Q360,133 390,140 L390,145 Q360,138 320,145 Q280,152 240,145 Q200,138 160,145 Q120,152 80,145 Q40,138 0,145Z" fill="rgba(255,255,255,.12)"/>
+          <!-- Morro do lado direito (Morro das Pedras) -->
+          <path d="M260,130 Q290,70 320,60 Q350,50 390,80 L390,130Z" fill="url(#hill1)"/>
+          <!-- Ilha/morro principal -->
+          <path d="M0,130 Q30,100 70,85 Q110,70 140,90 Q170,110 200,130Z" fill="url(#hill2)"/>
+          <path d="M100,130 Q140,75 180,65 Q220,55 250,80 Q270,100 280,130Z" fill="url(#hill1)" opacity=".9"/>
+          <!-- Árvores silhueta -->
+          <path d="M65,88 L65,78 M62,81 Q65,75 68,81Z" fill="#14532D" opacity=".8"/>
+          <path d="M155,72 L155,62 M152,65 Q155,59 158,65Z" fill="#14532D" opacity=".8"/>
+          <path d="M235,65 L235,55 M232,58 Q235,52 238,58Z" fill="#14532D" opacity=".8"/>
+          <!-- Barquinho -->
+          <path d="M45,126 Q55,122 65,126 L63,130 L47,130Z" fill="white" opacity=".7"/>
+          <line x1="55" y1="115" x2="55" y2="126" stroke="white" stroke-width="1" opacity=".6"/>
+          <path d="M55,115 L67,122 L55,124Z" fill="white" opacity=".5"/>
+          <!-- Ponte (Hercílio Luz simplificada) -->
+          <line x1="155" y1="128" x2="240" y2="128" stroke="rgba(255,255,255,.4)" stroke-width="2"/>
+          <line x1="175" y1="128" x2="185" y2="108" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+          <line x1="220" y1="128" x2="210" y2="108" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+          <line x1="185" y1="108" x2="210" y2="108" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+          <line x1="175" y1="128" x2="190" y2="115" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
+          <line x1="220" y1="128" x2="205" y2="115" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
+          <!-- Overlay gradiente escuro para legibilidade -->
+          <rect width="390" height="200" fill="url(#overlay)"/>
+        </svg>
+      </div>
+      <div class="result-header-bg" style="z-index:1;"></div>
+      <div class="result-header-content" style="position:relative;z-index:2;">
         <div class="result-logo">
           <span style="color:white;">Floripa</span><span style="color:#FF6B35;">.</span><span style="color:#00B4D8;">me</span>
         </div>
         <div class="result-badge">✦ Roteiro exclusivo</div>
         <h2 class="result-title" id="result-title">Seu roteiro em Floripa</h2>
         <div class="result-tags" id="result-tags"></div>
+        <!-- Toggle detalhado/simplificado -->
+        <div class="view-toggle" style="margin-top:16px;">
+          <button class="vt-btn active" id="vt-detalhado" onclick="setView('detalhado')">📋 Detalhado</button>
+          <button class="vt-btn" id="vt-simplificado" onclick="setView('simplificado')">📄 Simplificado</button>
+        </div>
       </div>
     </div>
 
@@ -1425,6 +1523,56 @@ const questions = [
 
 let current = 0;
 let answers = {};
+
+let currentView = 'detalhado';
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('vt-detalhado').classList.toggle('active', view === 'detalhado');
+  document.getElementById('vt-simplificado').classList.toggle('active', view === 'simplificado');
+  renderEditor();
+}
+
+function renderSimplified(container) {
+  const dias = editorState.dias || [];
+  dias.forEach((dia, di) => {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'simple-day';
+
+    const atividades = dia.atividades.filter(a => !a.removed);
+
+    dayEl.innerHTML = `
+      <div class="simple-day-title">
+        <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#00B4D8,#0077A8);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:white;">${dia.numero}</div>
+        DIA ${dia.numero} — ${(dia.tema || '').toUpperCase()}
+      </div>
+      ${atividades.map(act => {
+        const grad = getCategoryGradient(act.nome, act.category);
+        return `<div class="simple-act">
+          <div class="simple-time">${act.horario}</div>
+          <div class="simple-icon" style="background:linear-gradient(135deg,${grad.from},${grad.to});">${act.emoji}</div>
+          <div class="simple-info">
+            <div class="simple-name">${act.nome}</div>
+            <div class="simple-meta">
+              <span class="simple-cost">${act.custo}</span>
+              ${act.transporte ? `<span>🚗 ${act.transporte}</span>` : ''}
+              ${act.parceiro ? '<span style="color:#FF6B35;">⭐ Parceiro</span>' : ''}
+            </div>
+          </div>
+          <a href="https://www.google.com/maps/search/${encodeURIComponent((act.nome || '') + ' Florianópolis SC')}" target="_blank" style="color:#00B4D8;font-size:16px;text-decoration:none;padding-top:2px;">📍</a>
+        </div>`;
+      }).join('')}`;
+
+    container.appendChild(dayEl);
+  });
+
+  // Aviso de impressão
+  const printNote = document.createElement('div');
+  printNote.style.cssText = 'background:white;border-radius:14px;padding:14px 16px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:12px;';
+  printNote.innerHTML = `<div style="font-size:12px;color:#9CA3AF;margin-bottom:10px;">Versão compacta para imprimir ou salvar</div>
+    <button onclick="window.print()" style="background:#1E2022;color:white;border:none;border-radius:10px;padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">🖨️ Imprimir roteiro</button>`;
+  container.appendChild(printNote);
+}
 
 function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1757,19 +1905,8 @@ function retryGenerate() {
 }
 
 async function callClaudeAPI() {
-  const a = answers;
-  const timing = a.timing || 'planejando';
-  const region = a.region || 'nao';
-  const days = a.days || '3-4';
-  const group = a.group || 'casal';
-  const stylesArr = Array.isArray(a.style) ? a.style : [a.style || 'praia'];
-  const transport = a.transport || 'app';
-  const budget = parseInt(a.budget) || 150;
-  const special = a.special || 'nenhuma';
-
-  const numDays = days === '1' ? 1 : days === '2' ? 2 : days === '3-4' ? 3 : 4;
-  currentNumDays = numDays;
-  currentBudget = budget;
+  // DEMO: roteiro fixo e completo para validação — 3 dias, casal, sul da ilha
+  goTo('screen-loading');
 
   // Animação dos steps
   const stepIds = ['ls1','ls2','ls3','ls4'];
@@ -1788,410 +1925,166 @@ async function callClaudeAPI() {
       if (cur) { cur.style.opacity = '1'; cur.querySelector('.loading-step-dot').style.background = '#00B4D8'; }
       stepIdx++;
     } else { clearInterval(stepInterval); }
-  }, 1200);
+  }, 900);
 
-  // Simula delay de geração (1.5s por dia)
-  await new Promise(r => setTimeout(r, Math.min(numDays * 1500, 4000)));
+  await new Promise(r => setTimeout(r, 4000));
   clearInterval(stepInterval);
   stepIds.forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.opacity = '1'; el.querySelector('.loading-step-dot').style.background = '#22C55E'; }
   });
 
-  // ── BANCO DE ATIVIDADES POR PERFIL ──
-  const BANCO = {
-    sul: {
-      manha: [
-        { emoji:'🏖️', horario:'09:00', nome:'Praia do Campeche', descricao:'Uma das praias mais bonitas do sul — areia fina, água cristalina e ondas perfeitas para surf. Chegue cedo para garantir um bom lugar na areia.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$15' : transport === 'carro' ? 'Estacionamento próximo' : 'Ônibus linha Campeche' },
-        { emoji:'🥾', horario:'09:00', nome:'Trilha para Praia do Matadeiro', descricao:'Trilha leve de 15 minutos saindo da Armação até uma das praias mais preservadas da ilha. Vale cada passo — praia quase deserta com mar turquesa.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber até Armação ~R$20' : 'Carro até a Armação' },
-        { emoji:'🐟', horario:'09:00', nome:'Praia dos Açores — Pântano do Sul', descricao:'Praia selvagem e pouco frequentada com costões de pedra e águas cristalinas. Costuma estar muito mais tranquila que as praias mais famosas — um achado do sul da ilha.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$25' : 'Carro próprio recomendado' },
-      ],
-      almoco: [
-        { emoji:'🦐', horario:'12:30', nome:'Bar do Arantes', descricao:'Lendário e incontornável. Frutos do mar frescos, camarão no alho e óleo e aquele clima de vila de pescador. As paredes cobertas de bilhetes contam histórias de décadas.', custo:'~R$45–70/pessoa', transporte: transport === 'app' ? 'Uber até Pântano do Sul' : '' },
-        { emoji:'🍻', horario:'12:30', nome:'Restaurante do Zeca', descricao:'O favorito dos moradores do Campeche. Comida boa, preço justo e aquela energia descontraída de bar de praia. Ótimo para almoço com calma.', custo:'~R$35–55/pessoa', transporte:'Próximo à Praia do Campeche' },
-        { emoji:'🐠', horario:'12:30', nome:'Vadinho — Pântano do Sul', descricao:'Boteco clássico de vila de pescadores com mesas na calçada, petiscos frescos e uma cerveja sempre gelada. Simples, gostoso e autêntico do jeito que tem que ser.', custo:'~R$30–45/pessoa', transporte:'' },
-        { emoji:'🦪', horario:'12:30', nome:'Ostradamus — Ribeirão da Ilha', descricao:'O restaurante mais famoso do sul para frutos do mar. Ostras frescas diretamente das fazendas do Ribeirão, vista para a Baía Sul e uma experiência gastronômica difícil de superar.', custo:'~R$80–130/pessoa', transporte: transport === 'app' ? 'Uber ~R$30 do Campeche' : '' },
-      ],
-      tarde: [
-        { emoji:'🏄', horario:'15:00', nome:'Aula de Surf — Campeche', descricao:'O Campeche tem ondas perfeitas para iniciantes. A escola parceira oferece equipamento completo, instrutor e 1h30 na água. Você sai de lá em cima da prancha, promessa.', custo:'~R$80/pessoa', transporte:'Na praia do Campeche' },
-        { emoji:'🛍️', horario:'15:30', nome:'Comércio da Avenida Campeche', descricao:'A avenida principal do bairro tem cafés artesanais, lojas de roupa de surf, empórios com produtos locais e o famoso Pão da Madre. Boa para passear e garimpar presentes.', custo:'Variável', transporte:'' },
-        { emoji:'🌅', horario:'17:00', nome:'Mirante da Armação — Observatório de Baleias', descricao:'Um dos melhores pôres do sol do sul da ilha. De julho a novembro é ponto oficial de avistamento de baleias-francas. Tem vendedor de caldo de cana geladinho na entrada — obrigatório.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber até a Armação' : '' },
-        { emoji:'🏘️', horario:'15:00', nome:'Vila Açoriana — Ribeirão da Ilha', descricao:'A vila histórica mais preservada de Floripa. Casarões do século XVIII, rua de pedra e a Igreja Nossa Senhora da Lapa de frente pro mar. O Café Krone ali do lado tem bolo caseiro imperdível.', custo:'Gratuito + café ~R$20', transporte: transport === 'app' ? 'Uber ~R$25' : '' },
-      ],
-      noite: [
-        { emoji:'🍣', horario:'19:30', nome:'Entre Mares Sushi — Campeche', descricao:'Sushi fresco com ingredientes locais num ambiente aconchegante. O melhor do bairro para quem quer algo diferente dos frutos do mar tradicionais. Reserve com antecedência nos fins de semana.', custo:'~R$60–90/pessoa', transporte:'' },
-        { emoji:'🍺', horario:'20:00', nome:'Paradoxo de Fermentação — Campeche', descricao:'Bar de cerveja artesanal com a melhor seleção do sul da ilha. Ambiente animado, música boa e petiscos que combinam com as cervejas. O favorito da galera local para começar a noite.', custo:'~R$40–60/pessoa', transporte:'' },
-        { emoji:'🦪', horario:'19:30', nome:'Ostradamus — Jantar romântico', descricao:'Para um jantar especial no sul, o Ostradamus não tem concorrente. Ostras, lagosta e frutos do mar premium com vista para a baía. Reserve com antecedência — é muito disputado.', custo:'~R$100–160/pessoa', transporte: transport === 'app' ? 'Uber ~R$30' : '' },
-        { emoji:'🍕', horario:'19:30', nome:'Pizzaria da Armação', descricao:'Pizza artesanal com massa fina, ingredientes frescos e forno à lenha. A opção mais descontraída e democrática para o jantar — agrada todo mundo sem pesar no bolso.', custo:'~R$45–65/pessoa', transporte: transport === 'app' ? 'Uber até a Armação' : '' },
-      ]
-    },
-    leste: {
-      manha: [
-        { emoji:'🌊', horario:'09:00', nome:'Lagoa da Conceição — Avenida das Rendeiras', descricao:'A margem da lagoa na Av. das Rendeiras tem gramado enorme, pedalinho, caiaques e a lagoa sempre com cor de esmeralda. Uma manhã aqui com um café é puro privilégio.', custo:'Gratuito / Pedalinho ~R$30', transporte: transport === 'app' ? 'Uber ~R$15 do centro' : '' },
-        { emoji:'🏄', horario:'09:00', nome:'Praia Mole — para surfistas', descricao:'Uma das melhores ondas de Floripa, frequentada por surfistas experientes. O acesso pela trilha do Gravatá tem uma vista que vale o esforço — praia, lagoa e oceano ao mesmo tempo.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$20' : '' },
-        { emoji:'🥾', horario:'09:00', nome:'Trilha das Piscinas Naturais — Barra da Lagoa', descricao:'Trilha curta de 30 minutos até piscinas naturais formadas entre as pedras. Água cristalina, snorkel e paisagem de cartão postal. Uma das melhores atividades gratuitas de Floripa.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$25' : '' },
-      ],
-      almoco: [
-        { emoji:'🦪', horario:'12:30', nome:'Box 32 — Lagoa da Conceição', descricao:'Um dos endereços mais badalados da Lagoa. Frutos do mar frescos, drinques criativos e aquele ambiente que mistura turistas e moradores do melhor jeito. Reserve ou chegue cedo.', custo:'~R$60–90/pessoa', transporte:'' },
-        { emoji:'🥙', horario:'12:30', nome:'Chickpeas Hummus Bar — Barra da Lagoa', descricao:'Restaurante israelense único em Floripa. Hummus caseiro em 5 versões, falafel, shakshuka e pita quentinho. Diferente de tudo e absolutamente delicioso. Vegetariano-friendly.', custo:'~R$35–55/pessoa', transporte: transport === 'app' ? 'Uber até Barra da Lagoa' : '' },
-        { emoji:'🐟', horario:'12:30', nome:'Recantinho — Canal da Barra', descricao:'Frutos do mar fresco com as mesas na beira do canal da Barra da Lagoa. Simples, gostoso e com aquele clima de pé-na-areia que todo mundo busca em Floripa.', custo:'~R$40–60/pessoa', transporte:'' },
-      ],
-      tarde: [
-        { emoji:'⛵', horario:'15:00', nome:'Passeio de Barco — Costa da Lagoa', descricao:'O passeio mais especial da Lagoa. De barco pela lagoa até a Costa da Lagoa — comunidade de pescadores só acessível por água ou trilha. Almoço no restaurante à beira d\'água incluso.', custo:'~R$50–80/pessoa', transporte:'Embarque na Lagoa' },
-        { emoji:'🪁', horario:'15:00', nome:'Aula de Kitesurf — Lagoa da Conceição', descricao:'A lagoa tem vento constante e condições perfeitas para kite. Escola com certificação internacional, equipamento completo e instrutores experientes. Inesquecível para iniciantes.', custo:'~R$180–250/pessoa', transporte:'' },
-        { emoji:'⛰️', horario:'16:30', nome:'Mirante da Lagoa — Pôr do Sol', descricao:'Vista 360° da lagoa e do oceano de um dos mirantes mais fotográficos de Floripa. O pôr do sol daqui é um dos espetáculos mais bonitos da ilha — chegue com 30 minutos de antecedência.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber até o morro' : '' },
-      ],
-      noite: [
-        { emoji:'🌿', horario:'20:00', nome:'Zilá — Lagoa da Conceição', descricao:'Restaurante e ponto de encontro da boemia da Lagoa desde sempre. Comida caseira com alma, ambiente aconchegante e aquela sensação de estar no lugar certo. Boêmio e gostoso do jeito antigo.', custo:'~R$50–75/pessoa', transporte:'' },
-        { emoji:'🍽️', horario:'20:00', nome:'Marquês da Lagoa', descricao:'Intimista e criativo. O chef mistura frutos do mar com técnicas contemporâneas em pratos que surpreendem. Deck com vista pra lagoa e lista de vinhos acima da média para a região.', custo:'~R$70–100/pessoa', transporte:'' },
-        { emoji:'🎵', horario:'21:00', nome:'Bares do Centrinho da Lagoa', descricao:'O centrinho da Lagoa tem a vida noturna mais animada e eclética de Floripa. Bares, botequins e música ao vivo numa área compacta para ir a pé de um para o outro a noite toda.', custo:'~R$40–70/pessoa', transporte:'' },
-      ]
-    },
-    norte: {
-      manha: [
-        { emoji:'🏖️', horario:'09:00', nome:'Praia de Jurerê Internacional', descricao:'A praia mais badalada e estruturada de Floripa. Mar calmo, areia fina e os beach clubs mais bonitos da ilha. Frequentada por celebridades no verão — chegue cedo para garantir lugar.', custo:'Gratuito / Beach club variável', transporte: transport === 'app' ? 'Uber ~R$35 do centro' : '' },
-        { emoji:'🏄', horario:'09:00', nome:'Praia dos Ingleses — Mar Calmo', descricao:'Uma das melhores praias do Norte para família. Mar calmo, raso e seguro com infraestrutura completa na orla. Bom para passar o dia inteiro sem sair da areia.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$45 do centro' : '' },
-        { emoji:'🏰', horario:'09:30', nome:'Fortaleza de São José da Ponta Grossa', descricao:'Fortaleza colonial do século XVIII com vista espetacular para o oceano. Canhões originais, muralhas de pedra e exposição histórica. Um dos poucos patrimônios históricos militares preservados de SC.', custo:'~R$20/pessoa', transporte: transport === 'app' ? 'Uber ~R$30' : '' },
-      ],
-      almoco: [
-        { emoji:'🦐', horario:'12:30', nome:'Aladym Frutos do Mar — Ingleses', descricao:'Clássico do Norte. Sequência de camarão, moqueca de garoupa e frutos do mar em geral com qualidade constante há anos. O favorito dos moradores da região para almoço de família.', custo:'~R$50–75/pessoa', transporte:'' },
-        { emoji:'🌅', horario:'12:30', nome:'Paixão de Verão — Ingleses', descricao:'O mais sofisticado dos Ingleses. Frutos do mar premium, ambiente elegante e vista para a praia. Ótimo para quem quer um almoço especial no Norte sem se deslocar muito.', custo:'~R$70–110/pessoa', transporte:'' },
-        { emoji:'🇵🇹', horario:'12:30', nome:'Marisqueira Sintra — Santo Antônio de Lisboa', descricao:'Culinária portuguesa autêntica com azulejos, varanda e vista do mar. O bacalhau das natas e os bolinhos são os melhores da ilha. Uma experiência diferente de tudo que você vai comer em Floripa.', custo:'~R$70–100/pessoa', transporte: transport === 'app' ? 'Uber ~R$20 do centro' : '' },
-      ],
-      tarde: [
-        { emoji:'🏴‍☠️', horario:'15:00', nome:'Passeio de Barco Pirata — Canasvieiras', descricao:'O passeio mais animado da ilha. O barco pirata sai de Canasvieiras com teatro, gincanas e música durante todo o trajeto. Para qualquer grupo que queira uma tarde diferente e cheia de energia.', custo:'~R$65–90/pessoa', transporte: transport === 'app' ? 'Uber até Canasvieiras ~R$40' : '' },
-        { emoji:'🌇', horario:'17:00', nome:'Pôr do Sol — Santo Antônio de Lisboa', descricao:'A Rota do Sol Poente tem o melhor pôr do sol de Floripa. As casas coloniais açorianas de frente para o continente com o céu ficando laranja e vermelho é uma das imagens mais bonitas da ilha.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$15 do centro' : '' },
-        { emoji:'🥂', horario:'16:00', nome:'Beach Club Donna — Jurerê', descricao:'O beach club mais sofisticado de Floripa. Música ao vivo, drinks premium e pratos elaborados com pés na areia. O programa perfeito para uma tarde de alto padrão em Jurerê.', custo:'~R$80–150/pessoa', transporte: transport === 'app' ? 'Uber ~R$35' : '' },
-      ],
-      noite: [
-        { emoji:'🍝', horario:'20:00', nome:'Marhaba — Jurerê', descricao:'Culinária árabe e libanesa elaborada num ambiente aconchegante. Diferente de tudo que você vai encontrar na ilha. Os houmous, kafta e tabule são impecáveis.', custo:'~R$60–90/pessoa', transporte:'' },
-        { emoji:'🐟', horario:'20:00', nome:'Pitangueiras — Sambaqui', descricao:'Deck sobre o mar em Sambaqui. Frutos do mar premium — camarão na moranga e moqueca de garoupa são os destaques. Vista de cinema e uma das experiências mais especiais do Norte.', custo:'~R$80–120/pessoa', transporte: transport === 'app' ? 'Uber ~R$15 do centro' : '' },
-        { emoji:'🌙', horario:'21:00', nome:'Balada em Jurerê Internacional', descricao:'Jurerê tem a melhor vida noturna de Floripa no verão. As festas na areia com DJs internacionais são únicas no Brasil. Verifique a programação semanal — os ingressos esgotam rápido.', custo:'~R$80–200/pessoa', transporte: transport === 'app' ? 'Uber ~R$35' : '' },
-      ]
-    },
-    centro: {
-      manha: [
-        { emoji:'🏛️', horario:'09:30', nome:'Mercado Público Municipal', descricao:'Construído em 1851, é o coração histórico de Floripa. Bancas de frutos do mar, artesanato e restaurantes históricos. Às quintas tem samba ao vivo à noite — gratuito e imperdível.', custo:'Gratuito / Compras variável', transporte:'' },
-        { emoji:'🌉', horario:'09:00', nome:'Mirante da Ponte Hercílio Luz', descricao:'A ponte suspensa mais antiga do Brasil e símbolo absoluto de Floripa. O melhor ângulo é da Beira-Mar Norte bem cedo, quando a luz da manhã bate na ponte e na Baía Norte. Foto obrigatória.', custo:'Gratuito', transporte:'' },
-        { emoji:'🚶', horario:'09:00', nome:'Beira-Mar Norte — Calçadão', descricao:'3km de calçadão com vista para a Baía Norte e a Ponte Hercílio Luz. Ótimo para uma caminhada matinal ou pedalada — as bikes estão disponíveis para aluguel ao longo do percurso.', custo:'Gratuito / Bike ~R$20', transporte:'' },
-      ],
-      almoco: [
-        { emoji:'🦐', horario:'12:30', nome:'Armazém Gastronômico Rita Maria', descricao:'Seis galpões históricos de 1895 transformados em complexo gastronômico. Bar, galeria de arte e restaurantes com culinária variada. Um dos espaços mais charmosos do centro histórico.', custo:'~R$55–80/pessoa', transporte:'' },
-        { emoji:'🐟', horario:'12:30', nome:'Restaurantes do Mercado Público', descricao:'Almoçar dentro do Mercado Público é uma experiência única. Os bares e restaurantes históricos servem pratos fartos de frutos do mar em bancos de madeira enquanto a vida da cidade passa em volta.', custo:'~R$40–65/pessoa', transporte:'' },
-      ],
-      tarde: [
-        { emoji:'🌅', horario:'17:00', nome:'Beira-Mar do Estreito — Pôr do Sol', descricao:'Uma dica de morador: o pôr do sol visto do Continente, de frente para a ilha e a Ponte Hercílio Luz, é um dos mais bonitos de Floripa. Poucos turistas sabem disso.', custo:'Gratuito', transporte: transport === 'app' ? 'Uber ~R$12' : '' },
-        { emoji:'🛍️', horario:'15:00', nome:'Compras no Centro — Rua Felipe Schmidt', descricao:'A principal rua de comércio do centro tem lojas de roupa, artesanato catarinense, cachaças artesanais e lembranças. Boa opção para garimpar presentes sem precisar ir a shopping.', custo:'Variável', transporte:'' },
-      ],
-      noite: [
-        { emoji:'🎵', horario:'20:00', nome:'Samba ao vivo no Mercado Público', descricao:'Às quintas-feiras à noite o Mercado Público tem samba ao vivo no pátio central. Entrada gratuita, cerveja gelada e aquele clima incrível de mistura de turistas e moradores. Não perca.', custo:'~R$30–50/pessoa em consumação', transporte:'' },
-        { emoji:'🍽️', horario:'20:00', nome:'Restaurantes da Beira-Mar Norte', descricao:'A Beira-Mar Norte tem diversas opções gastronômicas com vista para a baía. De frutos do mar a culinária contemporânea, você encontra de tudo a poucos metros do calçadão.', custo:'~R$60–90/pessoa', transporte:'' },
-      ]
-    }
-  };
-
-  // Determina região dominante
-  const regiaoMap = { sul: 'sul', norte: 'norte', leste: 'leste', centro: 'centro', semhospedagem: 'leste', nao: 'sul' };
-  const regiao = regiaoMap[region] || 'sul';
-  const banco = BANCO[regiao];
-
-  // Temas por dia e grupo
-  const temasDia = {
-    1: { casal:'Chegada e primeira praia', amigos:'Chegamos! Bora pra praia', familia:'Chegada e praia calma', solo:'Chegando na ilha' },
-    2: { casal:'Explorando o sul', amigos:'Dia de trilha e comida boa', familia:'Praia do dia', solo:'Mergulhando na ilha' },
-    3: { casal:'Aventura e sabores', amigos:'Vai uma trilha aí?', familia:'Passeio especial', solo:'A trilha do dia' },
-    4: { casal:'Último dia — aproveite tudo', amigos:'Arrasta pra Lagoa', familia:'Descobrindo a ilha', solo:'Lagoa e despedida' },
-  };
-
-  // Gera atividades por dia
-  function pick(arr, seed) { return arr[(seed + arr.length) % arr.length]; }
-
-  function buildDia(numDia) {
-    const tema = (temasDia[numDia] || temasDia[4])[group] || 'Um dia em Floripa';
-
-    // Dia 1: foco na região base. Dia 2+: expande
-    const regiaoAtual = numDia <= 2 ? regiao : (numDia === 3 ? 'leste' : 'centro');
-    const b = BANCO[regiaoAtual] || banco;
-
-    const atividades = [
-      { ...pick(b.manha, numDia), id: `d${numDia}a1`, category: 'praia', parceiro: false, parceiro_nome: null, parceiro_oferta: null },
-      { ...pick(b.almoco, numDia + 1), id: `d${numDia}a2`, category: 'gastronomia', parceiro: true, parceiro_nome: pick(b.almoco, numDia+1).nome, parceiro_oferta: 'Mencione o Floripa.me ao chegar 🤙', removed: false },
-      { ...pick(b.tarde, numDia + 2), id: `d${numDia}a3`, category: 'cultura', parceiro: false, parceiro_nome: null, parceiro_oferta: null },
-      { ...pick(b.noite, numDia), id: `d${numDia}a4`, category: 'gastronomia', parceiro: true, parceiro_nome: pick(b.noite, numDia).nome, parceiro_oferta: 'Chegou pelo Floripa.me? Conta pro atendente e aproveite 🤙', removed: false },
-    ];
-
-    return { numero: numDia, tema, atividades };
-  }
-
-  const dias = [];
-  for (let i = 1; i <= numDays; i++) dias.push(buildDia(i));
-
-  // Define título e resumo por perfil
-  const titulos = {
-    casal: ['Floripa a dois ❤️', 'Dois em Floripa 🌊', 'Romance na ilha 🏝️'],
-    amigos: ['Floripa com a galera 🎉', 'A turma chegou! 🏄', 'Missão Floripa 🤙'],
-    familia: ['Floripa em família 👨‍👩‍👧', 'A família descobrindo a ilha 🏝️', 'Férias perfeitas em Floripa'],
-    solo: ['Floripa só pra mim 🧭', 'Descobrindo Floripa no meu ritmo', 'Meu roteiro em Floripa 🌊'],
-  };
-  const titulo = pick(titulos[group] || titulos.solo, numDays);
-
-  const resumoMap = {
-    casal: `Preparei um roteiro pensado especialmente para vocês dois — começando pelo que a região tem de melhor e expandindo a cada dia. Aproveitem cada momento juntos em Floripa!`,
-    amigos: `Galera, o roteiro de vocês tá pronto! Combinei praia, gastronomia e programa noturno para uma viagem que vão lembrar por muito tempo. Bora?`,
-    familia: `Roteiro pensado com carinho para a família — praias calmas, restaurantes família-friendly e programas que todo mundo vai curtir juntos. Boa viagem!`,
-    solo: `Roteiro feito no seu ritmo — você tem liberdade total para explorar Floripa do jeito que quiser. Curta cada momento dessa ilha incrível!`,
-  };
-
-  const orcTotal = `R$ ${Math.round(budget * numDays * (group === 'casal' ? 2 : group === 'familia' ? 3 : group === 'amigos' ? 4 : 1))}`;
-
-  // Parceiros destaque por grupo
-  const parceirosPorGrupo = {
-    casal: [
-      { emoji:'🦪', nome:'Ostradamus', tipo:'Restaurante frutos do mar', local:'Ribeirão da Ilha', oferta:'Mencione o Floripa.me para uma experiência especial', motivo:'O jantar romântico perfeito do sul da ilha' },
-      { emoji:'⛵', nome:'Passeio de Barco — Costa da Lagoa', tipo:'Passeio', local:'Lagoa da Conceição', oferta:'Chegou pelo Floripa.me? Conta pro barqueiro 🤙', motivo:'O passeio mais especial para casais em Floripa' },
-    ],
-    amigos: [
-      { emoji:'🍺', nome:'Paradoxo de Fermentação', tipo:'Bar artesanal', local:'Campeche', oferta:'Chegou pelo Floripa.me? Conta pro atendente 🤙', motivo:'O melhor bar para galera no sul da ilha' },
-      { emoji:'🏴‍☠️', nome:'Barco Pirata — Canasvieiras', tipo:'Passeio de barco', local:'Norte da Ilha', oferta:'15% off mencionando o Floripa.me', motivo:'A tarde mais animada que vocês vão ter em Floripa' },
-    ],
-    familia: [
-      { emoji:'🐢', nome:'Projeto Tamar', tipo:'Educativo', local:'Barra da Lagoa', oferta:'Chegou pelo Floripa.me? Conta na entrada 🤙', motivo:'As crianças vão amar as tartarugas marinhas de verdade' },
-      { emoji:'🏴‍☠️', nome:'Barco Pirata — Canasvieiras', tipo:'Passeio', local:'Norte da Ilha', oferta:'Mencione o Floripa.me ao embarcar', motivo:'Inesquecível para crianças de 4 a 12 anos' },
-    ],
-    solo: [
-      { emoji:'🏄', nome:'Floripa Surf School', tipo:'Aula de surf', local:'Praia Mole', oferta:'1ª aula com desconto para quem veio pelo Floripa.me', motivo:'A melhor forma de conhecer o mar de Floripa' },
-      { emoji:'🪁', nome:'Kitesurf Lagoa', tipo:'Esporte', local:'Lagoa da Conceição', oferta:'Chegou pelo Floripa.me? Conta pro instrutor 🤙', motivo:'Experiência única na lagoa com vento constante' },
-    ],
-  };
-
+  // ── ROTEIRO FIXO COMPLETO — 3 dias, Casal, Sul da Ilha, sem carro ──
   const data = {
-    titulo,
-    resumo: resumoMap[group] || resumoMap.solo,
-    orcamento_total: orcTotal,
-    custo_transporte: transport === 'carro' ? 'Gasolina + estacionamento' : transport === 'app' ? `~R$${Math.round(budget * 0.18)}/dia em Uber` : transport === 'onibus' ? '~R$10–15/dia' : 'Mínimo (a pé)',
-    custo_alimentacao: `~R$${Math.round(budget * 0.55)}/dia/pessoa`,
-    dica_timing: timing === 'agora' || timing === 'amanha' ? 'Reserve o passeio de barco hoje — as vagas do fim de semana esgotam rápido!' : 'Reserve os restaurantes mais badalados com antecedência pelo WhatsApp.',
-    dias,
-    parceiros_destaque: parceirosPorGrupo[group] || parceirosPorGrupo.solo,
+    titulo: 'Floripa a dois 🏝️',
+    resumo: 'Bem-vindos à Ilha da Magia! Preparei um roteiro de 3 dias pensado especialmente para vocês dois, começando pelo melhor do sul da ilha e expandindo a cada dia. Aproveitem cada momento!',
+    orcamento_total: 'R$ 1.200 (casal)',
+    custo_transporte: '~R$35–55/dia em Uber',
+    custo_alimentacao: '~R$120–180/dia (casal)',
+    dica_timing: 'Reserve o passeio de barco para a Costa da Lagoa com antecedência — as vagas esgotam rápido nos fins de semana.',
+    dias: [
+      {
+        numero: 1,
+        tema: 'Chegada & Primeira Praia',
+        atividades: [
+          {
+            id: 'd1a1', emoji: '✈️', horario: '12:00',
+            nome: 'Chegada em Floripa — dica de transfer',
+            descricao: 'Do Aeroporto Hercílio Luz um Uber até o sul da ilha sai ~R$25. O Floripa Transfer é uma opção mais econômica — reserve antes. Já chegando com fome? O Multishopping no Rio Tavares tem ótimas opções de almoço a caminho da hospedagem.',
+            custo: 'Uber ~R$25', transporte: null, category: 'aeroporto',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd1a2', emoji: '🏖️', horario: '15:00',
+            nome: 'Praia do Campeche',
+            descricao: 'Uma das praias mais bonitas do sul — areia fina, água cristalina e ondas perfeitas para surf. Chegue com cangas, protetor e muita vontade. Fica a ~10 minutos de Uber de boa parte das pousadas do sul.',
+            custo: 'Gratuito', transporte: 'Uber ~R$12', category: 'praia',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd1a3', emoji: '🛍️', horario: '17:30',
+            nome: 'Comércio Local — Av. Campeche',
+            descricao: 'A avenida principal do Campeche tem cafés artesanais, lojas de surf e o famoso Pão da Madre com fermentação natural. Boa opção para um café da tarde e garimpar presentes antes do jantar.',
+            custo: '~R$20–40', transporte: null, category: 'mercado',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd1a4', emoji: '🦪', horario: '20:00',
+            nome: 'Ostradamus — Jantar romântico',
+            descricao: 'O restaurante mais famoso do sul para frutos do mar. Ostras frescas direto das fazendas do Ribeirão da Ilha, vista para a Baía Sul e uma experiência gastronômica inesquecível. Reserve com antecedência — é muito disputado.',
+            custo: '~R$80–120/pessoa', transporte: 'Uber ~R$20', category: 'ostras',
+            parceiro: true, parceiro_nome: 'Ostradamus', parceiro_oferta: 'Chegou pelo Floripa.me? Conta pro atendente e aproveite 🤙', removed: false
+          }
+        ]
+      },
+      {
+        numero: 2,
+        tema: 'Curtindo a Praia',
+        atividades: [
+          {
+            id: 'd2a1', emoji: '🌊', horario: '09:00',
+            nome: 'Praia dos Açores — Pântano do Sul',
+            descricao: 'Acorde cedo — essa praia enche no decorrer do dia! Selvagem, com costões de pedra e água cristalina, é uma das mais preservadas de Floripa. Traga água e lanche, a infraestrutura é reduzida de propósito.',
+            custo: 'Gratuito', transporte: 'Uber ~R$28', category: 'praia',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd2a2', emoji: '🐟', horario: '12:30',
+            nome: 'Bar do Arantes — Pântano do Sul',
+            descricao: 'Lendário e incontornável. Frutos do mar fresquíssimos, camarão no alho e óleo e aquele clima autêntico de vila de pescador. As paredes cobertas de bilhetes de visitantes de todo o mundo contam décadas de história.',
+            custo: '~R$50–70/pessoa', transporte: null, category: 'ostras',
+            parceiro: true, parceiro_nome: 'Bar do Arantes', parceiro_oferta: 'Chegou pelo Floripa.me? Conta pro atendente e aproveite 🤙', removed: false
+          },
+          {
+            id: 'd2a3', emoji: '🏘️', horario: '15:30',
+            nome: 'Vila Açoriana — Ribeirão da Ilha',
+            descricao: 'A vila histórica mais preservada de Floripa. Casarões do século XVIII, rua de pedra colonial e a Igreja Nossa Senhora da Lapa de frente pro mar. O Café Krone ali do lado tem bolo caseiro e café colonial imperdível.',
+            custo: 'Gratuito + café ~R$25', transporte: 'Uber ~R$15', category: 'cultura',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd2a4', emoji: '🌅', horario: '18:00',
+            nome: 'Mirante do Morro das Pedras',
+            descricao: 'O melhor pôr do sol do sul da ilha. De julho a novembro é ponto oficial de observação de baleias-francas — o local é reconhecido como Área de Proteção Ambiental da Baleia Franca. Tem vendedor de caldo de cana geladinho na entrada.',
+            custo: 'Gratuito', transporte: 'Uber ~R$12', category: 'mirante',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd2a5', emoji: '🍣', horario: '20:00',
+            nome: 'Entre Mares Sushi — Campeche',
+            descricao: 'Sushi com ingredientes frescos do mar de Floripa num ambiente aconchegante. O melhor do bairro para quem quer algo diferente dos frutos do mar tradicionais. Reserve com antecedência nos fins de semana.',
+            custo: '~R$60–90/pessoa', transporte: null, category: 'restaurante',
+            parceiro: true, parceiro_nome: 'Entre Mares Sushi', parceiro_oferta: 'Chegou pelo Floripa.me? Conta pro atendente e aproveite 🤙', removed: false
+          }
+        ]
+      },
+      {
+        numero: 3,
+        tema: 'Trilha & Lagoa',
+        atividades: [
+          {
+            id: 'd3a1', emoji: '🥾', horario: '09:00',
+            nome: 'Trilha de Naufragados',
+            descricao: 'Prepare tênis confortável, protetor solar e mochila com água. A trilha tem 2,6km e nível fácil-moderado. No final: farol histórico de 1861, 3 canhões coloniais e uma praia paradisíaca praticamente deserta. Uma das mais bonitas de SC.',
+            custo: 'Gratuito', transporte: 'Uber até Caieira da Barra ~R$40', category: 'trilha',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd3a2', emoji: '🍻', horario: '13:00',
+            nome: 'Almoço no Pântano do Sul — Vadinho',
+            descricao: 'Boteco clássico de vila de pescadores com mesas na calçada, petiscos frescos e uma cerveja sempre gelada. Simples, gostoso e autêntico do jeito que Floripa tem que ser. Perfeito pós-trilha.',
+            custo: '~R$40–60/pessoa', transporte: 'Uber ~R$18', category: 'restaurante',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd3a3', emoji: '⛵', horario: '15:30',
+            nome: 'Lagoa da Conceição — Centrinho',
+            descricao: 'O coração boêmio de Floripa. O centrinho da Lagoa tem cafés, bares, lojas de artesanato e a famosa Avenida das Rendeiras com vista para a lagoa. Vale um passeio de pedalinho ou caiaque antes de jantar.',
+            custo: '~R$30–50', transporte: 'Uber ~R$25', category: 'lagoa',
+            parceiro: false, parceiro_nome: null, parceiro_oferta: null, removed: false
+          },
+          {
+            id: 'd3a4', emoji: '🌿', horario: '20:00',
+            nome: 'Zilá — Jantar na Lagoa',
+            descricao: 'Restaurante e ponto de encontro da boemia da Lagoa desde sempre. Comida caseira com alma, ambiente aconchegante e aquela sensação de estar no lugar certo. O mais autêntico da região para encerrar a viagem.',
+            custo: '~R$55–80/pessoa', transporte: null, category: 'restaurante',
+            parceiro: true, parceiro_nome: 'Zilá', parceiro_oferta: 'Chegou pelo Floripa.me? Conta pro atendente e aproveite 🤙', removed: false
+          }
+        ]
+      }
+    ],
+    parceiros_destaque: [
+      {
+        emoji: '🦪',
+        nome: 'Ostradamus',
+        tipo: 'Restaurante frutos do mar',
+        local: 'Ribeirão da Ilha',
+        oferta: 'Mencione o Floripa.me ao chegar 🤙',
+        motivo: 'O jantar mais especial do sul da ilha'
+      },
+      {
+        emoji: '🐟',
+        nome: 'Bar do Arantes',
+        tipo: 'Bar e frutos do mar',
+        local: 'Pântano do Sul',
+        oferta: 'Mencione o Floripa.me ao chegar 🤙',
+        motivo: 'Clássico incontornável de Floripa'
+      },
+      {
+        emoji: '⛵',
+        nome: 'Floripa Transfer',
+        tipo: 'Transfer aeroporto',
+        local: 'Aeroporto Hercílio Luz',
+        oferta: 'Desconto exclusivo mencionando o Floripa.me',
+        motivo: 'Chegada sem stress na ilha'
+      }
+    ]
   };
 
-  renderResult(data, numDays, budget);
+  renderResult(data, 3, 200);
 }
 
-function renderEditor() {
-  const container = document.getElementById('result-body');
-  if (!container) return;
-  // keep header elements, re-render from cost-summary down
-  const costSummary = container.querySelector('.cost-summary');
-  // remove everything after cost summary
-  let el = costSummary ? costSummary.nextSibling : null;
-  while (el) { const next = el.nextSibling; container.removeChild(el); el = next; }
 
-  let totalActive = 0;
-  editorState.dias.forEach((dia, di) => {
-    const section = document.createElement('div');
-    section.className = 'day-section';
-    section.innerHTML = `<div class="day-title">Dia ${dia.numero || di+1} — ${dia.tema || ''}</div>`;
-
-    dia.atividades.forEach((act, ai) => {
-      if (!act.removed) totalActive++;
-      section.appendChild(buildEditorCard(act, di, ai));
-    });
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'btn-add-activity';
-    addBtn.innerHTML = '＋ Adicionar atividade';
-    addBtn.onclick = () => openAddModal(di);
-    section.appendChild(addBtn);
-    container.appendChild(section);
-  });
-
-  // ── SEÇÃO DE PARCEIROS VERIFICADOS ──
-  const parceiros = editorState.parceiros || [];
-  if (parceiros.length > 0) {
-    const ps = document.createElement('div');
-    ps.style.cssText = 'background:var(--graphite);border-radius:20px;overflow:hidden;margin-bottom:16px;';
-    ps.innerHTML = `
-      <div style="background:linear-gradient(135deg,rgba(255,107,53,.15),rgba(255,107,53,.05));padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-          <span style="font-size:20px;">✅</span>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:white;">Parceiros verificados</div>
-        </div>
-        <div style="font-size:12px;color:rgba(255,255,255,.4);padding-left:30px;">Mostre esse roteiro na hora de chegar — os descontos são exclusivos pra quem veio pelo Floripa.me</div>
-      </div>
-      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
-        ${parceiros.map(p => `
-          <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-            <span style="font-size:28px;flex-shrink:0;line-height:1;margin-top:2px;">${p.emoji||'⭐'}</span>
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
-                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:white;">${p.nome}</div>
-                <div style="background:rgba(34,197,94,.2);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700;color:#22C55E;text-transform:uppercase;letter-spacing:.8px;">✓ verificado</div>
-              </div>
-              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:8px;">${p.tipo} · ${p.local}</div>
-              <div style="background:linear-gradient(135deg,rgba(255,107,53,.18),rgba(255,107,53,.08));border:1px solid rgba(255,107,53,.3);border-radius:9px;padding:8px 12px;display:flex;align-items:center;gap:7px;">
-                <span style="font-size:14px;">🎁</span>
-                <span style="font-size:12px;font-weight:700;color:#FF8C5A;">${p.oferta}</span>
-              </div>
-              ${p.motivo ? `<div style="font-size:11px;color:rgba(255,255,255,.28);margin-top:7px;font-style:italic;">💬 ${p.motivo}</div>` : ''}
-            </div>
-          </div>`).join('')}
-      </div>
-      <div style="padding:10px 20px 14px;text-align:center;">
-        <div style="font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.5px;">Promoções válidas mediante apresentação deste roteiro · Sujeito a disponibilidade</div>
-      </div>`;
-    container.appendChild(ps);
-  }
-
-  const badge = document.createElement('div');
-  badge.style.cssText = 'text-align:center;padding:10px;margin-bottom:8px;';
-  badge.innerHTML = `<span style="font-size:11px;color:#9CA3AF;letter-spacing:1px;">✦ Roteiro gerado por IA · Floripa.me</span>`;
-  container.appendChild(badge);
-
-  // Mensagem sutil "ganhe um abraço" — estratégia de ativação nos parceiros
-  const abracoMsg = document.createElement('div');
-  abracoMsg.style.cssText = 'text-align:center;padding:10px 16px;margin-bottom:4px;';
-  abracoMsg.innerHTML = '<span style="font-size:10px;color:rgba(0,0,0,0.2);letter-spacing:.5px;">Chegou pelo Floripa.me? Conta pro atendente e aproveite 🤙</span>';
-  container.appendChild(abracoMsg);
-
-  const actions = document.createElement('div');
-  actions.className = 'result-actions';
-  actions.innerHTML = `<button class="btn-share" onclick="shareRoteiro()">📤 Compartilhar roteiro</button><button class="btn-restart" onclick="startQuiz()">↩ Refazer questionário</button>`;
-  container.appendChild(actions);
-
-  // Update FAB
-  const fab = document.getElementById('fab-pdf');
-  const fabCount = document.getElementById('fab-count');
-  if (fab) fab.classList.add('visible');
-  if (fabCount) fabCount.textContent = totalActive;
-}
-
-// ── REMOVE / RESTORE ──
-function removeAct(id) {
-  editorState.dias.forEach(d => d.atividades.forEach(a => { if (a.id === id) a.removed = true; }));
-  renderEditor();
-}
-function restoreAct(id) {
-  editorState.dias.forEach(d => d.atividades.forEach(a => { if (a.id === id) a.removed = false; }));
-  renderEditor();
-}
-
-// ── MODAL ──
-function openEditModal(id, di) {
-  currentEditId = id; currentEditDi = di; selectedAltIdx = null; currentAlts = [];
-  const act = findAct(id);
-  if (!act) return;
-  document.getElementById('modal-title').textContent = act.nome;
-  document.getElementById('modal-subtitle').textContent = 'Dia ' + (editorState.dias[di]?.numero || di+1);
-  document.getElementById('edit-time').value = act.horario || '';
-  document.getElementById('edit-cost').value = act.custo || '';
-  document.getElementById('edit-name').value = act.nome || '';
-  document.getElementById('edit-desc').value = act.descricao || '';
-  document.getElementById('edit-transport').value = act.transporte || '';
-  document.getElementById('alts-container').innerHTML = '<div class="alts-loading"><div class="spinner"></div>Buscando alternativas via IA...</div>';
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  fetchAlts(act, di);
-}
-
-function openAddModal(di) {
-  currentEditId = null; currentEditDi = di; selectedAltIdx = null; currentAlts = [];
-  document.getElementById('modal-title').textContent = 'Nova atividade';
-  document.getElementById('modal-subtitle').textContent = 'Adicionar ao Dia ' + (editorState.dias[di]?.numero || di+1);
-  ['edit-time','edit-cost','edit-name','edit-desc','edit-transport'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('alts-container').innerHTML = '<div class="alts-loading"><div class="spinner"></div>Buscando sugestões via IA...</div>';
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  fetchSuggestions(di);
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-  currentEditId = null;
-}
-
-function closeModalOnOverlay(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-}
-
-async function fetchAlts(act, di) {
-  const perfil = editorState.perfil;
-  const prompt = 'Guia turistico de Florianopolis SC. Atividade atual: "' + act.nome + '" as ' + act.horario + ', custo ' + act.custo + '. Perfil: ' + JSON.stringify(perfil) + '. Sugira 3 alternativas reais de Floripa. Retorne SOMENTE JSON: {"alternativas":[{"emoji":"","nome":"","descricao":"1 frase","custo":"","transporte":"ou null","tag":"mais_barato|diferente|premium","tag_label":"Mais barato|Diferente|Premium"}]}';
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
-    const data = await resp.json();
-    const text = data.content.map(i=>i.text||'').join('').trim();
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error('no json');
-    currentAlts = JSON.parse(m[0]).alternativas || [];
-    renderAlts(currentAlts);
-  } catch(e) { document.getElementById('alts-container').innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">Edite manualmente os campos acima.</div>'; }
-}
-
-async function fetchSuggestions(di) {
-  const tema = editorState.dias[di]?.tema || '';
-  const perfil = editorState.perfil;
-  const prompt = 'Guia turistico de Florianopolis SC. Dia com tema "' + tema + '". Perfil: ' + JSON.stringify(perfil) + '. Sugira 3 atividades reais para adicionar. Retorne SOMENTE JSON: {"alternativas":[{"emoji":"","nome":"","descricao":"1 frase","custo":"","transporte":"ou null","tag":"gratuito|moderado|premium","tag_label":"Gratuito|Moderado|Premium"}]}';
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
-    const data = await resp.json();
-    const text = data.content.map(i=>i.text||'').join('').trim();
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error('no json');
-    currentAlts = JSON.parse(m[0]).alternativas || [];
-    renderAlts(currentAlts);
-  } catch(e) { document.getElementById('alts-container').innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">Preencha os campos manualmente.</div>'; }
-}
-
-function renderAlts(alts) {
-  const tagClass = {mais_barato:'tag-cheaper',diferente:'tag-closer',premium:'tag-popular',gratuito:'tag-cheaper',moderado:'tag-closer'};
-  const html = alts.map((a,i) => `<div class="alt-card" id="alt-${i}" onclick="selectAlt(${i})"><div class="alt-emoji">${a.emoji}</div><div style="flex:1;"><div class="alt-name">${a.nome}</div><div class="alt-desc">${a.descricao}</div><div style="display:flex;gap:8px;align-items:center;"><span class="alt-cost">${a.custo}</span><span class="alt-tag ${tagClass[a.tag]||'tag-closer'}">${a.tag_label}</span></div></div><div class="alt-check" id="altcheck-${i}">✓</div></div>`).join('');
-  document.getElementById('alts-container').innerHTML = '<div class="alternatives-grid">' + html + '</div>';
-}
-
-function selectAlt(i) {
-  const alt = currentAlts[i];
-  if (selectedAltIdx === i) {
-    selectedAltIdx = null;
-    document.getElementById('alt-'+i)?.classList.remove('selected');
-    if (currentEditId) { const act = findAct(currentEditId); if (act) { document.getElementById('edit-name').value = act.nome; document.getElementById('edit-desc').value = act.descricao; document.getElementById('edit-cost').value = act.custo; document.getElementById('edit-transport').value = act.transporte||''; } }
-    return;
-  }
-  if (selectedAltIdx !== null) document.getElementById('alt-'+selectedAltIdx)?.classList.remove('selected');
-  selectedAltIdx = i;
-  document.getElementById('alt-'+i)?.classList.add('selected');
-  document.getElementById('edit-name').value = alt.nome;
-  document.getElementById('edit-desc').value = alt.descricao;
-  document.getElementById('edit-cost').value = alt.custo;
-  document.getElementById('edit-transport').value = alt.transporte||'';
-}
-
-function saveEdit() {
-  const name = document.getElementById('edit-name').value.trim();
-  if (!name) { alert('Informe o nome da atividade.'); return; }
-  const time = document.getElementById('edit-time').value.trim();
-  const cost = document.getElementById('edit-cost').value.trim();
-  const desc = document.getElementById('edit-desc').value.trim();
-  const transport = document.getElementById('edit-transport').value.trim();
-  if (currentEditId) {
-    editorState.dias.forEach(d => d.atividades.forEach(a => {
-      if (a.id === currentEditId) { a.nome=name||a.nome; a.descricao=desc||a.descricao; a.horario=time||a.horario; a.custo=cost||a.custo; a.transporte=transport||null; if (selectedAltIdx!==null && currentAlts[selectedAltIdx]) { a.emoji=currentAlts[selectedAltIdx].emoji; delete a.image; delete imageCache[a.nome]; } }
-    }));
-  } else {
-    const emoji = selectedAltIdx !== null ? (currentAlts[selectedAltIdx]?.emoji || '📍') : '📍';
-    editorState.dias[currentEditDi].atividades.push({ id:'new_'+Date.now(), emoji, horario:time||'10:00', nome:name, descricao:desc||'', custo:cost||'A confirmar', transporte:transport||null, removed:false });
-  }
-  closeModal();
-  renderEditor();
-}
-
-function findAct(id) {
-  for (const d of editorState.dias) for (const a of d.atividades) if (a.id === id) return a;
-  return null;
-}
-
-// ── RENDER RESULT ──
 function renderResult(data, numDays, budget) {
   const a = answers;
   const group = a.group || 'solo';
@@ -2308,10 +2201,14 @@ function renderResult(data, numDays, budget) {
     if (special === 'vegano') texto += ' Vegano em Floripa: o Chickpeas na Barra da Lagoa é imperdível, e a região da Lagoa tem bastante opção plant-based. 🌱';
 
     // Dica de timing
-    if (timing === 'agora' || timing === 'amanha') {
-      texto += ' Tão chegando agora — o roteiro tá calibrado pra aproveitar ao máximo cada dia. Bora! 🏝️';
-    } else if (timing === 'planejando') {
-      texto += ' Ainda tão planejando — ótimo! Reservem os passeios de barco e restaurantes mais procurados com antecedência.';
+    if (timing === 'aviao') {
+      texto += ' Chegando de avião: do Aeroporto Hercílio Luz um Uber até o centro/norte sai ~R$45, para o sul ~R$20. O Floripa Transfer também é uma boa opção mais econômica. ✈️';
+    } else if (timing === 'onibus_chegada') {
+      texto += ' Chegando de ônibus no TICEN: dali sai ônibus para todas as regiões da ilha. Se preferir Uber, do TICEN para o sul sai ~R$35, para o norte ~R$45. 🚌';
+    } else if (timing === 'carro_chegada') {
+      texto += ' Ótimo, carro próprio em Floripa é uma vantagem e tanto! Só fique atento ao estacionamento nas praias do Norte nos fins de semana — enche rápido. 🚗';
+    } else if (timing === 'agora') {
+      texto += ' Já estão em Floripa — ótimo! O roteiro tá calibrado para aproveitar cada dia ao máximo. Bora! 🏝️';
     }
 
     return texto;
