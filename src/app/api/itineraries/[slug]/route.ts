@@ -3,9 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { getItineraryBySlug } from "@/lib/supabase/queries";
 
 interface RouteContext {
-  // Next.js 15 passes params as a Promise at runtime; the route test (fixed by
-  // the task brief) calls GET with a plain object, so this accepts both.
-  params: Promise<{ slug: string }> | { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function GET(_request: Request, { params }: RouteContext) {
