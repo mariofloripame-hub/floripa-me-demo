@@ -70,3 +70,23 @@ export function mapDiscoveryResult(apiPlace: PlacesApiPlace, seed: DiscoverySeed
     special_needs_tags: [],
   };
 }
+
+export interface PlaceEnrichmentPatch {
+  google_place_id: string;
+  lat: number | null;
+  lng: number | null;
+  rating: number | null;
+  photos: string[];
+}
+
+export function mapEnrichmentUpdate(apiPlace: PlacesApiPlace, apiKey: string): PlaceEnrichmentPatch {
+  return {
+    google_place_id: apiPlace.id,
+    lat: apiPlace.location?.latitude ?? null,
+    lng: apiPlace.location?.longitude ?? null,
+    rating: apiPlace.rating ?? null,
+    photos: (apiPlace.photos ?? [])
+      .slice(0, 3)
+      .map((p) => `https://places.googleapis.com/v1/${p.name}/media?maxWidthPx=800&key=${apiKey}`),
+  };
+}

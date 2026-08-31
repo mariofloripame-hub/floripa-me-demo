@@ -45,3 +45,13 @@ export async function updateItineraryDays(
   if (error) throw error;
   return data as ItineraryRow;
 }
+
+export async function updatePlaceEnrichment(
+  client: SupabaseClient,
+  id: string,
+  patch: Pick<Place, "google_place_id" | "lat" | "lng" | "rating" | "photos">,
+): Promise<Place> {
+  const { data, error } = await client.from("places").update(patch).eq("id", id).select().single();
+  if (error) throw error;
+  return data as Place;
+}

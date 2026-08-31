@@ -7,6 +7,7 @@ import {
   insertItinerary,
   getItineraryBySlug,
   updateItineraryDays,
+  updatePlaceEnrichment,
 } from "./queries";
 
 function makeChain(result: { data: unknown; error: unknown }) {
@@ -68,5 +69,12 @@ describe("queries", () => {
     const updated = { id: "1", slug: "abc123", days: [{ day_number: 1 }] };
     const client = fakeClientFor("itineraries", makeChain({ data: updated, error: null }));
     await expect(updateItineraryDays(client, "abc123", [{ day_number: 1 }])).resolves.toEqual(updated);
+  });
+
+  it("updatePlaceEnrichment patches lat/lng/rating/photos/google_place_id for a place", async () => {
+    const patch = { google_place_id: "ChIJ-x", lat: -27.6, lng: -48.5, rating: 4.7, photos: ["url1"] };
+    const updated = { id: "1", ...patch };
+    const client = fakeClientFor("places", makeChain({ data: updated, error: null }));
+    await expect(updatePlaceEnrichment(client, "1", patch)).resolves.toEqual(updated);
   });
 });

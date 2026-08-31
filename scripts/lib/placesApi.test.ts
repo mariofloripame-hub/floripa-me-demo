@@ -1,6 +1,6 @@
 // scripts/lib/placesApi.test.ts
 import { describe, it, expect } from "vitest";
-import { buildTextSearchRequest, mapDiscoveryResult } from "./placesApi";
+import { buildTextSearchRequest, mapDiscoveryResult, mapEnrichmentUpdate } from "./placesApi";
 
 describe("buildTextSearchRequest", () => {
   it("builds the Places API (New) Text Search request", () => {
@@ -47,5 +47,22 @@ describe("mapDiscoveryResult", () => {
     expect(result.name).toBe("Sem nome");
     expect(result.lat).toBeNull();
     expect(result.photos).toEqual([]);
+  });
+});
+
+describe("mapEnrichmentUpdate", () => {
+  it("maps a Places API result into an enrichment patch", () => {
+    const apiPlace = {
+      id: "ChIJ-fake-id",
+      location: { latitude: -27.61, longitude: -48.46 },
+      rating: 4.8,
+      photos: [{ name: "places/ChIJ-fake-id/photos/xyz" }],
+    };
+    const result = mapEnrichmentUpdate(apiPlace, "fake-key");
+    expect(result.google_place_id).toBe("ChIJ-fake-id");
+    expect(result.lat).toBe(-27.61);
+    expect(result.lng).toBe(-48.46);
+    expect(result.rating).toBe(4.8);
+    expect(result.photos[0]).toContain("places/ChIJ-fake-id/photos/xyz/media");
   });
 });
