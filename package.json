@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
+    "@googlemaps/js-api-loader": "^1.16.10",
     "@supabase/supabase-js": "^2.112.4",
     "next": "15.5.24",
     "react": "19.1.0",
@@ -27,6 +28,7 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@types/google.maps": "^3.66.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
