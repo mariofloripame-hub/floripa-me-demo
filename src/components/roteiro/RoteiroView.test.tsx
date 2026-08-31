@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/roteiro/abc123" }));
@@ -19,5 +19,24 @@ describe("RoteiroView", () => {
     expect(screen.getByText(/preparamos 2 dias/i)).toBeInTheDocument();
     expect(screen.getByText(/dia 1/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /mapa/i })).toHaveAttribute("href", "/roteiro/abc123/mapa");
+  });
+
+  it("removes an activity via PATCH and updates the view optimistically", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ ...itinerary, days: [] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<RoteiroView itinerary={itinerary} />);
+    fireEvent.click(screen.getByRole("button", { name: /remover praia/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/itineraries/abc123",
+      expect.objectContaining({ method: "PATCH" }),
+    ));
+    await waitFor(() => expect(screen.queryByText(/dia 1/i)).not.toBeInTheDocument());
+
+    vi.unstubAllGlobals();
   });
 });

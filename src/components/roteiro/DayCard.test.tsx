@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import { DayCard } from "./DayCard";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 
@@ -25,5 +25,12 @@ describe("DayCard", () => {
   it("shows the partner badge only for partner activities", () => {
     render(<DayCard day={day} />);
     expect(screen.getAllByText(/parceiro/i)).toHaveLength(1);
+  });
+
+  it("renders a remove button per activity when onRemove is provided, and calls it with the place_id", () => {
+    const onRemove = vi.fn();
+    render(<DayCard day={day} onRemove={onRemove} />);
+    fireEvent.click(screen.getAllByRole("button", { name: /remover/i })[0]);
+    expect(onRemove).toHaveBeenCalledWith("p1");
   });
 });

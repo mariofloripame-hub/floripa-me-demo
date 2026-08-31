@@ -1,6 +1,6 @@
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 
-export function DayCard({ day }: { day: ItineraryDay }) {
+export function DayCard({ day, onRemove }: { day: ItineraryDay; onRemove?: (placeId: string) => void }) {
   return (
     <section className="rounded-card border border-white/10 bg-white/5 p-4">
       <h2 className="font-display text-xs font-extrabold uppercase tracking-wide text-turquoise">
@@ -19,6 +19,16 @@ export function DayCard({ day }: { day: ItineraryDay }) {
                 {act.price_range} · {act.category}
               </div>
             </div>
+            {onRemove && (
+              <button
+                type="button"
+                aria-label={`Remover ${act.name}`}
+                onClick={() => onRemove(act.place_id)}
+                className="text-ink-dim hover:text-alert"
+              >
+                ✕
+              </button>
+            )}
           </li>
         ))}
       </ul>
