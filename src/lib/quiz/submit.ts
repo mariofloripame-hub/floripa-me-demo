@@ -7,7 +7,8 @@ export async function submitQuizAnswers(answers: QuizAnswers): Promise<{ slug: s
     body: JSON.stringify({ answers }),
   });
   if (!response.ok) {
-    throw new Error("Não foi possível gerar o roteiro. Tente novamente em instantes.");
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error ?? "Não foi possível gerar o roteiro. Tente novamente em instantes.");
   }
   return response.json();
 }
