@@ -1,0 +1,13 @@
+{
+  "name": "Floripa.me",
+  "short_name": "Floripa.me",
+  "description": "Seu roteiro personalizado em Florianópolis, gerado por IA.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1416",
+  "theme_color": "#0B1416",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

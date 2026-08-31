@@ -18,7 +18,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${syne.variable} ${dmSans.variable}`}>
-      <body className="bg-graphite text-ink font-body min-h-screen">{children}</body>
+      <body className="bg-graphite text-ink font-body min-h-screen">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js')); }`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
