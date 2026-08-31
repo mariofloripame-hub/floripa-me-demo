@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "migrate:excel": "tsx scripts/migrate-excel.ts"
+    "migrate:excel": "tsx scripts/migrate-excel.ts",
+    "places:discover": "tsx scripts/places-discover.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
