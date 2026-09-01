@@ -11,6 +11,21 @@ export const SYSTEM_PROMPT = [
   "Escreva em português do Brasil, em tom caloroso e local, como um amigo dando dicas.",
 ].join(" ");
 
+const TIMING_LABEL: Record<string, string> = {
+  aviao: "chegando de avião",
+  onibus_chegada: "chegando de ônibus",
+  carro_chegada: "chegando de carro",
+  agora: "já está em Floripa",
+};
+
+const REGION_LABEL: Record<string, string> = {
+  centro: "Centro / Continente",
+  norte: "Norte da Ilha",
+  leste: "Leste da Ilha",
+  sul: "Sul da Ilha",
+  semhospedagem: "ainda sem hospedagem definida",
+};
+
 function dayCountFor(days: string | undefined): number {
   switch (days) {
     case "1":
@@ -35,6 +50,12 @@ export function buildItineraryPrompt(candidates: Place[], answers: QuizAnswers):
     )
     .join("\n");
 
+  const timingLabel = answers.timing ? (TIMING_LABEL[answers.timing] ?? "não informado") : "não informado";
+  const regionLabel =
+    answers.region && answers.region !== "nao"
+      ? (REGION_LABEL[answers.region] ?? "não informado")
+      : "não informado / sem hospedagem definida";
+
   return [
     "Perfil do viajante:",
     `- Companhia: ${answers.group ?? "não informado"}`,
@@ -43,11 +64,15 @@ export function buildItineraryPrompt(candidates: Place[], answers: QuizAnswers):
     `- Orçamento diário: R$${answers.budget ?? 150}`,
     `- Transporte: ${answers.transport ?? "não informado"}`,
     `- Necessidade especial: ${answers.special ?? "nenhuma"}`,
+    `- Chegada: ${timingLabel}`,
+    `- Região de hospedagem: ${regionLabel}`,
     "",
     "Lugares disponíveis (use SOMENTE estes, referenciando pelo place_id):",
     candidateLines,
     "",
     `Monte ${dayCount} dia(s) de roteiro, cada um com 3 a 5 atividades em horários realistas`,
     "(manhã/tarde/noite), e escreva uma mensagem de boas-vindas curta e personalizada ao perfil.",
+    "Use a região de hospedagem informada (quando houver) para ordenar as atividades de cada dia",
+    "de forma logisticamente inteligente, evitando deslocamentos desnecessários pela ilha.",
   ].join("\n");
 }

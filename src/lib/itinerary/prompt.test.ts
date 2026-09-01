@@ -40,4 +40,24 @@ describe("buildItineraryPrompt", () => {
     const prompt = buildItineraryPrompt([place({})], {});
     expect(prompt).toMatch(/exatamente 2 dia/);
   });
+
+  it("includes readable timing and region labels when informed", () => {
+    const prompt = buildItineraryPrompt([place({})], { timing: "aviao", region: "leste" });
+    expect(prompt).toContain("chegando de avião");
+    expect(prompt).toContain("Leste da Ilha");
+  });
+
+  it("tells Claude to use the stay region for logistical ordering", () => {
+    const prompt = buildItineraryPrompt([place({})], {});
+    expect(prompt.toLowerCase()).toMatch(/região de hospedagem.*ordenar|ordenar.*regi(ã|a)o/);
+  });
+
+  it("falls back to a sensible default when timing/region are absent or 'não informar'", () => {
+    const prompt = buildItineraryPrompt([place({})], {});
+    expect(prompt).toContain("- Chegada: não informado");
+    expect(prompt).toContain("- Região de hospedagem: não informado");
+
+    const promptWithNao = buildItineraryPrompt([place({})], { region: "nao" });
+    expect(promptWithNao).toContain("- Região de hospedagem: não informado");
+  });
 });
