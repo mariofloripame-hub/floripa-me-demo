@@ -83,8 +83,24 @@ function isBlankRow(row: Row): boolean {
   return row.every((cell) => str(cell) === "");
 }
 
+/**
+ * The real workbook prefixes each sheet with a title row (and, on "Banco de
+ * Locais", an extra instructions row) before the actual column-header row —
+ * so the header isn't always matrix[0]. Scan for the row containing a known
+ * required column instead of assuming a fixed position.
+ */
+function splitAtHeaderRow(matrix: Row[], mustInclude: string): { header: Row; rows: Row[] } {
+  const headerIndex = matrix.findIndex((row) =>
+    row.some((cell) => str(cell).toUpperCase() === mustInclude.toUpperCase()),
+  );
+  if (headerIndex === -1) {
+    throw new Error(`Header row not found (expected a column named "${mustInclude}")`);
+  }
+  return { header: matrix[headerIndex], rows: matrix.slice(headerIndex + 1) };
+}
+
 export function parsePlacesSheet(matrix: Row[]): ParsedPlace[] {
-  const [header, ...rows] = matrix;
+  const { header, rows } = splitAtHeaderRow(matrix, "REGIÃO");
   const col = {
     region: columnIndex(header, "REGIÃO"),
     neighborhood: columnIndex(header, "BAIRRO / LOCAL"),
@@ -139,7 +155,7 @@ export function parsePlacesSheet(matrix: Row[]): ParsedPlace[] {
 }
 
 export function parseEventsSheet(matrix: Row[]): ParsedEvent[] {
-  const [header, ...rows] = matrix;
+  const { header, rows } = splitAtHeaderRow(matrix, "EVENTO");
   const col = {
     name: columnIndex(header, "EVENTO"),
     startMonth: columnIndex(header, "MÊS INÍCIO"),

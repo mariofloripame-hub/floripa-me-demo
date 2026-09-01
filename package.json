@@ -9,9 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "migrate:excel": "tsx scripts/migrate-excel.ts",
-    "places:discover": "tsx scripts/places-discover.ts",
-    "places:enrich": "tsx scripts/places-enrich.ts"
+    "migrate:excel": "tsx --env-file=.env.local scripts/migrate-excel.ts",
+    "places:discover": "tsx --env-file=.env.local scripts/places-discover.ts",
+    "places:enrich": "tsx --env-file=.env.local scripts/places-enrich.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

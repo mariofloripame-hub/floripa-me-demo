@@ -1,4 +1,5 @@
 // scripts/migrate-excel.ts
+import { readFileSync } from "fs";
 import * as XLSX from "xlsx";
 import { getSupabaseAdminClient } from "../src/lib/supabase/client";
 import { parsePlacesSheet, parseEventsSheet } from "./lib/parseBancoDeLocais";
@@ -42,7 +43,11 @@ async function insertInChunks<T extends object>(
 }
 
 async function main() {
-  const workbook = XLSX.readFile(SOURCE_PATH);
+  // xlsx's ESM build (used here because package.json has "type": "module")
+  // omits readFile/readFileSync from its named exports — they depend on
+  // Node's `fs`, which the browser-safe ESM entry doesn't bundle. Read the
+  // file ourselves and hand the buffer to `read`, which is exported.
+  const workbook = XLSX.read(readFileSync(SOURCE_PATH));
 
   const placesSheet = workbook.Sheets["Banco de Locais"];
   const placesMatrix = XLSX.utils.sheet_to_json<(string | number | boolean | null)[]>(placesSheet, { header: 1 });
