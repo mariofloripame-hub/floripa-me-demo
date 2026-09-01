@@ -2,11 +2,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getItineraryBySlug, listPlaces } from "@/lib/supabase/queries";
 import { filterCandidates } from "./filterCandidates";
 import { weightedSample } from "./rankCandidates";
-import type { Place } from "@/lib/supabase/types";
 import type { ItineraryDay } from "./assemble";
 import type { QuizAnswers } from "@/lib/quiz/types";
 
-export async function getNearbyPlaces(slug: string, supabase: SupabaseClient, count = 10): Promise<Place[]> {
+export interface NearbyPlace {
+  id: string;
+  name: string;
+  lat: number | null;
+  lng: number | null;
+}
+
+export async function getNearbyPlaces(
+  slug: string,
+  supabase: SupabaseClient,
+  count = 10,
+): Promise<NearbyPlace[]> {
   const itinerary = await getItineraryBySlug(supabase, slug);
   if (!itinerary) return [];
 
@@ -16,5 +26,6 @@ export async function getNearbyPlaces(slug: string, supabase: SupabaseClient, co
     (p) => !usedIds.has(p.id),
   );
 
-  return weightedSample(filtered, { count });
+  const sampled = weightedSample(filtered, { count });
+  return sampled.map((p) => ({ id: p.id, name: p.name, lat: p.lat, lng: p.lng }));
 }

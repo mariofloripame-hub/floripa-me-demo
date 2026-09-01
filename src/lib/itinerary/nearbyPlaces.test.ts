@@ -54,4 +54,19 @@ describe("getNearbyPlaces", () => {
 
     expect(result.map((p) => p.id)).toEqual(["p2"]);
   });
+
+  it("only returns the fields the map needs, never the raw place row (e.g. photos with the Places API key)", async () => {
+    const itinerary = {
+      slug: "abc123",
+      quiz_answers: {},
+      days: [{ day_number: 1, theme: "d", activities: [] }],
+    };
+    const places = [place({ id: "p1", photos: ["https://places.googleapis.com/v1/x/media?key=SECRET"] })];
+    const supabase = fakeSupabase(itinerary, places);
+
+    const result = await getNearbyPlaces("abc123", supabase, 5);
+
+    expect(result[0]).not.toHaveProperty("photos");
+    expect(Object.keys(result[0]).sort()).toEqual(["id", "lat", "lng", "name"]);
+  });
 });

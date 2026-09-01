@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { BottomNav } from "@/components/nav/BottomNav";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
-import type { Place } from "@/lib/supabase/types";
+import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
 interface MapaViewProps {
   slug: string;
   days: ItineraryDay[];
-  nearby: Place[];
+  nearby: NearbyPlace[];
 }
 
 const DEFAULT_CENTER = { lat: -27.5954, lng: -48.548 };
