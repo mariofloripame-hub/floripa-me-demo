@@ -62,4 +62,24 @@ describe("createItinerary", () => {
       createItinerary({ group: "solo" }, { supabase, anthropicClient: fakeAnthropic() }),
     ).rejects.toBeInstanceOf(NoCandidatesError);
   });
+
+  it("throws (and never persists) when the generation only references unknown place_ids, leaving zero assembled days", async () => {
+    const places = [place()];
+    const insertedRow = { id: "1", slug: "abc12345", quiz_answers: {}, welcome_message: "Oi!", days: [], created_at: "2026-01-01T00:00:00Z" };
+    const supabase = fakeSupabase({ data: places, error: null }, insertedRow);
+    const bogusGeneration = {
+      welcome_message: "Oi!",
+      days: [{ day_number: 1, theme: "Dia 1", activities: [{ place_id: "does-not-exist", time: "09:00" }] }],
+    };
+    const anthropicClient: MessagesParseClient = {
+      messages: { parse: vi.fn().mockResolvedValue({ parsed_output: bogusGeneration }) },
+    };
+
+    await expect(
+      createItinerary({ group: "solo" }, { supabase, anthropicClient }),
+    ).rejects.toThrow(/nenhuma atividade utilizável/);
+
+    const itinerariesCall = (supabase.from as ReturnType<typeof vi.fn>).mock.calls.find(([table]) => table === "itineraries");
+    expect(itinerariesCall).toBeUndefined();
+  });
 });

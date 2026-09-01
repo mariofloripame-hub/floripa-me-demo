@@ -40,6 +40,9 @@ export async function createItinerary(answers: QuizAnswers, deps: CreateItinerar
     : await generateItinerary(candidates, answers);
 
   const days = assembleDays(generation, candidates);
+  if (days.length === 0) {
+    throw new Error("A geração não produziu nenhuma atividade utilizável.");
+  }
   const slug = generateSlug();
 
   return insertItinerary(deps.supabase, {
