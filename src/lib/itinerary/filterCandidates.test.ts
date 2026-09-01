@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { filterCandidates } from "./filterCandidates";
 import type { Place } from "@/lib/supabase/types";
 
@@ -53,6 +55,22 @@ describe("filterCandidates", () => {
     const places = [place({ id: "a", category: "Gastronomia" }), place({ id: "b", category: "Bar / Noturno" })];
     const result = filterCandidates(places, {});
     expect(result.map((p) => p.id).sort()).toEqual(["a", "b"]);
+  });
+
+  it("keeps 'Esporte' and 'Passeio' places when style 'praia' is selected (they were previously unreachable)", () => {
+    const places = [
+      place({ id: "esporte", category: "Esporte" }),
+      place({ id: "passeio", category: "Passeio" }),
+      place({ id: "unrelated", category: "Bar / Noturno" }),
+    ];
+    const result = filterCandidates(places, { style: ["praia"] });
+    expect(result.map((p) => p.id).sort()).toEqual(["esporte", "passeio"]);
+  });
+
+  it("no longer references the invented 'Lazer / Compras' or 'Lazer' category names", () => {
+    const source = readFileSync(join(__dirname, "filterCandidates.ts"), "utf-8");
+    expect(source).not.toContain("Lazer / Compras");
+    expect(source).not.toMatch(/"Lazer"/);
   });
 
   it("combines profile, price, and style filters", () => {

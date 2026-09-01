@@ -9,10 +9,10 @@ const GROUP_PROFILE_LABEL: Record<string, string> = {
 };
 
 const STYLE_CATEGORIES: Record<string, string[]> = {
-  praia: ["Praia", "Trilha", "Natureza", "Mirante", "Atividade"],
+  praia: ["Praia", "Trilha", "Natureza", "Mirante", "Atividade", "Esporte", "Passeio"],
   gastronomia: ["Gastronomia", "Café / Padaria"],
-  compras: ["Lazer / Compras"],
-  cultura: ["Cultura", "Lazer"],
+  compras: ["Atividade", "Passeio"],
+  cultura: ["Cultura", "Passeio"],
   noite: ["Bar / Noturno", "Beach Club"],
   negocios: ["Cultura", "Gastronomia"],
 };
