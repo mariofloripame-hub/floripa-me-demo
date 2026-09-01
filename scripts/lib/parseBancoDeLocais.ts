@@ -31,9 +31,43 @@ export interface ParsedEvent {
 }
 
 const MONTHS: Record<string, number> = {
-  janeiro: 1, fevereiro: 2, março: 3, abril: 4, maio: 5, junho: 6,
-  julho: 7, agosto: 8, setembro: 9, outubro: 10, novembro: 11, dezembro: 12,
+  janeiro: 1, jan: 1,
+  fevereiro: 2, fev: 2,
+  março: 3, marco: 3, mar: 3,
+  abril: 4, abr: 4,
+  maio: 5, mai: 5,
+  junho: 6, jun: 6,
+  julho: 7, jul: 7,
+  agosto: 8, ago: 8,
+  setembro: 9, set: 9,
+  outubro: 10, out: 10,
+  novembro: 11, nov: 11,
+  dezembro: 12, dez: 12,
 };
+
+const VALID_PRICE_RANGES = new Set(["Gratuito", "R$", "R$$", "R$$$"]);
+
+export function normalizePriceRange(raw: string): string {
+  const trimmed = raw.trim();
+  if (VALID_PRICE_RANGES.has(trimmed)) return trimmed;
+  if (/^gratuito/i.test(trimmed)) return "Gratuito";
+  if (/r\$\$\$/i.test(trimmed)) return "R$$$";
+  if (/r\$\$/i.test(trimmed)) return "R$$";
+  if (/r\$/i.test(trimmed)) return "R$";
+  console.warn(`Unrecognized price_range "${raw}", defaulting to "R$$".`);
+  return "R$$";
+}
+
+function resolveMonth(raw: string, fallback: number): number {
+  const key = raw.trim().toLowerCase();
+  if (!key) return fallback;
+  const month = MONTHS[key];
+  if (month === undefined) {
+    console.warn(`Unrecognized month "${raw}", defaulting to ${fallback}.`);
+    return fallback;
+  }
+  return month;
+}
 
 function str(cell: Cell): string {
   return cell === null || cell === undefined ? "" : String(cell).trim();
@@ -89,7 +123,7 @@ export function parsePlacesSheet(matrix: Row[]): ParsedPlace[] {
       name: str(row[col.name]),
       category: str(row[col.category]),
       target_profiles: str(row[col.profiles]).split(",").map((s) => s.trim()).filter(Boolean),
-      price_range: str(row[col.price]),
+      price_range: normalizePriceRange(str(row[col.price])),
       point_type: str(row[col.pointType]),
       is_partner: str(row[col.partner]).toLowerCase() === "sim",
       short_description: str(row[col.description]),
@@ -122,10 +156,13 @@ export function parseEventsSheet(matrix: Row[]): ParsedEvent[] {
     const name = str(row[col.name]);
     if (!name) continue;
 
+    const start_month = resolveMonth(str(row[col.startMonth]), 1);
+    const end_month = resolveMonth(str(row[col.endMonth]), start_month);
+
     results.push({
       name,
-      start_month: MONTHS[str(row[col.startMonth]).toLowerCase()] ?? 0,
-      end_month: MONTHS[str(row[col.endMonth]).toLowerCase()] ?? MONTHS[str(row[col.startMonth]).toLowerCase()] ?? 0,
+      start_month,
+      end_month,
       location: str(row[col.location]),
       target_profiles: profilesIdx >= 0 && str(row[profilesIdx])
         ? str(row[profilesIdx]).split(",").map((s) => s.trim()).filter(Boolean)

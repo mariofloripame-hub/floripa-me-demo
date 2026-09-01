@@ -4,6 +4,42 @@ import { getSupabaseAdminClient } from "../src/lib/supabase/client";
 import { parsePlacesSheet, parseEventsSheet } from "./lib/parseBancoDeLocais";
 
 const SOURCE_PATH = process.argv[2] ?? "../floripa-me-banco-locais.xlsx";
+const CHUNK_SIZE = 20;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/**
+ * Inserts rows in small chunks so that a single row that violates a CHECK
+ * constraint (e.g. a price_range/month value the parser couldn't clean up)
+ * only fails its own chunk, instead of aborting the entire batch.
+ */
+async function insertInChunks<T extends object>(
+  client: ReturnType<typeof getSupabaseAdminClient>,
+  table: string,
+  rows: T[],
+): Promise<{ inserted: number; failed: number }> {
+  let inserted = 0;
+  let failed = 0;
+
+  for (const rowsChunk of chunk(rows, CHUNK_SIZE)) {
+    const { error } = await client.from(table).insert(rowsChunk);
+    if (error) {
+      failed += rowsChunk.length;
+      console.error(`Failed to insert a chunk of ${rowsChunk.length} row(s) into "${table}": ${error.message}`);
+      console.error("Offending rows:", JSON.stringify(rowsChunk, null, 2));
+    } else {
+      inserted += rowsChunk.length;
+    }
+  }
+
+  return { inserted, failed };
+}
 
 async function main() {
   const workbook = XLSX.readFile(SOURCE_PATH);
@@ -18,13 +54,11 @@ async function main() {
 
   const client = getSupabaseAdminClient();
 
-  const { error: placesError } = await client.from("places").insert(places);
-  if (placesError) throw placesError;
-  console.log(`Inserted ${places.length} places.`);
+  const placesResult = await insertInChunks(client, "places", places);
+  console.log(`Places: ${placesResult.inserted} inserted, ${placesResult.failed} failed (of ${places.length} total).`);
 
-  const { error: eventsError } = await client.from("events").insert(events);
-  if (eventsError) throw eventsError;
-  console.log(`Inserted ${events.length} events.`);
+  const eventsResult = await insertInChunks(client, "events", events);
+  console.log(`Events: ${eventsResult.inserted} inserted, ${eventsResult.failed} failed (of ${events.length} total).`);
 }
 
 main().catch((error) => {

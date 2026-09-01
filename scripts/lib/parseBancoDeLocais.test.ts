@@ -1,5 +1,5 @@
 // scripts/lib/parseBancoDeLocais.test.ts
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parsePlacesSheet, parseEventsSheet } from "./parseBancoDeLocais";
 
 const PLACES_HEADER = [
@@ -22,8 +22,21 @@ describe("parsePlacesSheet", () => {
     const result = parsePlacesSheet(matrix);
 
     expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject({ region: "Sul", neighborhood: "Campeche", name: "Praia do Campeche", is_partner: true });
-    expect(result[1]).toMatchObject({ region: "Sul", neighborhood: "Campeche", name: "Tia Jú", is_partner: false });
+    expect(result[0]).toMatchObject({ region: "Sul", neighborhood: "Campeche", name: "Praia do Campeche", is_partner: true, price_range: "Gratuito" });
+    expect(result[1]).toMatchObject({ region: "Sul", neighborhood: "Campeche", name: "Tia Jú", is_partner: false, price_range: "R$" });
+  });
+
+  it("normalizes price_range variants into the schema's exact 4 values", () => {
+    const rows = ["R$ (econômico)", "R$$ (médio)", "R$$$ (alto)", "Gratuito", "gratuito (sem custo)", "algo estranho"].map(
+      (price, i) => [String(i + 1), "Sul", "Campeche", `Local ${i}`, "Praia", "Todos", price, "Ponto Turístico", "Não", "d", "e", "", "", "", "", ""],
+    );
+    const matrix = [PLACES_HEADER, ...rows];
+
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const result = parsePlacesSheet(matrix);
+    warn.mockRestore();
+
+    expect(result.map((r) => r.price_range)).toEqual(["R$", "R$$", "R$$$", "Gratuito", "Gratuito", "R$$"]);
   });
 
   it("splits the perfil ideal column on commas into target_profiles", () => {
@@ -73,5 +86,27 @@ describe("parseEventsSheet", () => {
   it("skips rows with no event name", () => {
     const matrix = [EVENTS_HEADER, ["", "", "", "", "", "", ""]];
     expect(parseEventsSheet(matrix)).toHaveLength(0);
+  });
+
+  it("never produces 0 for an unrecognized month string (defaults to 1 / mirrors start month instead)", () => {
+    const matrix = [
+      EVENTS_HEADER,
+      ["Festival X", "Mêsinvalido", "Mêsinvalido", "Centro", "Não", true, ""],
+    ];
+
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const result = parseEventsSheet(matrix);
+    warn.mockRestore();
+
+    expect(result[0].start_month).toBe(1);
+    expect(result[0].end_month).toBe(1);
+    expect(result[0].start_month).not.toBe(0);
+    expect(result[0].end_month).not.toBe(0);
+  });
+
+  it("resolves common month abbreviations", () => {
+    const matrix = [EVENTS_HEADER, ["Festa Jun", "jun", "jul", "Centro", "Não", true, ""]];
+    const result = parseEventsSheet(matrix);
+    expect(result[0]).toMatchObject({ start_month: 6, end_month: 7 });
   });
 });
