@@ -7,8 +7,8 @@ describe("WelcomePage", () => {
 
   it("renders the welcome headline and a link to the quiz", () => {
     render(<WelcomePage />);
-    expect(screen.getByText(/sua ilha/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /começar/i })).toHaveAttribute("href", "/quiz");
+    expect(screen.getByText(/descubra/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /criar meu roteiro/i })).toHaveAttribute("href", "/quiz");
   });
 
   it("does not show a 'continuar' link when there is no saved itinerary", () => {
