@@ -32,4 +32,10 @@ describe("CouponCard", () => {
     render(<CouponCard coupon={coupon} redeemed={false} limitReached={true} onRedeem={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Limite atingido" })).toBeDisabled();
   });
+
+  it("prioritizes redeemed state over limit reached when both are true", () => {
+    render(<CouponCard coupon={coupon} redeemed={true} limitReached={true} onRedeem={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "✓ Resgatado" })).toBeDisabled();
+    expect(screen.queryByText("Limite atingido")).not.toBeInTheDocument();
+  });
 });
