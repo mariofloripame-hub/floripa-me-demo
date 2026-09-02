@@ -135,12 +135,12 @@ export default function WelcomePage() {
             >
               Criar meu roteiro →
             </Link>
-            <button
-              type="button"
+            <Link
+              href="/clube"
               className="w-full rounded-pill border border-turquoise/50 bg-transparent py-2 text-center text-xs font-display font-bold text-turquoise transition hover:bg-turquoise/10 active:scale-[0.98]"
             >
               Sou de Floripa
-            </button>
+            </Link>
           </div>
           <div className="flex items-start justify-center gap-2 text-xs text-ink-dim [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
             <span className="mt-0.5 flex -space-x-1.5 shrink-0" aria-hidden>

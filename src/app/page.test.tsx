@@ -11,6 +11,11 @@ describe("WelcomePage", () => {
     expect(screen.getByRole("link", { name: /criar meu roteiro/i })).toHaveAttribute("href", "/quiz");
   });
 
+  it("links 'Sou de Floripa' to the Clube Local portal", () => {
+    render(<WelcomePage />);
+    expect(screen.getByRole("link", { name: /sou de floripa/i })).toHaveAttribute("href", "/clube");
+  });
+
   it("does not show a 'continuar' link when there is no saved itinerary", () => {
     render(<WelcomePage />);
     expect(screen.queryByText(/continuar meu último roteiro/i)).not.toBeInTheDocument();
