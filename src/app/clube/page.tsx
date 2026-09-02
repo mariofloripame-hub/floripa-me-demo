@@ -6,7 +6,13 @@ import { ProgressBar } from "@/components/quiz/ProgressBar";
 import { PlanCard } from "@/components/clube/PlanCard";
 import { CouponCard } from "@/components/clube/CouponCard";
 import { PLANS, COUPONS, regionOptions, categoryOptions, type ClubePlanId } from "@/lib/clube/coupons";
-import { readSubscription, writeSubscription, redeemCoupon, type ClubeSubscription } from "@/lib/clube/subscription";
+import {
+  readSubscription,
+  writeSubscription,
+  redeemCoupon,
+  clearSubscription,
+  type ClubeSubscription,
+} from "@/lib/clube/subscription";
 
 type Step = "plans" | "signup" | "portal";
 
@@ -46,9 +52,11 @@ function PlansStep({ onSelectPlan }: { onSelectPlan: (planId: ClubePlanId) => vo
 function SignupStep({
   planId,
   onSubmit,
+  onBack,
 }: {
   planId: ClubePlanId;
   onSubmit: (input: { name: string; email: string }) => void;
+  onBack: () => void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -62,9 +70,16 @@ function SignupStep({
 
   return (
     <div className="flex flex-col gap-4 p-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="w-fit text-xs text-ink-dim underline decoration-ink-dim/40 underline-offset-4 transition hover:text-turquoise"
+      >
+        ← Voltar
+      </button>
       <h1 className="font-display text-2xl font-extrabold text-ink">Quase lá!</h1>
       <p className="text-sm text-ink-dim">
-        Plano <span>{plan.name}</span> · {plan.priceLabel}/mês · {plan.description}
+        Plano {plan.name} · {plan.priceLabel}/mês · {plan.description}
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
@@ -99,14 +114,17 @@ function SignupStep({
 function PortalStep({
   subscription,
   onRedeem,
+  onExit,
 }: {
   subscription: ClubeSubscription;
   onRedeem: (couponId: string) => void;
+  onExit: () => void;
 }) {
   const [region, setRegion] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const plan = findPlan(subscription.planId);
   const limitReached = subscription.redeemedCouponIds.length >= plan.couponsPerMonth;
+  const localPlusPlan = findPlan("local+");
 
   const filtered = COUPONS.filter(
     (c) => (!region || c.region === region) && (!category || c.category === category),
@@ -114,11 +132,20 @@ function PortalStep({
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
-      <div>
-        <p className="text-xs font-bold text-ink-dim">
-          {subscription.redeemedCouponIds.length}/{plan.couponsPerMonth} cupons usados este mês
-        </p>
-        <ProgressBar current={subscription.redeemedCouponIds.length} total={plan.couponsPerMonth} />
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-xs font-bold text-ink-dim">
+            {subscription.redeemedCouponIds.length}/{plan.couponsPerMonth} cupons usados este mês
+          </p>
+          <ProgressBar current={subscription.redeemedCouponIds.length} total={plan.couponsPerMonth} />
+        </div>
+        <button
+          type="button"
+          onClick={onExit}
+          className="ml-3 shrink-0 text-xs text-ink-dim underline decoration-ink-dim/40 underline-offset-4 transition hover:text-turquoise"
+        >
+          Sair do clube
+        </button>
       </div>
 
       <div>
@@ -177,21 +204,34 @@ function PortalStep({
       </div>
 
       <div className="flex flex-col gap-3">
-        {filtered.map((coupon) => (
-          <CouponCard
-            key={coupon.id}
-            coupon={coupon}
-            redeemed={subscription.redeemedCouponIds.includes(coupon.id)}
-            limitReached={limitReached}
-            onRedeem={onRedeem}
-          />
-        ))}
+        {filtered.length === 0 ? (
+          <p className="rounded-card border border-white/10 bg-white/5 p-6 text-center text-sm text-ink-dim">
+            Nenhum cupom nessa combinação. Tente outra região ou categoria.
+          </p>
+        ) : (
+          filtered.map((coupon) => (
+            <CouponCard
+              key={coupon.id}
+              coupon={coupon}
+              redeemed={subscription.redeemedCouponIds.includes(coupon.id)}
+              limitReached={limitReached}
+              onRedeem={onRedeem}
+            />
+          ))
+        )}
       </div>
 
       {subscription.planId === "local" && (
         <div className="rounded-card border border-turquoise/30 bg-turquoise/5 p-4 text-center">
           <p className="text-sm font-bold text-ink">Quer mais cupons?</p>
-          <p className="mt-1 text-xs text-ink-dim">Assine o Local+ e resgate até 6 por mês.</p>
+          <p className="mt-1 text-xs text-ink-dim">Assine o Local+ e resgate até {localPlusPlan.couponsPerMonth} por mês.</p>
+          <button
+            type="button"
+            onClick={onExit}
+            className="mt-3 rounded-pill bg-gradient-to-r from-turquoise to-blue px-4 py-2 text-xs font-display font-extrabold text-graphite"
+          >
+            Assinar Local+ →
+          </button>
         </div>
       )}
     </div>
@@ -232,11 +272,21 @@ export default function ClubePage() {
     setSubscription(updated);
   }
 
+  function handleExit() {
+    clearSubscription();
+    setSubscription(null);
+    setStep("plans");
+  }
+
   return (
     <main className="min-h-dvh bg-graphite text-ink">
       {step === "plans" && <PlansStep onSelectPlan={handleSelectPlan} />}
-      {step === "signup" && <SignupStep planId={selectedPlanId} onSubmit={handleSignup} />}
-      {step === "portal" && subscription && <PortalStep subscription={subscription} onRedeem={handleRedeem} />}
+      {step === "signup" && (
+        <SignupStep planId={selectedPlanId} onSubmit={handleSignup} onBack={() => setStep("plans")} />
+      )}
+      {step === "portal" && subscription && (
+        <PortalStep subscription={subscription} onRedeem={handleRedeem} onExit={handleExit} />
+      )}
     </main>
   );
 }

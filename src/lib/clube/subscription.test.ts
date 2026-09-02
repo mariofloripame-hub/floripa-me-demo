@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { readSubscription, writeSubscription, redeemCoupon, type ClubeSubscription } from "./subscription";
+import { readSubscription, writeSubscription, redeemCoupon, clearSubscription, type ClubeSubscription } from "./subscription";
 
 describe("readSubscription / writeSubscription", () => {
   beforeEach(() => {
@@ -18,6 +18,19 @@ describe("readSubscription / writeSubscription", () => {
 
   it("returns null instead of throwing when the stored value is corrupted JSON", () => {
     window.localStorage.setItem("floripa_clube_subscription", "not json");
+    expect(readSubscription()).toBeNull();
+  });
+
+  it("returns null when the stored value is valid JSON but the wrong shape", () => {
+    window.localStorage.setItem("floripa_clube_subscription", JSON.stringify({ planId: "local" }));
+    expect(readSubscription()).toBeNull();
+  });
+
+  it("removes the stored subscription so readSubscription returns null afterward", () => {
+    const sub: ClubeSubscription = { planId: "local", name: "Maria", email: "maria@example.com", redeemedCouponIds: ["ostradamus"] };
+    writeSubscription(sub);
+    expect(readSubscription()).toEqual(sub);
+    clearSubscription();
     expect(readSubscription()).toBeNull();
   });
 });

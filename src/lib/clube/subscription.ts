@@ -14,7 +14,9 @@ export function readSubscription(): ClubeSubscription | null {
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as ClubeSubscription;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.redeemedCouponIds)) return null;
+    return parsed as ClubeSubscription;
   } catch {
     return null;
   }
@@ -22,6 +24,11 @@ export function readSubscription(): ClubeSubscription | null {
 
 export function writeSubscription(subscription: ClubeSubscription): void {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(subscription));
+}
+
+export function clearSubscription(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(STORAGE_KEY);
 }
 
 export function redeemCoupon(subscription: ClubeSubscription, couponId: string, limit: number): ClubeSubscription {
