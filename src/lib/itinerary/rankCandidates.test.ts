@@ -10,7 +10,7 @@ function place(overrides: Partial<Place>): Place {
     opening_hours: null, phone: null, instagram: null, notes: null,
     google_place_id: null, lat: null, lng: null, rating: null, photos: [],
     is_partner: false, partner_plan: null, partner_offer: null, partner_status: null,
-    special_needs_tags: [], created_at: "2026-01-01T00:00:00Z",
+    special_needs_tags: [], is_verified: true, created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
 }

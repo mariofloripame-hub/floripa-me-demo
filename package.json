@@ -10,14 +10,17 @@
     "lint": "eslint",
     "test": "vitest run",
     "migrate:excel": "tsx --env-file=.env.local scripts/migrate-excel.ts",
+    "import:atividades": "tsx --env-file=.env.local scripts/import-atividades.ts",
     "places:discover": "tsx --env-file=.env.local scripts/places-discover.ts",
     "places:enrich": "tsx --env-file=.env.local scripts/places-enrich.ts",
-    "demo:itinerary": "tsx --env-file=.env.local scripts/dev-seed-test-itinerary.ts"
+    "demo:itinerary": "tsx --env-file=.env.local scripts/dev-seed-test-itinerary.ts",
+    "seed:sos-events": "tsx --env-file=.env.local scripts/seed-sos-and-events.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
     "@googlemaps/js-api-loader": "^1.16.10",
     "@supabase/supabase-js": "^2.112.4",
+    "leaflet": "^1.9.4",
     "next": "15.5.24",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -30,6 +33,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/google.maps": "^3.66.0",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

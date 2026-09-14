@@ -15,36 +15,57 @@ describe("QuizPage", () => {
     expect(screen.getByRole("button", { name: /continuar/i })).toBeDisabled();
   });
 
-  it("advances to the next question after answering and clicking Continuar", () => {
+  it("auto-advances to the next question after selecting a single-choice answer, without needing Continuar", async () => {
     render(<QuizPage />);
     fireEvent.click(screen.getByRole("button", { name: /já estou em floripa/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    expect(screen.getByText(/onde você vai se hospedar/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/onde você vai se hospedar/i)).toBeInTheDocument());
+  });
+
+  it("goes back to the previous question via the top-left back button", async () => {
+    render(<QuizPage />);
+    fireEvent.click(screen.getByRole("button", { name: /já estou em floripa/i }));
+    await waitFor(() => expect(screen.getByText(/onde você vai se hospedar/i)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+    expect(screen.getByText(/como você chega em floripa/i)).toBeInTheDocument();
   });
 
   it("submits the answers and navigates to the roteiro page after the last question", async () => {
     render(<QuizPage />);
-    // timing
+    // timing (single) — auto-advances
     fireEvent.click(screen.getByRole("button", { name: /já estou em floripa/i }));
+    await waitFor(() => expect(screen.getByText(/onde você vai se hospedar/i)).toBeInTheDocument());
+
+    // region (optional, single) — skip without answering
     fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // region (optional) — skip
-    fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // days
+    await waitFor(() => expect(screen.getByText(/quantos dias/i)).toBeInTheDocument());
+
+    // days (single) — auto-advances
     fireEvent.click(screen.getByRole("button", { name: /1 dia/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // group
+    await waitFor(() => expect(screen.getByText(/como você está viajando/i)).toBeInTheDocument());
+
+    // group (single) — auto-advances
     fireEvent.click(screen.getByRole("button", { name: /solo/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // style (multi)
+    await waitFor(() => expect(screen.getByText(/qual é o seu estilo/i)).toBeInTheDocument());
+
+    // style (multi) — needs an explicit Continuar
     fireEvent.click(screen.getByRole("button", { name: /praia, surf/i }));
     fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // transport
+    await waitFor(() => expect(screen.getByText(/como você vai se locomover/i)).toBeInTheDocument());
+
+    // transport (single) — auto-advances
     fireEvent.click(screen.getByRole("button", { name: /a pé/i }));
+    await waitFor(() => expect(screen.getByText(/qual o seu orçamento/i)).toBeInTheDocument());
+
+    // budget (slider, has a default) — needs an explicit Continuar
     fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // budget (slider, has default) — just continue
-    fireEvent.click(screen.getByRole("button", { name: /continuar/i }));
-    // special (optional) — final button label changes to "Ver meu roteiro"
-    fireEvent.click(screen.getByRole("button", { name: /ver meu roteiro/i }));
+    await waitFor(() => expect(screen.getByText(/alguma necessidade especial/i)).toBeInTheDocument());
+
+    // special (single, optional, last question) — selecting auto-submits
+    fireEvent.click(screen.getByRole("button", { name: /nenhuma/i }));
+
+    await waitFor(() => expect(screen.getByText("Montando seu roteiro...")).toBeInTheDocument());
+    expect(screen.queryByText(/alguma necessidade especial/i)).not.toBeInTheDocument();
 
     await waitFor(() => expect(submitQuizAnswers).toHaveBeenCalled());
     await waitFor(() => expect(push).toHaveBeenCalledWith("/roteiro/abc123"));

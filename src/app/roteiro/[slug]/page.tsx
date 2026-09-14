@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdminClient } from "@/lib/supabase/client";
-import { getItineraryBySlug } from "@/lib/supabase/queries";
+import { getItineraryBySlug, listPartners } from "@/lib/supabase/queries";
 import { RoteiroView } from "@/components/roteiro/RoteiroView";
 
 export default async function RoteiroPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -8,5 +8,6 @@ export default async function RoteiroPage({ params }: { params: Promise<{ slug: 
   const client = getSupabaseAdminClient();
   const itinerary = await getItineraryBySlug(client, slug);
   if (!itinerary) notFound();
-  return <RoteiroView itinerary={itinerary} />;
+  const partners = await listPartners(client);
+  return <RoteiroView itinerary={itinerary} partners={partners} />;
 }

@@ -13,6 +13,11 @@ const CATEGORIES: { key: SosPlace["category"] | "todos"; label: string; icon: st
   { key: "financeiro", label: "Financeiro", icon: "🏧" },
 ];
 
+function telHref(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length <= 4 ? `tel:${digits}` : `tel:+55${digits}`;
+}
+
 export function SosView({ slug, places }: { slug: string; places: SosPlace[] }) {
   const [category, setCategory] = useState<SosPlace["category"] | "todos">("todos");
   const visible = category === "todos" ? places : places.filter((p) => p.category === category);
@@ -35,6 +40,14 @@ export function SosView({ slug, places }: { slug: string; places: SosPlace[] }) 
           <li key={place.id} className="rounded-card border border-white/10 bg-white/5 p-3">
             <div className="font-display text-sm font-bold">{place.name}</div>
             <div className="text-xs text-ink-dim">{place.meta}</div>
+            {place.phone && (
+              <a
+                href={telHref(place.phone)}
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-turquoise"
+              >
+                📞 {place.phone}
+              </a>
+            )}
           </li>
         ))}
         {visible.length === 0 && <p className="text-sm text-ink-dim">Nenhum serviço nessa categoria ainda.</p>}

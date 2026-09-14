@@ -36,6 +36,6 @@ export function filterCandidates(places: Place[], answers: QuizAnswers): Place[]
       !profileLabel || place.target_profiles.includes("Todos") || place.target_profiles.includes(profileLabel);
     const priceOk = allowedPrices.includes(place.price_range);
     const styleOk = styleCategories.size === 0 || styleCategories.has(place.category);
-    return profileOk && priceOk && styleOk;
+    return place.is_verified && profileOk && priceOk && styleOk;
   });
 }

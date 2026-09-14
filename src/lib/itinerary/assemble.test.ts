@@ -11,7 +11,7 @@ function place(overrides: Partial<Place>): Place {
     opening_hours: null, phone: null, instagram: null, notes: null,
     google_place_id: null, lat: -27.6, lng: -48.5, rating: null, photos: [],
     is_partner: false, partner_plan: null, partner_offer: null, partner_status: null,
-    special_needs_tags: [], created_at: "2026-01-01T00:00:00Z",
+    special_needs_tags: [], is_verified: true, created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
 }
@@ -32,6 +32,7 @@ describe("assembleDays", () => {
           {
             place_id: "p1", name: "Praia do Campeche", time: "09:00", category: "Praia",
             price_range: "Gratuito", is_partner: true, address: "Endereço X", lat: -27.6, lng: -48.5,
+            short_description: "",
           },
         ],
       },

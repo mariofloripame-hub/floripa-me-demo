@@ -28,7 +28,7 @@ describe("ClubePage", () => {
 
   it("advances to the signup form after picking a plan", () => {
     render(<ClubePage />);
-    fireEvent.click(screen.getByText("Local+"));
+    fireEvent.click(screen.getByRole("button", { name: /assinar local\+/i }));
     expect(screen.getByLabelText(/nome/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
     expect(screen.getByText(/plano local\+ · r\$34,90/i)).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("ClubePage", () => {
 
   it("persists the subscription and advances to the portal on signup", () => {
     render(<ClubePage />);
-    fireEvent.click(screen.getByText("Local"));
+    fireEvent.click(screen.getByRole("button", { name: "Assinar Local" }));
     fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Maria" } });
     fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: "maria@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: /assinar plano local →/i }));
@@ -110,9 +110,29 @@ describe("ClubePage", () => {
     expect(screen.queryByText("Ostradamus")).not.toBeInTheDocument();
   });
 
+  it("shows the brand wordmark, value proposition, and social proof on the plans step", () => {
+    render(<ClubePage />);
+    expect(screen.getByText("Floripa")).toBeInTheDocument();
+    expect(screen.getByText(".my")).toBeInTheDocument();
+    expect(screen.getByText(/já pode pagar sua mensalidade/i)).toBeInTheDocument();
+    expect(screen.getByText(/cancele quando quiser/i)).toBeInTheDocument();
+    expect(screen.getByText(/8 parceiros/i)).toBeInTheDocument();
+  });
+
+  it("shows featured partner previews on the plans step and starts Local+ signup when one is clicked", () => {
+    render(<ClubePage />);
+    expect(screen.getByText("Ostradamus")).toBeInTheDocument();
+    expect(screen.getByText("Shopping Iguatemi")).toBeInTheDocument();
+    expect(screen.getByText("Studio Bem-Estar Trindade")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Ostradamus"));
+
+    expect(screen.getByText(/plano local\+ · r\$34,90/i)).toBeInTheDocument();
+  });
+
   it("returns to the plans step when Voltar is clicked on the signup form", () => {
     render(<ClubePage />);
-    fireEvent.click(screen.getByText("Local+"));
+    fireEvent.click(screen.getByRole("button", { name: /assinar local\+/i }));
     expect(screen.getByLabelText(/nome/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /voltar/i }));

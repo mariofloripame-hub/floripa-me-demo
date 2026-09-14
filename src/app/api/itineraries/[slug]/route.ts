@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { getItineraryBySlug } from "@/lib/supabase/queries";
 import { removeActivity, ItineraryNotFoundError } from "@/lib/itinerary/removeActivity";
+import { addActivity } from "@/lib/itinerary/addActivity";
 
 interface RouteContext {
   params: Promise<{ slug: string }>;
@@ -21,12 +22,25 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   const { slug } = await params;
   const body = await request.json().catch(() => null);
   const dayNumber = body?.day_number;
-  const placeId = body?.place_id;
-  if (typeof dayNumber !== "number" || typeof placeId !== "string") {
-    return NextResponse.json({ error: "day_number e place_id são obrigatórios" }, { status: 400 });
+
+  if (typeof dayNumber !== "number") {
+    return NextResponse.json({ error: "day_number é obrigatório" }, { status: 400 });
   }
 
   try {
+    if (body?.activity) {
+      const { name, time } = body.activity;
+      if (typeof name !== "string" || !name.trim() || typeof time !== "string" || !time.trim()) {
+        return NextResponse.json({ error: "activity.name e activity.time são obrigatórios" }, { status: 400 });
+      }
+      const row = await addActivity(slug, dayNumber, { name, time }, getSupabaseAdminClient());
+      return NextResponse.json(row);
+    }
+
+    const placeId = body?.place_id;
+    if (typeof placeId !== "string") {
+      return NextResponse.json({ error: "place_id é obrigatório" }, { status: 400 });
+    }
     const row = await removeActivity(slug, dayNumber, placeId, getSupabaseAdminClient());
     return NextResponse.json(row);
   } catch (error) {

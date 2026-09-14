@@ -35,7 +35,7 @@ describe("removeActivity", () => {
     expect(result).toEqual(updatedRow);
   });
 
-  it("drops the day entirely if removing the activity leaves it empty", async () => {
+  it("keeps the last remaining activity of a day untouched instead of emptying the day", async () => {
     let capturedDays: unknown = null;
     const itinerary = {
       slug: "abc123",
@@ -57,7 +57,9 @@ describe("removeActivity", () => {
 
     await removeActivity("abc123", 1, "p1", supabase);
 
-    expect(capturedDays).toEqual([]);
+    expect(capturedDays).toEqual([
+      { day_number: 1, theme: "d1", activities: [{ place_id: "p1", time: "09:00" }] },
+    ]);
   });
 
   it("throws ItineraryNotFoundError when the slug doesn't exist", async () => {

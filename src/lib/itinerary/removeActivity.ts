@@ -14,13 +14,10 @@ export async function removeActivity(
   const itinerary = await getItineraryBySlug(supabase, slug);
   if (!itinerary) throw new ItineraryNotFoundError(`Itinerary not found: ${slug}`);
 
-  const days = (itinerary.days as ItineraryDay[])
-    .map((day) =>
-      day.day_number === dayNumber
-        ? { ...day, activities: day.activities.filter((a) => a.place_id !== placeId) }
-        : day,
-    )
-    .filter((day) => day.activities.length > 0);
+  const days = (itinerary.days as ItineraryDay[]).map((day) => {
+    if (day.day_number !== dayNumber || day.activities.length <= 1) return day;
+    return { ...day, activities: day.activities.filter((a) => a.place_id !== placeId) };
+  });
 
   return updateItineraryDays(supabase, slug, days);
 }

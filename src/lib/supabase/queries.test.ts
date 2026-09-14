@@ -4,6 +4,7 @@ import {
   listPlaces,
   listEvents,
   listSosPlaces,
+  listPartners,
   insertItinerary,
   getItineraryBySlug,
   updateItineraryDays,
@@ -69,6 +70,15 @@ describe("queries", () => {
     const updated = { id: "1", slug: "abc123", days: [{ day_number: 1 }] };
     const client = fakeClientFor("itineraries", makeChain({ data: updated, error: null }));
     await expect(updateItineraryDays(client, "abc123", [{ day_number: 1 }])).resolves.toEqual(updated);
+  });
+
+  it("listPartners returns all partner places, with or without an offer", async () => {
+    const rows = [
+      { id: "1", is_partner: true, partner_offer: "10% de desconto" },
+      { id: "2", is_partner: true, partner_offer: null },
+    ];
+    const client = fakeClientFor("places", makeChain({ data: rows, error: null }));
+    await expect(listPartners(client)).resolves.toEqual(rows);
   });
 
   it("updatePlaceEnrichment patches lat/lng/rating/photos/google_place_id for a place", async () => {

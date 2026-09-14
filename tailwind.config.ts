@@ -13,6 +13,10 @@ const config: Config = {
         alert: "#FF5A5A",
         ink: "#FFFFFF",
         "ink-dim": "rgba(255,255,255,0.6)",
+        sand: "#EEF6F4",
+        "teal-ink": "#0F2E31",
+        "turquoise-deep": "#007367",
+        "coral-deep": "#A8391F",
       },
       fontFamily: {
         display: ["var(--font-syne)", "sans-serif"],

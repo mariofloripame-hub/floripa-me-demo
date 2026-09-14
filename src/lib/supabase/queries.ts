@@ -7,6 +7,12 @@ export async function listPlaces(client: SupabaseClient): Promise<Place[]> {
   return data as Place[];
 }
 
+export async function listPartners(client: SupabaseClient): Promise<Place[]> {
+  const { data, error } = await client.from("places").select("*").eq("is_partner", true);
+  if (error) throw error;
+  return data as Place[];
+}
+
 export async function listEvents(client: SupabaseClient): Promise<EventRow[]> {
   const { data, error } = await client.from("events").select("*").eq("active", true);
   if (error) throw error;

@@ -23,6 +23,7 @@ export interface Place {
   partner_offer: string | null;
   partner_status: string | null;
   special_needs_tags: string[];
+  is_verified: boolean;
   created_at: string;
 }
 

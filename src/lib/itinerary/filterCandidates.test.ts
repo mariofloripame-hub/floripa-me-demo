@@ -12,7 +12,7 @@ function place(overrides: Partial<Place>): Place {
     opening_hours: null, phone: null, instagram: null, notes: null,
     google_place_id: null, lat: null, lng: null, rating: null, photos: [],
     is_partner: false, partner_plan: null, partner_offer: null, partner_status: null,
-    special_needs_tags: [], created_at: "2026-01-01T00:00:00Z",
+    special_needs_tags: [], is_verified: true, created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
 }
@@ -71,6 +71,15 @@ describe("filterCandidates", () => {
     const source = readFileSync(join(__dirname, "filterCandidates.ts"), "utf-8");
     expect(source).not.toContain("Lazer / Compras");
     expect(source).not.toMatch(/"Lazer"/);
+  });
+
+  it("excludes places that are not yet verified", () => {
+    const places = [
+      place({ id: "verified", is_verified: true }),
+      place({ id: "unverified", is_verified: false }),
+    ];
+    const result = filterCandidates(places, {});
+    expect(result.map((p) => p.id)).toEqual(["verified"]);
   });
 
   it("combines profile, price, and style filters", () => {

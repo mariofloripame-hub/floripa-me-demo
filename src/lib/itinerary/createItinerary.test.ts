@@ -2,6 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createItinerary, NoCandidatesError } from "./createItinerary";
 import type { MessagesParseClient } from "./generate";
+import { getDefaultLlmClient } from "./llmClient";
+
+vi.mock("./llmClient", () => ({ getDefaultLlmClient: vi.fn() }));
 
 function place(overrides: Record<string, unknown> = {}) {
   return {
@@ -11,7 +14,7 @@ function place(overrides: Record<string, unknown> = {}) {
     opening_hours: null, phone: null, instagram: null, notes: null,
     google_place_id: null, lat: -27.6, lng: -48.5, rating: null, photos: [],
     is_partner: false, partner_plan: null, partner_offer: null, partner_status: null,
-    special_needs_tags: [], created_at: "2026-01-01T00:00:00Z",
+    special_needs_tags: [], is_verified: true, created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
 }
@@ -81,5 +84,18 @@ describe("createItinerary", () => {
 
     const itinerariesCall = (supabase.from as ReturnType<typeof vi.fn>).mock.calls.find(([table]) => table === "itineraries");
     expect(itinerariesCall).toBeUndefined();
+  });
+
+  it("falls back to getDefaultLlmClient when no anthropicClient dep is provided", async () => {
+    const places = [place()];
+    const insertedRow = { id: "1", slug: "abc12345", quiz_answers: {}, welcome_message: "Oi!", days: [], created_at: "2026-01-01T00:00:00Z" };
+    const supabase = fakeSupabase({ data: places, error: null }, insertedRow);
+    const parse = vi.fn().mockResolvedValue({ parsed_output: VALID_GENERATION });
+    vi.mocked(getDefaultLlmClient).mockReturnValue({ messages: { parse } });
+
+    const result = await createItinerary({ group: "solo" }, { supabase });
+
+    expect(result).toEqual(insertedRow);
+    expect(parse).toHaveBeenCalledTimes(1);
   });
 });

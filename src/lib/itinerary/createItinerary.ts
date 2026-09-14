@@ -5,6 +5,7 @@ import type { QuizAnswers } from "@/lib/quiz/types";
 import { filterCandidates } from "./filterCandidates";
 import { weightedSample } from "./rankCandidates";
 import { generateItinerary, type MessagesParseClient } from "./generate";
+import { getDefaultLlmClient } from "./llmClient";
 import { assembleDays } from "./assemble";
 import { generateSlug } from "./slug";
 
@@ -35,9 +36,8 @@ export async function createItinerary(answers: QuizAnswers, deps: CreateItinerar
     console.warn(`Low candidate pool (${candidates.length}) for answers`, answers);
   }
 
-  const generation = deps.anthropicClient
-    ? await generateItinerary(candidates, answers, deps.anthropicClient)
-    : await generateItinerary(candidates, answers);
+  const llmClient = deps.anthropicClient ?? getDefaultLlmClient();
+  const generation = await generateItinerary(candidates, answers, llmClient);
 
   const days = assembleDays(generation, candidates);
   if (days.length === 0) {

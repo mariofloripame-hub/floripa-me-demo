@@ -78,7 +78,7 @@ export default function WelcomePage() {
       <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-6 pt-8">
         <span className="font-display text-xl font-extrabold [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]">
           Floripa<span className="text-coral">.</span>
-          <span className="text-turquoise">me</span>
+          <span className="text-turquoise">my</span>
         </span>
 
         <div className="mt-8 flex-1">
@@ -128,20 +128,12 @@ export default function WelcomePage() {
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <div className="flex w-full flex-col gap-2">
-            <Link
-              href="/quiz"
-              className="w-full rounded-pill bg-gradient-to-r from-turquoise to-blue py-3 text-center text-sm font-display font-extrabold text-graphite shadow-lg shadow-turquoise/20 transition active:scale-[0.98]"
-            >
-              Criar meu roteiro →
-            </Link>
-            <Link
-              href="/clube"
-              className="w-full rounded-pill border border-turquoise/50 bg-transparent py-2 text-center text-xs font-display font-bold text-turquoise transition hover:bg-turquoise/10 active:scale-[0.98]"
-            >
-              Sou de Floripa
-            </Link>
-          </div>
+          <Link
+            href="/quiz"
+            className="w-full rounded-pill bg-gradient-to-r from-turquoise to-blue py-3 text-center text-sm font-display font-extrabold text-graphite shadow-lg shadow-turquoise/20 transition active:scale-[0.98]"
+          >
+            Criar meu roteiro →
+          </Link>
           <div className="flex items-start justify-center gap-2 text-xs text-ink-dim [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
             <span className="mt-0.5 flex -space-x-1.5 shrink-0" aria-hidden>
               <span className="h-4 w-4 rounded-full bg-turquoise ring-2 ring-graphite" />

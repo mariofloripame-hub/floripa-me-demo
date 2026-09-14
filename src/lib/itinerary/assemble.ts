@@ -11,6 +11,8 @@ export interface ItineraryActivity {
   address: string;
   lat: number | null;
   lng: number | null;
+  photo?: string;
+  short_description?: string;
 }
 
 export interface ItineraryDay {
@@ -40,6 +42,8 @@ export function assembleDays(generation: ItineraryGeneration, candidates: Place[
             address: place.address,
             lat: place.lat,
             lng: place.lng,
+            photo: place.photos[0],
+            short_description: place.short_description,
           };
         })
         .filter((a): a is ItineraryActivity => a !== null),

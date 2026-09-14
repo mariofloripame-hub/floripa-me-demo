@@ -7,7 +7,7 @@ import { SosView } from "./SosView";
 import type { SosPlace } from "@/lib/supabase/types";
 
 const places: SosPlace[] = [
-  { id: "1", category: "saude", tag: "publico", name: "Hospital Universitário", meta: "Trindade · 24h · Público", lat: null, lng: null, phone: null, created_at: "2026-01-01T00:00:00Z" },
+  { id: "1", category: "saude", tag: "publico", name: "Hospital Universitário", meta: "Trindade · 24h · Público", lat: null, lng: null, phone: "(48) 3721-9100", created_at: "2026-01-01T00:00:00Z" },
   { id: "2", category: "seguranca", tag: "publico", name: "Delegacia do Turista", meta: "Centro · en/es", lat: null, lng: null, phone: null, created_at: "2026-01-01T00:00:00Z" },
 ];
 
@@ -28,5 +28,16 @@ describe("SosView", () => {
   it("shows an empty state when a category has no matches", () => {
     render(<SosView slug="abc123" places={[]} />);
     expect(screen.getByText(/nenhum serviço/i)).toBeInTheDocument();
+  });
+
+  it("renders a tel: link for a place with a phone number", () => {
+    render(<SosView slug="abc123" places={places} />);
+    const link = screen.getByRole("link", { name: /\(48\) 3721-9100/ });
+    expect(link).toHaveAttribute("href", "tel:+554837219100");
+  });
+
+  it("does not render a phone link for a place without a phone number", () => {
+    render(<SosView slug="abc123" places={places} />);
+    expect(screen.queryByRole("link", { name: /delegacia do turista/i })).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { useEffect, useRef } from "react";
+import type * as Leaflet from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { BottomNav } from "@/components/nav/BottomNav";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
@@ -12,48 +13,61 @@ interface MapaViewProps {
   nearby: NearbyPlace[];
 }
 
-const DEFAULT_CENTER = { lat: -27.5954, lng: -48.548 };
+const DEFAULT_CENTER: [number, number] = [-27.5954, -48.548];
+
+function emojiIcon(L: typeof Leaflet, emoji: string, size: number): Leaflet.DivIcon {
+  return L.divIcon({
+    html: `<span style="font-size:${size}px;line-height:1">${emoji}</span>`,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+  });
+}
 
 export function MapaView({ slug, days, nearby }: MapaViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      setStatusMessage("Configure NEXT_PUBLIC_GOOGLE_MAPS_API_KEY para ver o mapa.");
-      return;
-    }
     if (!mapRef.current) return;
+    let cancelled = false;
+    let map: Leaflet.Map | undefined;
 
-    const loader = new Loader({ apiKey, version: "weekly" });
-    loader
-      .load()
-      .then((google) => {
-        const activities = days.flatMap((d) => d.activities).filter((a) => a.lat !== null && a.lng !== null);
-        const center = activities[0] ? { lat: activities[0].lat as number, lng: activities[0].lng as number } : DEFAULT_CENTER;
-        const map = new google.maps.Map(mapRef.current as HTMLDivElement, { center, zoom: 12 });
+    import("leaflet").then((L) => {
+      if (cancelled || !mapRef.current) return;
 
-        for (const act of activities) {
-          new google.maps.Marker({
-            position: { lat: act.lat as number, lng: act.lng as number },
-            map,
-            title: act.name,
-            label: act.is_partner ? "⭐" : undefined,
-          });
-        }
-        for (const place of nearby) {
-          if (place.lat === null || place.lng === null) continue;
-          new google.maps.Marker({ position: { lat: place.lat, lng: place.lng }, map, title: place.name, opacity: 0.7 });
-        }
-      })
-      .catch(() => setStatusMessage("Não foi possível carregar o mapa agora."));
+      const activities = days.flatMap((d) => d.activities).filter((a) => a.lat !== null && a.lng !== null);
+      const center: [number, number] = activities[0]
+        ? [activities[0].lat as number, activities[0].lng as number]
+        : DEFAULT_CENTER;
+
+      map = L.map(mapRef.current).setView(center, 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(map);
+
+      for (const act of activities) {
+        L.marker([act.lat as number, act.lng as number], { icon: emojiIcon(L, act.is_partner ? "⭐" : "📍", 28) })
+          .addTo(map)
+          .bindPopup(act.name);
+      }
+      for (const place of nearby) {
+        if (place.lat === null || place.lng === null) continue;
+        L.marker([place.lat, place.lng], { icon: emojiIcon(L, "·", 20), opacity: 0.7 })
+          .addTo(map)
+          .bindPopup(place.name);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      map?.remove();
+    };
   }, [days, nearby]);
 
   return (
     <main className="relative min-h-screen pb-24">
       <div ref={mapRef} className="h-[calc(100vh-64px)] w-full bg-graphite-deep" />
-      {statusMessage && <p className="absolute inset-x-0 top-1/2 px-6 text-center text-sm text-ink-dim">{statusMessage}</p>}
       <BottomNav slug={slug} />
     </main>
   );
