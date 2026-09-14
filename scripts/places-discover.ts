@@ -31,7 +31,7 @@ async function main() {
     const json = (await response.json()) as { places?: Array<Parameters<typeof mapDiscoveryResult>[0]> };
     for (const apiPlace of json.places ?? []) {
       if (knownIds.has(apiPlace.id)) continue;
-      const candidate = mapDiscoveryResult(apiPlace, seed, apiKey);
+      const candidate = mapDiscoveryResult(apiPlace, seed);
       const { error } = await client.from("places").insert(candidate);
       if (error) {
         console.error(`Insert failed for ${candidate.name}:`, error.message);

@@ -27,5 +27,9 @@ function fallbackImage(name: string): string {
 }
 
 export function getPlaceImage(name: string, photo?: string): string {
-  return photo || PLACE_IMAGES[name] || fallbackImage(name);
+  // `photo`, when present, is a bare Google Places photo reference (e.g.
+  // "places/ChIJ.../photos/abc") — route it through our own server so the
+  // Google API key never reaches the visitor's browser.
+  if (photo) return `/api/place-photo?ref=${encodeURIComponent(photo)}`;
+  return PLACE_IMAGES[name] || fallbackImage(name);
 }

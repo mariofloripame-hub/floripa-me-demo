@@ -24,7 +24,7 @@ describe("mapDiscoveryResult", () => {
     };
     const seed = { query: "restaurante Lagoa da Conceição", region: "Leste", category: "Gastronomia" };
 
-    const result = mapDiscoveryResult(apiPlace, seed, "fake-key");
+    const result = mapDiscoveryResult(apiPlace, seed);
 
     expect(result).toMatchObject({
       region: "Leste",
@@ -37,13 +37,15 @@ describe("mapDiscoveryResult", () => {
       rating: 4.5,
       is_partner: false,
     });
-    expect(result.photos[0]).toContain("places/ChIJ-fake-id/photos/abc/media");
+    // Stores the bare Google photo reference, never a URL with the API key
+    // baked in — that URL would end up served to the public in the roteiro.
+    expect(result.photos).toEqual(["places/ChIJ-fake-id/photos/abc"]);
   });
 
   it("falls back to safe defaults when optional fields are missing", () => {
     const apiPlace = { id: "ChIJ-2" };
     const seed = { query: "trilha Sul", region: "Sul", category: "Trilha" };
-    const result = mapDiscoveryResult(apiPlace, seed, "fake-key");
+    const result = mapDiscoveryResult(apiPlace, seed);
     expect(result.name).toBe("Sem nome");
     expect(result.lat).toBeNull();
     expect(result.photos).toEqual([]);
@@ -51,18 +53,18 @@ describe("mapDiscoveryResult", () => {
 });
 
 describe("mapEnrichmentUpdate", () => {
-  it("maps a Places API result into an enrichment patch", () => {
+  it("maps a Places API result into an enrichment patch, storing bare photo references", () => {
     const apiPlace = {
       id: "ChIJ-fake-id",
       location: { latitude: -27.61, longitude: -48.46 },
       rating: 4.8,
       photos: [{ name: "places/ChIJ-fake-id/photos/xyz" }],
     };
-    const result = mapEnrichmentUpdate(apiPlace, "fake-key");
+    const result = mapEnrichmentUpdate(apiPlace);
     expect(result.google_place_id).toBe("ChIJ-fake-id");
     expect(result.lat).toBe(-27.61);
     expect(result.lng).toBe(-48.46);
     expect(result.rating).toBe(4.8);
-    expect(result.photos[0]).toContain("places/ChIJ-fake-id/photos/xyz/media");
+    expect(result.photos).toEqual(["places/ChIJ-fake-id/photos/xyz"]);
   });
 });

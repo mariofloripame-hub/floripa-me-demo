@@ -48,7 +48,7 @@ export function buildTextSearchRequest(seed: DiscoverySeed, apiKey: string) {
   };
 }
 
-export function mapDiscoveryResult(apiPlace: PlacesApiPlace, seed: DiscoverySeed, apiKey: string): NewPlaceCandidate {
+export function mapDiscoveryResult(apiPlace: PlacesApiPlace, seed: DiscoverySeed): NewPlaceCandidate {
   return {
     region: seed.region,
     neighborhood: seed.region,
@@ -63,9 +63,10 @@ export function mapDiscoveryResult(apiPlace: PlacesApiPlace, seed: DiscoverySeed
     lat: apiPlace.location?.latitude ?? null,
     lng: apiPlace.location?.longitude ?? null,
     rating: apiPlace.rating ?? null,
-    photos: (apiPlace.photos ?? [])
-      .slice(0, 3)
-      .map((p) => `https://places.googleapis.com/v1/${p.name}/media?maxWidthPx=800&key=${apiKey}`),
+    // Store the bare Google photo reference, never a URL with the API key
+    // baked in — that URL is served straight to the public via the roteiro,
+    // and place-photo/route.ts resolves it into an actual image server-side.
+    photos: (apiPlace.photos ?? []).slice(0, 3).map((p) => p.name),
     is_partner: false,
     special_needs_tags: [],
   };
@@ -79,14 +80,12 @@ export interface PlaceEnrichmentPatch {
   photos: string[];
 }
 
-export function mapEnrichmentUpdate(apiPlace: PlacesApiPlace, apiKey: string): PlaceEnrichmentPatch {
+export function mapEnrichmentUpdate(apiPlace: PlacesApiPlace): PlaceEnrichmentPatch {
   return {
     google_place_id: apiPlace.id,
     lat: apiPlace.location?.latitude ?? null,
     lng: apiPlace.location?.longitude ?? null,
     rating: apiPlace.rating ?? null,
-    photos: (apiPlace.photos ?? [])
-      .slice(0, 3)
-      .map((p) => `https://places.googleapis.com/v1/${p.name}/media?maxWidthPx=800&key=${apiKey}`),
+    photos: (apiPlace.photos ?? []).slice(0, 3).map((p) => p.name),
   };
 }

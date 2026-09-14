@@ -28,7 +28,7 @@ async function main() {
       console.warn(`No match found for "${place.name}" — skipping.`);
       continue;
     }
-    const patch = mapEnrichmentUpdate(bestMatch, apiKey);
+    const patch = mapEnrichmentUpdate(bestMatch);
     await updatePlaceEnrichment(client, place.id, patch);
     enriched += 1;
   }

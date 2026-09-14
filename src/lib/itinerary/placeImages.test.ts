@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { getPlaceImage } from "./placeImages";
 
 describe("getPlaceImage", () => {
-  it("returns the real photo when one is provided, ignoring the local mapping", () => {
-    expect(getPlaceImage("Praia do Campeche", "https://example.com/real.jpg")).toBe(
-      "https://example.com/real.jpg",
+  it("routes a stored Google photo reference through the server-side proxy, never as a raw Google URL", () => {
+    expect(getPlaceImage("Praia do Campeche", "places/ChIJ-fake/photos/abc")).toBe(
+      "/api/place-photo?ref=places%2FChIJ-fake%2Fphotos%2Fabc",
     );
   });
 
