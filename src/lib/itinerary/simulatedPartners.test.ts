@@ -42,12 +42,29 @@ describe("selectPartners", () => {
   });
 
   it("leaves other simulated partners' offer untouched (no badge for every partner)", () => {
-    const places = [place({ id: "f", name: "Parque da Luz", partner_offer: null })];
+    const places = [place({ id: "f", name: "Restaurante do Moraes", partner_offer: null })];
     expect(selectPartners(places)[0].partner_offer).toBeNull();
   });
 
   it("never fabricates an offer for a real partner — only simulated names are overridden", () => {
     const places = [place({ id: "g", name: "Ostradamus", is_partner: true, partner_offer: null })];
     expect(selectPartners(places)[0].partner_offer).toBeNull();
+  });
+
+  it("excludes tourist-point places from the partner preview, even a real partner (Praia do Campeche)", () => {
+    const places = [place({ id: "h", name: "Praia do Campeche", is_partner: true })];
+    expect(selectPartners(places)).toEqual([]);
+  });
+
+  it("no longer simulates the tourist points that used to be in the list (trail, market, beaches, park)", () => {
+    const names = ["Trilha do Saquinho", "Mercado Público", "Praia de Itaguaçu", "Parque da Luz"];
+    const places = names.map((name, i) => place({ id: `t${i}`, name }));
+    expect(selectPartners(places)).toEqual([]);
+  });
+
+  it("simulates the new restaurant replacements", () => {
+    const names = ["Restaurante do Moraes", "Artusi Ristorante", "Osli Restaurante", "Restaurante Lindacap"];
+    const places = names.map((name, i) => place({ id: `r${i}`, name }));
+    expect(selectPartners(places).map((p) => p.name)).toEqual(names);
   });
 });
