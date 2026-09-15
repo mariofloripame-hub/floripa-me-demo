@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type MouseEvent } from "react";
 import Image from "next/image";
-import type { ItineraryDay } from "@/lib/itinerary/assemble";
+import type { ItineraryDay, ItineraryActivity } from "@/lib/itinerary/assemble";
 import type { Place } from "@/lib/supabase/types";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import { EstablishmentModal, type EstablishmentDetail } from "./EstablishmentModal";
 
 function priceBadge(priceRange: string): string {
   return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
@@ -28,7 +29,45 @@ const EXCLUSIVE_OFFER_PLACES = new Set(["Zilá", "Restaurante do Ceará"]);
 
 const MAX_SUGGESTED_PARTNERS = 4;
 
-function PartnerSuggestions({ partners, excludeIds }: { partners: Place[]; excludeIds: Set<string> }) {
+function activityToDetail(act: ItineraryActivity): EstablishmentDetail {
+  return {
+    name: act.name,
+    category: act.category,
+    price_range: act.price_range,
+    address: act.address,
+    short_description: act.short_description,
+    photos: act.photos ?? (act.photo ? [act.photo] : []),
+    rating: act.rating ?? null,
+    google_place_id: act.google_place_id ?? null,
+    lat: act.lat,
+    lng: act.lng,
+  };
+}
+
+function placeToDetail(place: Place): EstablishmentDetail {
+  return {
+    name: place.name,
+    category: place.category,
+    price_range: place.price_range,
+    address: place.address,
+    short_description: place.short_description,
+    photos: place.photos,
+    rating: place.rating,
+    google_place_id: place.google_place_id,
+    lat: place.lat,
+    lng: place.lng,
+  };
+}
+
+function PartnerSuggestions({
+  partners,
+  excludeIds,
+  onSelect,
+}: {
+  partners: Place[];
+  excludeIds: Set<string>;
+  onSelect: (detail: EstablishmentDetail) => void;
+}) {
   const suggestions = partners.filter((p) => !excludeIds.has(p.id)).slice(0, MAX_SUGGESTED_PARTNERS);
   if (suggestions.length === 0) return null;
 
@@ -39,7 +78,12 @@ function PartnerSuggestions({ partners, excludeIds }: { partners: Place[]; exclu
       </h3>
       <div className="mt-2.5 flex gap-3 overflow-x-auto pb-1">
         {suggestions.map((place) => (
-          <div key={place.id} className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-graphite">
+          <button
+            key={place.id}
+            type="button"
+            onClick={() => onSelect(placeToDetail(place))}
+            className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-graphite text-left"
+          >
             <Image
               src={getPlaceImage(place.name, place.photos[0])}
               alt={place.name}
@@ -58,7 +102,7 @@ function PartnerSuggestions({ partners, excludeIds }: { partners: Place[]; exclu
             <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgba(11,20,22,0.9)_0%,rgba(11,20,22,0)_70%)] px-2 pb-1.5 pt-5">
               <span className="block truncate text-[11px] font-bold text-ink">{place.name}</span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
@@ -137,6 +181,8 @@ export function DayCard({
   onRemove?: (placeId: string) => void;
   onAddActivity?: (input: { name: string; time: string }) => void;
 }) {
+  const [selected, setSelected] = useState<EstablishmentDetail | null>(null);
+
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
@@ -158,7 +204,15 @@ export function DayCard({
                 {!isLast && <span className="w-px flex-1 bg-white/15" aria-hidden />}
               </div>
               <div className="min-w-0 flex-1 pb-3">
-                <div className="relative flex gap-3 overflow-hidden rounded-card border border-white/10 bg-white/5 p-3">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelected(activityToDetail(act))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setSelected(activityToDetail(act));
+                  }}
+                  className="relative flex gap-3 overflow-hidden rounded-card border border-white/10 bg-white/5 p-3 text-left"
+                >
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-graphite">
                     <Image
                       src={getPlaceImage(act.name, act.photo)}
@@ -193,7 +247,8 @@ export function DayCard({
                               ? "Não é possível remover a última atividade do dia"
                               : undefined
                           }
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (window.confirm(`Remover "${displayName(act.name)}" da sua programação?`)) {
                               onRemove(act.place_id);
                             }
@@ -218,6 +273,7 @@ export function DayCard({
                         href={mapsUrl(act)}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e: MouseEvent) => e.stopPropagation()}
                         className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2 py-1 text-[10px] font-bold text-turquoise print:hidden"
                       >
                         📍 Mapa
@@ -240,6 +296,7 @@ export function DayCard({
         <PartnerSuggestions
           partners={partners}
           excludeIds={new Set(day.activities.map((a) => a.place_id))}
+          onSelect={setSelected}
         />
       </div>
 
@@ -248,6 +305,8 @@ export function DayCard({
           <AddActivityRow onAdd={onAddActivity} />
         </div>
       )}
+
+      <EstablishmentModal detail={selected} onClose={() => setSelected(null)} />
     </section>
   );
 }

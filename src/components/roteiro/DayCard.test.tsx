@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DayCard } from "./DayCard";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
@@ -190,6 +190,42 @@ describe("DayCard", () => {
   it("does not show an add-activity control when onAddActivity is not provided", () => {
     render(<DayCard day={day} />);
     expect(screen.queryByText(/adicionar programação/i)).not.toBeInTheDocument();
+  });
+
+  it("opens the establishment modal with full details when an activity card is clicked", () => {
+    render(<DayCard day={day} />);
+    fireEvent.click(screen.getByText("Praia do Campeche"));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/mar pra quem busca aventura. ótima para surf e para relaxar\./i)).toBeInTheDocument();
+  });
+
+  it("does not open the modal when clicking the remove button or the inline Mapa link", () => {
+    const onRemove = vi.fn();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<DayCard day={day} onRemove={onRemove} />);
+
+    fireEvent.click(screen.getAllByRole("button", { name: /remover/i })[0]);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("link", { name: /mapa/i })[0]);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    confirmSpy.mockRestore();
+  });
+
+  it("opens the establishment modal when a partner suggestion card is clicked", () => {
+    const partners = [partner({ id: "x1", name: "Krone Café", short_description: "Café e padaria alemã." })];
+    render(<DayCard day={day} partners={partners} />);
+    fireEvent.click(screen.getByText("Krone Café"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText(/café e padaria alemã\./i)).toBeInTheDocument();
+  });
+
+  it("closes the modal via the close button", () => {
+    render(<DayCard day={day} />);
+    fireEvent.click(screen.getByText("Praia do Campeche"));
+    fireEvent.click(screen.getByRole("button", { name: /fechar/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("opens a form and calls onAddActivity with the entered name and time", () => {

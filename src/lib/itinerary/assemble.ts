@@ -12,6 +12,9 @@ export interface ItineraryActivity {
   lat: number | null;
   lng: number | null;
   photo?: string;
+  photos?: string[];
+  rating?: number | null;
+  google_place_id?: string | null;
   short_description?: string;
 }
 
@@ -43,6 +46,9 @@ export function assembleDays(generation: ItineraryGeneration, candidates: Place[
             lat: place.lat,
             lng: place.lng,
             photo: place.photos[0],
+            photos: place.photos,
+            rating: place.rating,
+            google_place_id: place.google_place_id,
             short_description: place.short_description,
           };
         })

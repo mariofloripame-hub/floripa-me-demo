@@ -32,11 +32,30 @@ describe("assembleDays", () => {
           {
             place_id: "p1", name: "Praia do Campeche", time: "09:00", category: "Praia",
             price_range: "Gratuito", is_partner: true, address: "Endereço X", lat: -27.6, lng: -48.5,
-            short_description: "",
+            short_description: "", photos: [], rating: null, google_place_id: null,
           },
         ],
       },
     ]);
+  });
+
+  it("carries the full photos array, rating, and google_place_id for the detail modal", () => {
+    const candidates = [
+      place({
+        id: "p1", name: "Ilha do Campeche",
+        photos: ["places/abc/photos/1", "places/abc/photos/2"], rating: 4.7, google_place_id: "ChIJ-abc",
+      }),
+    ];
+    const generation: ItineraryGeneration = {
+      welcome_message: "Oi!",
+      days: [{ day_number: 1, theme: "Dia 1", activities: [{ place_id: "p1", time: "09:00" }] }],
+    };
+    const result = assembleDays(generation, candidates);
+    expect(result[0].activities[0]).toMatchObject({
+      photos: ["places/abc/photos/1", "places/abc/photos/2"],
+      rating: 4.7,
+      google_place_id: "ChIJ-abc",
+    });
   });
 
   it("drops an activity whose place_id is not among the candidates (defensive, not expected in normal use)", () => {
