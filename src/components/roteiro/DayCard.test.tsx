@@ -146,6 +146,15 @@ describe("DayCard", () => {
     expect(screen.getAllByText("Ostradamus")).toHaveLength(1); // only the activity card, not a duplicate suggestion
   });
 
+  it("shows a promo badge only on partner suggestions that have an offer, with the full offer as its title", () => {
+    const partners = [
+      partner({ id: "x1", name: "Krone Café", partner_offer: "Promoção exclusiva" }),
+      partner({ id: "x2", name: "Nacanoa Oyster Bar", partner_offer: null }),
+    ];
+    render(<DayCard day={day} partners={partners} />);
+    expect(screen.getByTitle("Promoção exclusiva")).toBeInTheDocument();
+  });
+
   it("hides the partner suggestions section when there are none to suggest", () => {
     render(<DayCard day={day} />);
     expect(screen.queryByText(/outras opções parceiras/i)).not.toBeInTheDocument();

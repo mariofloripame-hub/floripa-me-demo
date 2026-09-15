@@ -47,6 +47,14 @@ function PartnerSuggestions({ partners, excludeIds }: { partners: Place[]; exclu
               sizes="112px"
               className="object-cover"
             />
+            {place.partner_offer && (
+              <span
+                title={place.partner_offer}
+                className="absolute left-1 top-1 rounded-pill bg-coral px-1.5 py-0.5 text-[8px] font-extrabold uppercase leading-none tracking-tight text-graphite shadow-md"
+              >
+                🔥 Promo
+              </span>
+            )}
             <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgba(11,20,22,0.9)_0%,rgba(11,20,22,0)_70%)] px-2 pb-1.5 pt-5">
               <span className="block truncate text-[11px] font-bold text-ink">{place.name}</span>
             </div>

@@ -35,4 +35,19 @@ describe("selectPartners", () => {
     const places = [place({ id: "d", name: "Bar do Arantes", is_partner: true })];
     expect(selectPartners(places).map((p) => p.id)).toEqual(["d"]);
   });
+
+  it("simulates a 'Promoção exclusiva' offer for a chosen subset of the simulated partners", () => {
+    const places = [place({ id: "e", name: "Bar do Arantes", partner_offer: null })];
+    expect(selectPartners(places)[0].partner_offer).toBe("Promoção exclusiva");
+  });
+
+  it("leaves other simulated partners' offer untouched (no badge for every partner)", () => {
+    const places = [place({ id: "f", name: "Parque da Luz", partner_offer: null })];
+    expect(selectPartners(places)[0].partner_offer).toBeNull();
+  });
+
+  it("never fabricates an offer for a real partner — only simulated names are overridden", () => {
+    const places = [place({ id: "g", name: "Ostradamus", is_partner: true, partner_offer: null })];
+    expect(selectPartners(places)[0].partner_offer).toBeNull();
+  });
 });
