@@ -2,6 +2,20 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DayCard } from "./DayCard";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
+import type { Place } from "@/lib/supabase/types";
+
+function partner(overrides: Partial<Place>): Place {
+  return {
+    id: "partner-1", region: "Sul", neighborhood: "Campeche", name: "Lugar Parceiro",
+    category: "Praia", target_profiles: ["Todos"], price_range: "Gratuito",
+    point_type: "Ponto Turístico", short_description: "", address: "",
+    opening_hours: null, phone: null, instagram: null, notes: null,
+    google_place_id: null, lat: null, lng: null, rating: null, photos: [],
+    is_partner: true, partner_plan: null, partner_offer: null, partner_status: null,
+    special_needs_tags: [], is_verified: true, created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
 
 const day: ItineraryDay = {
   day_number: 1,
@@ -108,16 +122,33 @@ describe("DayCard", () => {
     expect(screen.getByText(/oferta exclusiva/i)).toBeInTheDocument();
   });
 
-  it("renders 4 suggested partner options with photo and name, even without onAddActivity", () => {
+  it("renders real partner places passed in, with their photo and name", () => {
+    const partners = [
+      partner({ id: "x1", name: "Krone Café", photos: ["places/abc/photos/1"] }),
+      partner({ id: "x2", name: "Nacanoa Oyster Bar" }),
+    ];
+    render(<DayCard day={day} partners={partners} />);
+    expect(screen.getByText("Krone Café")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Krone Café" })).toHaveAttribute(
+      "src",
+      expect.stringContaining("place-photo"),
+    );
+    expect(screen.getByText("Nacanoa Oyster Bar")).toBeInTheDocument();
+  });
+
+  it("excludes partners that are already part of the day's activities", () => {
+    const partners = [
+      partner({ id: "p2", name: "Ostradamus" }), // already in `day`
+      partner({ id: "x3", name: "Krone Café" }),
+    ];
+    render(<DayCard day={day} partners={partners} />);
+    expect(screen.getByText("Krone Café")).toBeInTheDocument();
+    expect(screen.getAllByText("Ostradamus")).toHaveLength(1); // only the activity card, not a duplicate suggestion
+  });
+
+  it("hides the partner suggestions section when there are none to suggest", () => {
     render(<DayCard day={day} />);
-    for (let i = 1; i <= 4; i++) {
-      const label = `restaurante-0${i}`;
-      expect(screen.getByText(label)).toBeInTheDocument();
-      expect(screen.getByRole("img", { name: label })).toHaveAttribute(
-        "src",
-        expect.stringContaining(`${label}.jpg`),
-      );
-    }
+    expect(screen.queryByText(/outras opções parceiras/i)).not.toBeInTheDocument();
   });
 
   it("asks for confirmation before removing, and only calls onRemove when confirmed", () => {

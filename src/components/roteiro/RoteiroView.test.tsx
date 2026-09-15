@@ -107,10 +107,20 @@ describe("RoteiroView", () => {
       makePartner({ id: "p10", name: "Restaurante da Praia", partner_offer: null }),
     ];
     render(<RoteiroView itinerary={itinerary} partners={partners} />);
-    expect(screen.getByText(/estabelecimentos parceiros/i)).toBeInTheDocument();
-    expect(screen.getByText("Bar do Campeche")).toBeInTheDocument();
-    expect(screen.getByText(/chopp em dobro até as 20h/i)).toBeInTheDocument();
-    expect(screen.getByText("Restaurante da Praia")).toBeInTheDocument();
+    const heading = screen.getByText(/estabelecimentos parceiros/i);
+    const section = within(heading.closest("div") as HTMLElement);
+    expect(heading).toBeInTheDocument();
+    expect(section.getByText("Bar do Campeche")).toBeInTheDocument();
+    expect(section.getByText(/chopp em dobro até as 20h/i)).toBeInTheDocument();
+    expect(section.getByText("Restaurante da Praia")).toBeInTheDocument();
+  });
+
+  it("also suggests real partners inside each day's card, excluding ones already in that day", () => {
+    const partners = [makePartner({ id: "p9", name: "Bar do Campeche" })];
+    render(<RoteiroView itinerary={itinerary} partners={partners} />);
+    // "Bar do Campeche" isn't one of day 1's activities (Praia, Trilha do Morro), so it should
+    // appear twice: once in the page-level partners section, once as a per-day suggestion.
+    expect(screen.getAllByText("Bar do Campeche")).toHaveLength(2);
   });
 
   it("does not show the partners section when there are no partners", () => {

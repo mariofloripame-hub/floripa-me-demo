@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
+import type { Place } from "@/lib/supabase/types";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 
 function priceBadge(priceRange: string): string {
@@ -25,25 +26,29 @@ function displayName(name: string): string {
 
 const EXCLUSIVE_OFFER_PLACES = new Set(["Zilá", "Restaurante do Ceará"]);
 
-const SUGGESTED_PARTNERS = [
-  { name: "restaurante-01", image: "/images/restaurante-01.jpg" },
-  { name: "restaurante-02", image: "/images/restaurante-02.jpg" },
-  { name: "restaurante-03", image: "/images/restaurante-03.jpg" },
-  { name: "restaurante-04", image: "/images/restaurante-04.jpg" },
-];
+const MAX_SUGGESTED_PARTNERS = 4;
 
-function PartnerSuggestions() {
+function PartnerSuggestions({ partners, excludeIds }: { partners: Place[]; excludeIds: Set<string> }) {
+  const suggestions = partners.filter((p) => !excludeIds.has(p.id)).slice(0, MAX_SUGGESTED_PARTNERS);
+  if (suggestions.length === 0) return null;
+
   return (
     <div className="rounded-card border border-white/10 bg-white/5 p-3">
       <h3 className="text-xs font-extrabold uppercase tracking-wide text-turquoise">
         ✦ Outras opções parceiras
       </h3>
       <div className="mt-2.5 flex gap-3 overflow-x-auto pb-1">
-        {SUGGESTED_PARTNERS.map((partner) => (
-          <div key={partner.name} className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-graphite">
-            <Image src={partner.image} alt={partner.name} fill sizes="112px" className="object-cover" />
+        {suggestions.map((place) => (
+          <div key={place.id} className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-graphite">
+            <Image
+              src={getPlaceImage(place.name, place.photos[0])}
+              alt={place.name}
+              fill
+              sizes="112px"
+              className="object-cover"
+            />
             <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgba(11,20,22,0.9)_0%,rgba(11,20,22,0)_70%)] px-2 pb-1.5 pt-5">
-              <span className="block truncate text-[11px] font-bold text-ink">{partner.name}</span>
+              <span className="block truncate text-[11px] font-bold text-ink">{place.name}</span>
             </div>
           </div>
         ))}
@@ -115,10 +120,12 @@ function AddActivityRow({ onAdd }: { onAdd: (input: { name: string; time: string
 
 export function DayCard({
   day,
+  partners = [],
   onRemove,
   onAddActivity,
 }: {
   day: ItineraryDay;
+  partners?: Place[];
   onRemove?: (placeId: string) => void;
   onAddActivity?: (input: { name: string; time: string }) => void;
 }) {
@@ -222,7 +229,10 @@ export function DayCard({
       </div>
 
       <div className="ml-[46px] mt-1">
-        <PartnerSuggestions />
+        <PartnerSuggestions
+          partners={partners}
+          excludeIds={new Set(day.activities.map((a) => a.place_id))}
+        />
       </div>
 
       {onAddActivity && (

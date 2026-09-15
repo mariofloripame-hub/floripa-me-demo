@@ -335,6 +335,7 @@ export function RoteiroView({
           <DayCard
             key={day.day_number}
             day={day}
+            partners={partners}
             onRemove={(placeId) => handleRemove(day.day_number, placeId)}
             onAddActivity={(input) => handleAddActivity(day.day_number, input)}
           />
