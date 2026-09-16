@@ -32,18 +32,19 @@ describe("assembleDays", () => {
           {
             place_id: "p1", name: "Praia do Campeche", time: "09:00", category: "Praia",
             price_range: "Gratuito", is_partner: true, address: "Endereço X", lat: -27.6, lng: -48.5,
-            short_description: "", photos: [], rating: null, google_place_id: null,
+            short_description: "", photos: [], rating: null, google_place_id: null, partner_offer: null,
           },
         ],
       },
     ]);
   });
 
-  it("carries the full photos array, rating, and google_place_id for the detail modal", () => {
+  it("carries the full photos array, rating, google_place_id, and partner_offer for the detail modal", () => {
     const candidates = [
       place({
         id: "p1", name: "Ilha do Campeche",
         photos: ["places/abc/photos/1", "places/abc/photos/2"], rating: 4.7, google_place_id: "ChIJ-abc",
+        partner_offer: "10% de desconto",
       }),
     ];
     const generation: ItineraryGeneration = {
@@ -55,6 +56,7 @@ describe("assembleDays", () => {
       photos: ["places/abc/photos/1", "places/abc/photos/2"],
       rating: 4.7,
       google_place_id: "ChIJ-abc",
+      partner_offer: "10% de desconto",
     });
   });
 

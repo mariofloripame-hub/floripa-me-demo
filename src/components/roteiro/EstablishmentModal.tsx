@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import type { Place } from "@/lib/supabase/types";
 
 export interface EstablishmentDetail {
   name: string;
@@ -13,8 +14,25 @@ export interface EstablishmentDetail {
   photos: string[];
   rating: number | null;
   google_place_id: string | null;
+  partner_offer?: string | null;
   lat: number | null;
   lng: number | null;
+}
+
+export function placeToDetail(place: Place): EstablishmentDetail {
+  return {
+    name: place.name,
+    category: place.category,
+    price_range: place.price_range,
+    address: place.address,
+    short_description: place.short_description,
+    photos: place.photos,
+    rating: place.rating,
+    google_place_id: place.google_place_id,
+    partner_offer: place.partner_offer,
+    lat: place.lat,
+    lng: place.lng,
+  };
 }
 
 function priceBadge(priceRange: string): string {
@@ -104,6 +122,13 @@ export function EstablishmentModal({
             </span>
           )}
         </div>
+
+        {detail.partner_offer && (
+          <div className="mt-3 rounded-card bg-coral/15 px-3 py-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-wide text-coral">🏷️ Promoção exclusiva</p>
+            <p className="mt-0.5 text-sm text-ink">{detail.partner_offer}</p>
+          </div>
+        )}
 
         {detail.short_description && <p className="mt-3 text-sm text-ink-dim">{detail.short_description}</p>}
 

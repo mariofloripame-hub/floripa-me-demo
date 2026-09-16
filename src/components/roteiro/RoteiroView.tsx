@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { DayCard } from "./DayCard";
 import { HeroCarousel } from "./HeroCarousel";
+import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
 import { getTripTitle, getTripChips } from "@/lib/itinerary/tripSummary";
+import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import type { ItineraryRow, Place } from "@/lib/supabase/types";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 
@@ -142,6 +145,8 @@ function WelcomeMessage({ message }: { message: string }) {
 }
 
 function PartnersSection({ partners }: { partners: Place[] }) {
+  const [selected, setSelected] = useState<EstablishmentDetail | null>(null);
+
   if (partners.length === 0) return null;
 
   return (
@@ -152,24 +157,40 @@ function PartnersSection({ partners }: { partners: Place[] }) {
       <p className="mt-1 text-xs text-ink-dim">Lugares parceiros perto do seu roteiro — fique de olho nas promoções.</p>
       <div className="mt-3 flex flex-col gap-2">
         {partners.map((place) => (
-          <div
+          <button
             key={place.id}
-            className="flex items-center justify-between gap-2 rounded-card border border-white/10 bg-graphite/40 px-3 py-2"
+            type="button"
+            onClick={() => setSelected(placeToDetail(place))}
+            className="flex items-start gap-3 rounded-card border border-white/10 bg-graphite/40 p-3 text-left"
           >
-            <div className="min-w-0">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-graphite">
+              <Image
+                src={getPlaceImage(place.name, place.photos[0])}
+                alt={place.name}
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
               <p className="truncate font-display text-sm font-bold">{place.name}</p>
               <p className="text-xs text-ink-dim">
                 {place.category} · {place.neighborhood}
               </p>
+              {place.partner_offer && (
+                <>
+                  <span className="mt-1.5 inline-block rounded-pill bg-coral px-2 py-1 text-[10px] font-bold text-graphite">
+                    🏷️ Promoção exclusiva
+                  </span>
+                  <p className="mt-1 text-xs text-ink-dim">{place.partner_offer}</p>
+                </>
+              )}
             </div>
-            {place.partner_offer && (
-              <span className="shrink-0 rounded-pill bg-coral px-2 py-1 text-[10px] font-bold text-graphite">
-                🏷️ {place.partner_offer}
-              </span>
-            )}
-          </div>
+          </button>
         ))}
       </div>
+
+      <EstablishmentModal detail={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }

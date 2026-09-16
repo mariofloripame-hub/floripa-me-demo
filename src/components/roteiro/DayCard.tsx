@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { ItineraryDay, ItineraryActivity } from "@/lib/itinerary/assemble";
 import type { Place } from "@/lib/supabase/types";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
-import { EstablishmentModal, type EstablishmentDetail } from "./EstablishmentModal";
+import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
 
 function priceBadge(priceRange: string): string {
   return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
@@ -39,23 +39,9 @@ function activityToDetail(act: ItineraryActivity): EstablishmentDetail {
     photos: act.photos ?? (act.photo ? [act.photo] : []),
     rating: act.rating ?? null,
     google_place_id: act.google_place_id ?? null,
+    partner_offer: act.partner_offer ?? null,
     lat: act.lat,
     lng: act.lng,
-  };
-}
-
-function placeToDetail(place: Place): EstablishmentDetail {
-  return {
-    name: place.name,
-    category: place.category,
-    price_range: place.price_range,
-    address: place.address,
-    short_description: place.short_description,
-    photos: place.photos,
-    rating: place.rating,
-    google_place_id: place.google_place_id,
-    lat: place.lat,
-    lng: place.lng,
   };
 }
 

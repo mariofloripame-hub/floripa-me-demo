@@ -36,9 +36,20 @@ describe("selectPartners", () => {
     expect(selectPartners(places).map((p) => p.id)).toEqual(["d"]);
   });
 
-  it("simulates a 'Promoção exclusiva' offer for a chosen subset of the simulated partners", () => {
+  it("simulates a specific, varied offer text for a chosen subset of the simulated partners", () => {
     const places = [place({ id: "e", name: "Bar do Arantes", partner_offer: null })];
-    expect(selectPartners(places)[0].partner_offer).toBe("Promoção exclusiva");
+    expect(selectPartners(places)[0].partner_offer).toBe("Chopp em dobro até as 20h");
+  });
+
+  it("gives each simulated partner with an offer a distinct offer text (not a repeated generic label)", () => {
+    const names = [
+      "Bar do Arantes", "Ilha Formosa Restaurante e Pastelaria", "Makai Lagoa Café", "Posh Club",
+      "P12 Parador Internacional", "Bistrô da Orla", "Artusi Ristorante", "Restaurante Lindacap",
+    ];
+    const places = names.map((name, i) => place({ id: `p${i}`, name }));
+    const offers = selectPartners(places).map((p) => p.partner_offer);
+    expect(offers.every((o) => typeof o === "string" && o.length > 0)).toBe(true);
+    expect(new Set(offers).size).toBe(names.length);
   });
 
   it("leaves other simulated partners' offer untouched (no badge for every partner)", () => {

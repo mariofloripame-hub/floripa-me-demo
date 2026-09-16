@@ -27,25 +27,25 @@ const SIMULATED_PARTNER_NAMES = new Set([
 // businesses that could run a partner promotion.
 const EXCLUDED_NAMES = new Set(["Praia do Campeche"]);
 
-// Also UI-preview only: a subset of the simulated partners get a
-// "Promoção exclusiva" badge (via the real `partner_offer` field, already
-// wired into the partner UI) so the preview shows both cases. Never applied
-// to a real partner — their `partner_offer` reflects whatever is actually
-// in the database.
-const EXCLUSIVE_PROMO_NAMES = new Set([
-  "Bar do Arantes",
-  "Ilha Formosa Restaurante e Pastelaria",
-  "Makai Lagoa Café",
-  "Posh Club",
-  "P12 Parador Internacional",
-  "Bistrô da Orla",
-  "Artusi Ristorante",
-  "Restaurante Lindacap",
-]);
+// Also UI-preview only: a subset of the simulated partners get a specific,
+// varied offer (via the real `partner_offer` field, already wired into the
+// partner UI) so the preview shows both cases and doesn't repeat the same
+// generic text for every card. Never applied to a real partner — their
+// `partner_offer` reflects whatever is actually in the database.
+const EXCLUSIVE_PROMO_OFFERS: Record<string, string> = {
+  "Bar do Arantes": "Chopp em dobro até as 20h",
+  "Ilha Formosa Restaurante e Pastelaria": "10% de desconto na conta",
+  "Makai Lagoa Café": "Sobremesa grátis na compra de 2 pratos",
+  "Posh Club": "Entrada grátis para casais até 23h",
+  "P12 Parador Internacional": "15% de desconto em bebidas",
+  "Bistrô da Orla": "Couvert grátis",
+  "Artusi Ristorante": "Taça de vinho grátis na compra de um prato principal",
+  "Restaurante Lindacap": "Batata frita grátis na compra de um prato selecionado",
+};
 
 export function selectPartners(places: Place[]): Place[] {
   return places
     .filter((p) => !EXCLUDED_NAMES.has(p.name))
     .filter((p) => p.is_partner || SIMULATED_PARTNER_NAMES.has(p.name))
-    .map((p) => (!p.is_partner && EXCLUSIVE_PROMO_NAMES.has(p.name) ? { ...p, partner_offer: "Promoção exclusiva" } : p));
+    .map((p) => (!p.is_partner && EXCLUSIVE_PROMO_OFFERS[p.name] ? { ...p, partner_offer: EXCLUSIVE_PROMO_OFFERS[p.name] } : p));
 }

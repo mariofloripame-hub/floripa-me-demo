@@ -115,6 +115,43 @@ describe("RoteiroView", () => {
     expect(section.getByText("Restaurante da Praia")).toBeInTheDocument();
   });
 
+  it("shows a fixed 'Promoção exclusiva' badge plus the specific offer as separate text", () => {
+    const partners = [makePartner({ id: "p9", name: "Bar do Campeche", partner_offer: "Chopp em dobro até as 20h" })];
+    render(<RoteiroView itinerary={itinerary} partners={partners} />);
+    const heading = screen.getByText(/estabelecimentos parceiros/i);
+    const section = within(heading.closest("div") as HTMLElement);
+    expect(section.getByText(/promoção exclusiva/i)).toBeInTheDocument();
+    expect(section.getByText("Chopp em dobro até as 20h")).toBeInTheDocument();
+  });
+
+  it("shows a photo for each partner card", () => {
+    const partners = [makePartner({ id: "p9", name: "Bar do Campeche", photos: ["places/abc/photos/1"] })];
+    render(<RoteiroView itinerary={itinerary} partners={partners} />);
+    const heading = screen.getByText(/estabelecimentos parceiros/i);
+    const section = within(heading.closest("div") as HTMLElement);
+    expect(section.getByRole("img", { name: "Bar do Campeche" })).toHaveAttribute(
+      "src",
+      expect.stringContaining("place-photo"),
+    );
+  });
+
+  it("opens the establishment modal with full details when a partner card is clicked", () => {
+    const partners = [
+      makePartner({
+        id: "p9", name: "Bar do Campeche",
+        short_description: "Boteco tradicional com música ao vivo.",
+        partner_offer: "Chopp em dobro até as 20h",
+      }),
+    ];
+    render(<RoteiroView itinerary={itinerary} partners={partners} />);
+    const heading = screen.getByText(/estabelecimentos parceiros/i);
+    const section = within(heading.closest("div") as HTMLElement);
+    fireEvent.click(section.getByRole("button", { name: /bar do campeche/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/boteco tradicional com música ao vivo\./i)).toBeInTheDocument();
+    expect(within(dialog).getByText("Chopp em dobro até as 20h")).toBeInTheDocument();
+  });
+
   it("also suggests real partners inside each day's card, excluding ones already in that day", () => {
     const partners = [makePartner({ id: "p9", name: "Bar do Campeche" })];
     render(<RoteiroView itinerary={itinerary} partners={partners} />);

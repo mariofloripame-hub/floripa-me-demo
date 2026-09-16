@@ -12,6 +12,7 @@ function detail(overrides: Partial<EstablishmentDetail>): EstablishmentDetail {
     photos: [],
     rating: null,
     google_place_id: null,
+    partner_offer: null,
     lat: null,
     lng: null,
     ...overrides,
@@ -51,6 +52,19 @@ describe("EstablishmentModal", () => {
     const images = screen.getAllByRole("img", { name: /ilha do campeche/i });
     expect(images).toHaveLength(2);
     images.forEach((img) => expect(img).toHaveAttribute("src", expect.stringContaining("place-photo")));
+  });
+
+  it("shows the exclusive promo badge and its description when the partner has an offer", () => {
+    render(
+      <EstablishmentModal detail={detail({ partner_offer: "10% de desconto na conta" })} onClose={() => {}} />,
+    );
+    expect(screen.getByText(/promoção exclusiva/i)).toBeInTheDocument();
+    expect(screen.getByText("10% de desconto na conta")).toBeInTheDocument();
+  });
+
+  it("shows no promo section when the establishment has no offer", () => {
+    render(<EstablishmentModal detail={detail({ partner_offer: null })} onClose={() => {}} />);
+    expect(screen.queryByText(/promoção exclusiva/i)).not.toBeInTheDocument();
   });
 
   it("always shows a link to Google Maps", () => {
