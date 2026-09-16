@@ -150,7 +150,7 @@ function PartnersSection({ partners }: { partners: Place[] }) {
   if (partners.length === 0) return null;
 
   return (
-    <div className="rounded-card border border-turquoise/30 bg-turquoise/5 p-4">
+    <div className="rounded-card border border-white/20 bg-white/10 p-4">
       <h2 className="font-display text-sm font-extrabold uppercase tracking-wide text-turquoise">
         ✦ Estabelecimentos parceiros
       </h2>
