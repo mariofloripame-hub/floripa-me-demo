@@ -60,20 +60,33 @@ const HERO_IMAGES = [
 ];
 
 const HERO_IMAGES_BY_GROUP: Record<string, { src: string; focus?: string }[]> = {
+  casal: [
+    { src: "/images/casal-praia.png" },
+    { src: "/images/casal-jantar.png", focus: "72% 42%" },
+    { src: "/images/casal-08.png" },
+  ],
   familia: [
     { src: "/images/familia-01.png" },
     { src: "/images/familia-02.png" },
     { src: "/images/familia-03.png" },
+    { src: "/images/familia-05.png" },
+    { src: "/images/familia-09.png" },
   ],
   amigos: [
     { src: "/images/amigos-01.png" },
     { src: "/images/amigos-02.png" },
     { src: "/images/amigos-03.png" },
+    { src: "/images/amigos-07.png" },
+    { src: "/images/amigos-11.png" },
   ],
   solo: [
     { src: "/images/solo-negocios-01.png" },
     { src: "/images/solo-negocios-02.png" },
     { src: "/images/solo-negocios-03.png" },
+    { src: "/images/solo-06.png" },
+    { src: "/images/solo-10.png" },
+    { src: "/images/solo-12.png" },
+    { src: "/images/solo-13.png" },
   ],
 };
 

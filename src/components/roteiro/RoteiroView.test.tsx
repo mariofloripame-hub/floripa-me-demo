@@ -172,9 +172,16 @@ describe("RoteiroView", () => {
     expect(firstImage.getAttribute("src")).toContain("familia-01");
   });
 
-  it("shows the default hero photos for other profiles", () => {
+  it("shows the casal hero photos when the quiz profile is casal", () => {
     const casalItinerary = { ...itinerary, quiz_answers: { group: "casal" } };
     render(<RoteiroView itinerary={casalItinerary} />);
+    const [firstImage] = screen.getAllByRole("presentation", { hidden: true });
+    expect(firstImage.getAttribute("src")).toContain("casal-praia");
+  });
+
+  it("shows the default hero photos for unknown profiles", () => {
+    const unknownItinerary = { ...itinerary, quiz_answers: { group: "unknown" } };
+    render(<RoteiroView itinerary={unknownItinerary} />);
     const [firstImage] = screen.getAllByRole("presentation", { hidden: true });
     expect(firstImage.getAttribute("src")).toContain("ponte-alto");
   });

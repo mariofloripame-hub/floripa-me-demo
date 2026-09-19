@@ -130,7 +130,7 @@ export default function QuizPage() {
           </button>
           <span className="font-display text-sm font-extrabold">
             Floripa<span className="text-coral">.</span>
-            <span className="text-turquoise">my</span>
+            <span className="text-turquoise">me</span>
           </span>
         </div>
 

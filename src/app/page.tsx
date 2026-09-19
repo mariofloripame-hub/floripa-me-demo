@@ -78,7 +78,7 @@ export default function WelcomePage() {
       <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-6 pt-8">
         <span className="font-display text-xl font-extrabold [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]">
           Floripa<span className="text-coral">.</span>
-          <span className="text-turquoise">my</span>
+          <span className="text-turquoise">me</span>
         </span>
 
         <div className="mt-8 flex-1">
