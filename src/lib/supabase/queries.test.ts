@@ -9,6 +9,7 @@ import {
   getItineraryBySlug,
   updateItineraryDays,
   updatePlaceEnrichment,
+  getPlaceById,
 } from "./queries";
 
 function makeChain(result: { data: unknown; error: unknown }) {
@@ -86,5 +87,14 @@ describe("queries", () => {
     const updated = { id: "1", ...patch };
     const client = fakeClientFor("places", makeChain({ data: updated, error: null }));
     await expect(updatePlaceEnrichment(client, "1", patch)).resolves.toEqual(updated);
+  });
+
+  it("getPlaceById returns the matching place, or null when not found", async () => {
+    const row = { id: "p1", name: "Praia do Campeche" };
+    const client = fakeClientFor("places", makeChain({ data: row, error: null }));
+    await expect(getPlaceById(client, "p1")).resolves.toEqual(row);
+
+    const missingClient = fakeClientFor("places", makeChain({ data: null, error: null }));
+    await expect(getPlaceById(missingClient, "missing")).resolves.toBeNull();
   });
 });

@@ -61,3 +61,9 @@ export async function updatePlaceEnrichment(
   if (error) throw error;
   return data as Place;
 }
+
+export async function getPlaceById(client: SupabaseClient, id: string): Promise<Place | null> {
+  const { data, error } = await client.from("places").select("*").eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data as Place | null;
+}
