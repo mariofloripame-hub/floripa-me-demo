@@ -1,9 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { EstablishmentModal, type EstablishmentDetail } from "./EstablishmentModal";
+import { EstablishmentModal, nearbyPlaceToDetail, type EstablishmentDetail } from "./EstablishmentModal";
+import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
 function detail(overrides: Partial<EstablishmentDetail>): EstablishmentDetail {
   return {
+    id: "p1",
     name: "Ilha do Campeche",
     category: "Praia",
     price_range: "R$$$",
@@ -106,5 +108,67 @@ describe("EstablishmentModal", () => {
     render(<EstablishmentModal detail={detail({})} onClose={onClose} />);
     fireEvent.click(screen.getByRole("dialog"));
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("shows an Adicionar ao roteiro button only when onAdd is provided", () => {
+    const { rerender } = render(<EstablishmentModal detail={detail({})} onClose={() => {}} />);
+    expect(screen.queryByRole("button", { name: /adicionar ao roteiro/i })).not.toBeInTheDocument();
+
+    rerender(<EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} />);
+    expect(screen.getByRole("button", { name: /adicionar ao roteiro/i })).toBeInTheDocument();
+  });
+
+  it("calls onAdd when the button is clicked", () => {
+    const onAdd = vi.fn();
+    render(<EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={onAdd} />);
+    fireEvent.click(screen.getByRole("button", { name: /adicionar ao roteiro/i }));
+    expect(onAdd).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the Adicionar button while adding is true, and enables it otherwise", () => {
+    const { rerender } = render(
+      <EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} />,
+    );
+    expect(screen.getByRole("button", { name: /adicionar ao roteiro/i })).not.toBeDisabled();
+
+    rerender(<EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} adding={false} />);
+    expect(screen.getByRole("button", { name: /adicionar ao roteiro/i })).not.toBeDisabled();
+
+    rerender(<EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} adding />);
+    expect(screen.getByRole("button", { name: /adicionando/i })).toBeDisabled();
+  });
+});
+
+describe("nearbyPlaceToDetail", () => {
+  it("maps a NearbyPlace into an EstablishmentDetail", () => {
+    const place: NearbyPlace = {
+      id: "n1",
+      name: "Restaurante X",
+      category: "Gastronomia",
+      price_range: "R$$",
+      is_partner: false,
+      address: "Rua X",
+      short_description: "Bom",
+      photos: ["places/x/photos/1"],
+      rating: 4.2,
+      google_place_id: "ChIJ-x",
+      partner_offer: null,
+      lat: -27.6,
+      lng: -48.5,
+    };
+    expect(nearbyPlaceToDetail(place)).toEqual({
+      id: "n1",
+      name: "Restaurante X",
+      category: "Gastronomia",
+      price_range: "R$$",
+      address: "Rua X",
+      short_description: "Bom",
+      photos: ["places/x/photos/1"],
+      rating: 4.2,
+      google_place_id: "ChIJ-x",
+      partner_offer: null,
+      lat: -27.6,
+      lng: -48.5,
+    });
   });
 });

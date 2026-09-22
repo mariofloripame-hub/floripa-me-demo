@@ -8,10 +8,17 @@ vi.mock("@/lib/itinerary/removeActivity", async () => {
   );
   return { ...actual, removeActivity: vi.fn() };
 });
+vi.mock("@/lib/itinerary/addPlaceActivity", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/itinerary/addPlaceActivity")>(
+    "@/lib/itinerary/addPlaceActivity",
+  );
+  return { ...actual, addPlaceActivity: vi.fn() };
+});
 
 import { GET, PATCH } from "./route";
 import { getItineraryBySlug } from "@/lib/supabase/queries";
 import { removeActivity, ItineraryNotFoundError } from "@/lib/itinerary/removeActivity";
+import { addPlaceActivity, PlaceNotFoundError, DayNotFoundError } from "@/lib/itinerary/addPlaceActivity";
 
 describe("GET /api/itineraries/[slug]", () => {
   it("returns the itinerary as JSON when found", async () => {
@@ -49,6 +56,48 @@ describe("PATCH /api/itineraries/[slug]", () => {
     vi.mocked(removeActivity).mockRejectedValue(new ItineraryNotFoundError("not found"));
     const req = new Request("http://localhost/x", { method: "PATCH", body: JSON.stringify({ day_number: 1, place_id: "p1" }) });
     const response = await PATCH(req, { params: Promise.resolve({ slug: "missing" }) });
+    expect(response.status).toBe(404);
+  });
+
+  it("returns 400 when add_place_id is not a string", async () => {
+    const req = new Request("http://localhost/x", {
+      method: "PATCH",
+      body: JSON.stringify({ day_number: 1, add_place_id: 123 }),
+    });
+    const response = await PATCH(req, { params: Promise.resolve({ slug: "abc123" }) });
+    expect(response.status).toBe(400);
+  });
+
+  it("adds a place by id and returns the updated itinerary", async () => {
+    vi.mocked(addPlaceActivity).mockResolvedValue({
+      id: "1", slug: "abc123", quiz_answers: {}, welcome_message: "Oi!", days: [], created_at: "2026-01-01T00:00:00Z",
+    });
+    const req = new Request("http://localhost/x", {
+      method: "PATCH",
+      body: JSON.stringify({ day_number: 1, add_place_id: "p1" }),
+    });
+    const response = await PATCH(req, { params: Promise.resolve({ slug: "abc123" }) });
+    expect(response.status).toBe(200);
+    expect(addPlaceActivity).toHaveBeenCalledWith("abc123", 1, "p1", {});
+  });
+
+  it("returns 404 when the place doesn't exist", async () => {
+    vi.mocked(addPlaceActivity).mockRejectedValue(new PlaceNotFoundError("not found"));
+    const req = new Request("http://localhost/x", {
+      method: "PATCH",
+      body: JSON.stringify({ day_number: 1, add_place_id: "missing" }),
+    });
+    const response = await PATCH(req, { params: Promise.resolve({ slug: "abc123" }) });
+    expect(response.status).toBe(404);
+  });
+
+  it("returns 404 when the day doesn't exist", async () => {
+    vi.mocked(addPlaceActivity).mockRejectedValue(new DayNotFoundError("not found"));
+    const req = new Request("http://localhost/x", {
+      method: "PATCH",
+      body: JSON.stringify({ day_number: 99, add_place_id: "p1" }),
+    });
+    const response = await PATCH(req, { params: Promise.resolve({ slug: "abc123" }) });
     expect(response.status).toBe(404);
   });
 });

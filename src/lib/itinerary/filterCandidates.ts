@@ -8,7 +8,7 @@ const GROUP_PROFILE_LABEL: Record<string, string> = {
   amigos: "Amigos",
 };
 
-const STYLE_CATEGORIES: Record<string, string[]> = {
+export const STYLE_CATEGORIES: Record<string, string[]> = {
   praia: ["Praia", "Trilha", "Natureza", "Mirante", "Atividade", "Esporte", "Passeio"],
   gastronomia: ["Gastronomia", "Café / Padaria"],
   compras: ["Atividade", "Passeio"],

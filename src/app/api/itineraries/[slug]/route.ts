@@ -3,6 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { getItineraryBySlug } from "@/lib/supabase/queries";
 import { removeActivity, ItineraryNotFoundError } from "@/lib/itinerary/removeActivity";
 import { addActivity } from "@/lib/itinerary/addActivity";
+import { addPlaceActivity, PlaceNotFoundError, DayNotFoundError } from "@/lib/itinerary/addPlaceActivity";
 
 interface RouteContext {
   params: Promise<{ slug: string }>;
@@ -37,6 +38,15 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       return NextResponse.json(row);
     }
 
+    if (body?.add_place_id) {
+      const addPlaceId = body.add_place_id;
+      if (typeof addPlaceId !== "string") {
+        return NextResponse.json({ error: "add_place_id deve ser uma string" }, { status: 400 });
+      }
+      const row = await addPlaceActivity(slug, dayNumber, addPlaceId, getSupabaseAdminClient());
+      return NextResponse.json(row);
+    }
+
     const placeId = body?.place_id;
     if (typeof placeId !== "string") {
       return NextResponse.json({ error: "place_id é obrigatório" }, { status: 400 });
@@ -46,6 +56,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   } catch (error) {
     if (error instanceof ItineraryNotFoundError) {
       return NextResponse.json({ error: "Roteiro não encontrado" }, { status: 404 });
+    }
+    if (error instanceof PlaceNotFoundError) {
+      return NextResponse.json({ error: "Lugar não encontrado" }, { status: 404 });
+    }
+    if (error instanceof DayNotFoundError) {
+      return NextResponse.json({ error: "Dia não encontrado" }, { status: 404 });
     }
     console.error("Failed to update itinerary", error);
     return NextResponse.json({ error: "Não foi possível salvar a alteração." }, { status: 500 });

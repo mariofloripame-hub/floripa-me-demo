@@ -4,8 +4,10 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import type { Place } from "@/lib/supabase/types";
+import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
 export interface EstablishmentDetail {
+  id: string;
   name: string;
   category: string;
   price_range: string;
@@ -21,6 +23,24 @@ export interface EstablishmentDetail {
 
 export function placeToDetail(place: Place): EstablishmentDetail {
   return {
+    id: place.id,
+    name: place.name,
+    category: place.category,
+    price_range: place.price_range,
+    address: place.address,
+    short_description: place.short_description,
+    photos: place.photos,
+    rating: place.rating,
+    google_place_id: place.google_place_id,
+    partner_offer: place.partner_offer,
+    lat: place.lat,
+    lng: place.lng,
+  };
+}
+
+export function nearbyPlaceToDetail(place: NearbyPlace): EstablishmentDetail {
+  return {
+    id: place.id,
     name: place.name,
     category: place.category,
     price_range: place.price_range,
@@ -54,9 +74,13 @@ function reviewsUrl(googlePlaceId: string): string {
 export function EstablishmentModal({
   detail,
   onClose,
+  onAdd,
+  adding,
 }: {
   detail: EstablishmentDetail | null;
   onClose: () => void;
+  onAdd?: () => void;
+  adding?: boolean;
 }) {
   useEffect(() => {
     if (!detail) return;
@@ -133,6 +157,17 @@ export function EstablishmentModal({
         {detail.short_description && <p className="mt-3 text-sm text-ink-dim">{detail.short_description}</p>}
 
         {detail.address && <p className="mt-2 text-xs text-ink-dim">📍 {detail.address}</p>}
+
+        {onAdd && (
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={adding}
+            className="mt-4 w-full rounded-pill bg-turquoise py-2 text-center text-xs font-bold text-graphite disabled:opacity-60"
+          >
+            {adding ? "Adicionando..." : "➕ Adicionar ao roteiro"}
+          </button>
+        )}
 
         <div className="mt-4 flex gap-2">
           <a
