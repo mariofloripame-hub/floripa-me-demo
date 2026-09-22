@@ -210,4 +210,61 @@ describe("MapaView", () => {
     fireEvent.click(screen.getByRole("button", { name: /recolher sugest/i }));
     expect(screen.queryByText("Restaurante Z")).not.toBeInTheDocument();
   });
+
+  it("opens the establishment modal when a suggestion marker is clicked", async () => {
+    const nearby: NearbyPlace[] = [nearbyPlace({ id: "n1", name: "Restaurante X" })];
+    render(<MapaView slug="abc123" days={[]} nearby={nearby} />);
+    await waitFor(() => expect(markerInstance.on).toHaveBeenCalledWith("click", expect.any(Function)));
+
+    const clickHandler = markerInstance.on.mock.calls[0][1] as () => void;
+    clickHandler();
+
+    expect(await screen.findByRole("dialog", { name: "Restaurante X" })).toBeInTheDocument();
+  });
+
+  it("opens the modal when a suggestion card in the sheet is clicked", async () => {
+    const nearby: NearbyPlace[] = [nearbyPlace({ id: "n1", name: "Restaurante X" })];
+    render(<MapaView slug="abc123" days={[]} nearby={nearby} />);
+    await waitFor(() => expect(screen.getByText("Restaurante X")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: /restaurante x/i }));
+
+    expect(await screen.findByRole("dialog", { name: "Restaurante X" })).toBeInTheDocument();
+  });
+
+  it("adds the suggestion to the itinerary and closes the modal when confirmed", async () => {
+    const nearby: NearbyPlace[] = [nearbyPlace({ id: "n1", name: "Restaurante X" })];
+    const updatedItinerary = {
+      id: "1",
+      slug: "abc123",
+      days: [
+        {
+          day_number: 1,
+          theme: "Dia 1",
+          activities: [activity({ place_id: "n1", name: "Restaurante X" })],
+        },
+      ],
+    };
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(updatedItinerary) });
+
+    render(
+      <MapaView slug="abc123" days={[{ day_number: 1, theme: "Dia 1", activities: [] }]} nearby={nearby} />,
+    );
+    await waitFor(() => expect(screen.getByText("Restaurante X")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /restaurante x/i }));
+
+    const addButton = await screen.findByRole("button", { name: /adicionar ao roteiro/i });
+    fireEvent.click(addButton);
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/itineraries/abc123",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ day_number: 1, add_place_id: "n1" }),
+        }),
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
 });

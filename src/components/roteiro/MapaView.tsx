@@ -8,6 +8,7 @@ import { categoryIconOptions } from "@/lib/itinerary/mapIcons";
 import { STYLE_CATEGORIES } from "@/lib/itinerary/filterCandidates";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
+import { EstablishmentModal, nearbyPlaceToDetail, type EstablishmentDetail } from "./EstablishmentModal";
 
 interface MapaViewProps {
   slug: string;
@@ -37,14 +38,17 @@ function matchesCategory(chip: string, category: string): boolean {
   return (STYLE_CATEGORIES[chip] ?? []).includes(category);
 }
 
-export function MapaView({ slug, days, nearby }: MapaViewProps) {
+export function MapaView({ slug, days: initialDays, nearby: initialNearby }: MapaViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<typeof Leaflet | null>(null);
   const leafletMapRef = useRef<Leaflet.Map | null>(null);
   const stopMarkersRef = useRef<Leaflet.Marker[]>([]);
   const suggestionMarkersRef = useRef<Leaflet.Marker[]>([]);
   const [ready, setReady] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(() => firstDayWithCoords(days));
+  const [days, setDays] = useState(initialDays);
+  const [nearby, setNearby] = useState(initialNearby);
+  const [detail, setDetail] = useState<EstablishmentDetail | null>(null);
+  const [selectedDay, setSelectedDay] = useState(() => firstDayWithCoords(initialDays));
   const [activeCategory, setActiveCategory] = useState("todos");
   const [sheetOpen, setSheetOpen] = useState(true);
 
@@ -121,12 +125,24 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
     visibleSuggestions.forEach((place) => {
       const marker = L.marker([place.lat, place.lng], {
         icon: L.divIcon(categoryIconOptions(place.category, "suggestion")),
-      })
-        .addTo(map)
-        .bindPopup(place.name);
+      }).addTo(map);
+      marker.on("click", () => setDetail(nearbyPlaceToDetail(place)));
       suggestionMarkersRef.current.push(marker);
     });
   }, [ready, visibleSuggestions]);
+
+  async function handleAddSuggestion(placeId: string) {
+    const response = await fetch(`/api/itineraries/${slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ day_number: selectedDay, add_place_id: placeId }),
+    });
+    if (!response.ok) return;
+    const updated = await response.json();
+    setDays(updated.days as ItineraryDay[]);
+    setNearby((current) => current.filter((p) => p.id !== placeId));
+    setDetail(null);
+  }
 
   return (
     <main className="relative min-h-screen pb-24">
@@ -178,15 +194,26 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
           {sheetOpen && (
             <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
               {visibleSuggestions.map((place) => (
-                <div key={place.id} className="w-28 shrink-0 rounded-card bg-white/10 p-2 text-left">
+                <button
+                  key={place.id}
+                  type="button"
+                  onClick={() => setDetail(nearbyPlaceToDetail(place))}
+                  className="w-28 shrink-0 rounded-card bg-white/10 p-2 text-left"
+                >
                   <p className="truncate text-xs font-bold text-ink">{place.name}</p>
                   <p className="truncate text-[10px] text-ink-dim">{place.category}</p>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </div>
       )}
+
+      <EstablishmentModal
+        detail={detail}
+        onClose={() => setDetail(null)}
+        onAdd={detail ? () => handleAddSuggestion(detail.id) : undefined}
+      />
 
       <BottomNav slug={slug} />
     </main>
