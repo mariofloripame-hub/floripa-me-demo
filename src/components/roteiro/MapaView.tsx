@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BottomNav } from "@/components/nav/BottomNav";
+import { categoryIconOptions } from "@/lib/itinerary/mapIcons";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
@@ -14,56 +15,88 @@ interface MapaViewProps {
 }
 
 const DEFAULT_CENTER: [number, number] = [-27.5954, -48.548];
-
-function emojiIcon(L: typeof Leaflet, emoji: string, size: number): Leaflet.DivIcon {
-  return L.divIcon({
-    html: `<span style="font-size:${size}px;line-height:1">${emoji}</span>`,
-    className: "",
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-  });
-}
+const VOYAGER_TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const VOYAGER_ATTRIBUTION = '&copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 export function MapaView({ slug, days, nearby }: MapaViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
+  const leafletRef = useRef<typeof Leaflet | null>(null);
+  const leafletMapRef = useRef<Leaflet.Map | null>(null);
+  const stopMarkersRef = useRef<Leaflet.Marker[]>([]);
+  const suggestionMarkersRef = useRef<Leaflet.Marker[]>([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
     let cancelled = false;
-    let map: Leaflet.Map | undefined;
 
     import("leaflet").then((L) => {
       if (cancelled || !mapRef.current) return;
-
-      const activities = days.flatMap((d) => d.activities).filter((a) => a.lat !== null && a.lng !== null);
-      const center: [number, number] = activities[0]
-        ? [activities[0].lat as number, activities[0].lng as number]
-        : DEFAULT_CENTER;
-
-      map = L.map(mapRef.current).setView(center, 12);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(map);
-
-      for (const act of activities) {
-        L.marker([act.lat as number, act.lng as number], { icon: emojiIcon(L, act.is_partner ? "⭐" : "📍", 28) })
-          .addTo(map)
-          .bindPopup(act.name);
-      }
-      for (const place of nearby) {
-        if (place.lat === null || place.lng === null) continue;
-        L.marker([place.lat, place.lng], { icon: emojiIcon(L, "·", 20), opacity: 0.7 })
-          .addTo(map)
-          .bindPopup(place.name);
-      }
+      leafletRef.current = L;
+      const map = L.map(mapRef.current).setView(DEFAULT_CENTER, 12);
+      L.tileLayer(VOYAGER_TILE_URL, { attribution: VOYAGER_ATTRIBUTION, maxZoom: 19 }).addTo(map);
+      leafletMapRef.current = map;
+      setReady(true);
     });
 
     return () => {
       cancelled = true;
-      map?.remove();
+      leafletMapRef.current?.remove();
+      leafletMapRef.current = null;
+      setReady(false);
     };
-  }, [days, nearby]);
+  }, []);
+
+  useEffect(() => {
+    const L = leafletRef.current;
+    const map = leafletMapRef.current;
+    if (!ready || !L || !map) return;
+
+    stopMarkersRef.current.forEach((m) => m.remove());
+    stopMarkersRef.current = [];
+
+    const activities = days
+      .flatMap((d) => d.activities)
+      .filter((a): a is typeof a & { lat: number; lng: number } => a.lat !== null && a.lng !== null);
+
+    activities.forEach((act) => {
+      const marker = L.marker([act.lat, act.lng], {
+        icon: L.divIcon(categoryIconOptions(act.category, act.is_partner ? "partner" : "stop")),
+      })
+        .addTo(map)
+        .bindPopup(act.name);
+      stopMarkersRef.current.push(marker);
+    });
+
+    if (activities.length > 0) {
+      map.fitBounds(
+        L.latLngBounds(activities.map((a) => [a.lat, a.lng])),
+        { padding: [40, 40], maxZoom: 15 },
+      );
+    } else {
+      map.setView(DEFAULT_CENTER, 12);
+    }
+  }, [ready, days]);
+
+  useEffect(() => {
+    const L = leafletRef.current;
+    const map = leafletMapRef.current;
+    if (!ready || !L || !map) return;
+
+    suggestionMarkersRef.current.forEach((m) => m.remove());
+    suggestionMarkersRef.current = [];
+
+    nearby
+      .filter((p): p is typeof p & { lat: number; lng: number } => p.lat !== null && p.lng !== null)
+      .forEach((place) => {
+        const marker = L.marker([place.lat, place.lng], {
+          icon: L.divIcon(categoryIconOptions(place.category, "suggestion")),
+        })
+          .addTo(map)
+          .bindPopup(place.name);
+        suggestionMarkersRef.current.push(marker);
+      });
+  }, [ready, nearby]);
 
   return (
     <main className="relative min-h-screen pb-24">
