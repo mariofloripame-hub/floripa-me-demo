@@ -31,6 +31,7 @@ const MAX_SUGGESTED_PARTNERS = 4;
 
 function activityToDetail(act: ItineraryActivity): EstablishmentDetail {
   return {
+    id: act.place_id,
     name: act.name,
     category: act.category,
     price_range: act.price_range,
