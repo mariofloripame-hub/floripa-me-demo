@@ -11,8 +11,9 @@ function nextTimeSlot(activities: ItineraryActivity[]): string {
   const last = activities.reduce((a, b) => (a.time > b.time ? a : b));
   const [hours, minutes] = last.time.split(":").map(Number);
   const total = hours * 60 + minutes + 90;
-  const nextHours = Math.min(23, Math.floor(total / 60));
-  const nextMinutes = total % 60;
+  const capped = Math.min(total, 23 * 60 + 59);
+  const nextHours = Math.floor(capped / 60);
+  const nextMinutes = capped % 60;
   return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}`;
 }
 

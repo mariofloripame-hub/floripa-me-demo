@@ -80,4 +80,22 @@ describe("addPlaceActivity", () => {
     const { supabase } = fakeSupabase(itinerary, null);
     await expect(addPlaceActivity("abc123", 1, "missing", supabase)).rejects.toBeInstanceOf(PlaceNotFoundError);
   });
+
+  it("caps time to 23:59 when the last activity is late in the evening", async () => {
+    const itinerary = {
+      slug: "abc123",
+      days: [{ day_number: 1, theme: "d1", activities: [{ place_id: "other", name: "Jantar", time: "23:50" }] }],
+    };
+    const { supabase, getCapturedDays } = fakeSupabase(itinerary, place());
+
+    await addPlaceActivity("abc123", 1, "p1", supabase);
+
+    const days = getCapturedDays() as Array<{
+      activities: Array<{ place_id: string; time: string }>;
+    }>;
+    const added = days[0].activities.find((a) => a.place_id === "p1");
+    expect(added?.time).toBe("23:59");
+    // Verify the added activity is NOT before the last activity (monotonic)
+    expect((added?.time || "").localeCompare("23:50")).toBeGreaterThanOrEqual(0);
+  });
 });
