@@ -55,18 +55,39 @@ describe("getNearbyPlaces", () => {
     expect(result.map((p) => p.id)).toEqual(["p2"]);
   });
 
-  it("only returns the fields the map needs, never the raw place row (e.g. photos with the Places API key)", async () => {
+  it("returns an explicit whitelist of fields — including the ones the suggestion modal needs — never the raw place row", async () => {
+    // `photos` entries are bare Google Places photo references (routed through
+    // /api/place-photo, see placeImages.ts), same as ItineraryActivity.photos
+    // already ships to the browser — safe to include here too.
     const itinerary = {
       slug: "abc123",
       quiz_answers: {},
       days: [{ day_number: 1, theme: "d", activities: [] }],
     };
-    const places = [place({ id: "p1", photos: ["https://places.googleapis.com/v1/x/media?key=SECRET"] })];
+    const places = [place({ id: "p1", region: "Sul", neighborhood: "Campeche", point_type: "Ponto Turístico" })];
     const supabase = fakeSupabase(itinerary, places);
 
     const result = await getNearbyPlaces("abc123", supabase, 5);
 
-    expect(result[0]).not.toHaveProperty("photos");
-    expect(Object.keys(result[0]).sort()).toEqual(["id", "lat", "lng", "name"]);
+    expect(Object.keys(result[0]).sort()).toEqual(
+      [
+        "address",
+        "category",
+        "google_place_id",
+        "id",
+        "is_partner",
+        "lat",
+        "lng",
+        "name",
+        "partner_offer",
+        "photos",
+        "price_range",
+        "rating",
+        "short_description",
+      ].sort(),
+    );
+    expect(result[0]).not.toHaveProperty("region");
+    expect(result[0]).not.toHaveProperty("neighborhood");
+    expect(result[0]).not.toHaveProperty("point_type");
   });
 });
