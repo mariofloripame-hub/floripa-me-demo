@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { addPlaceActivity, PlaceNotFoundError } from "./addPlaceActivity";
+import { addPlaceActivity, PlaceNotFoundError, DayNotFoundError } from "./addPlaceActivity";
 import { ItineraryNotFoundError } from "./removeActivity";
 
 function place(overrides: Record<string, unknown> = {}) {
@@ -97,5 +97,32 @@ describe("addPlaceActivity", () => {
     expect(added?.time).toBe("23:59");
     // Verify the added activity is NOT before the last activity (monotonic)
     expect((added?.time || "").localeCompare("23:50")).toBeGreaterThanOrEqual(0);
+  });
+
+  it("throws DayNotFoundError when dayNumber doesn't match any day", async () => {
+    const itinerary = { slug: "abc123", days: [{ day_number: 1, theme: "d1", activities: [] }] };
+    const { supabase } = fakeSupabase(itinerary, place());
+    await expect(addPlaceActivity("abc123", 99, "p1", supabase)).rejects.toBeInstanceOf(DayNotFoundError);
+  });
+
+  it("does not add a duplicate when the place is already in the target day's activities", async () => {
+    const itinerary = {
+      slug: "abc123",
+      days: [
+        {
+          day_number: 1,
+          theme: "d1",
+          activities: [{ place_id: "p1", name: "Praia do Campeche", time: "09:00" }],
+        },
+      ],
+    };
+    const { supabase, getCapturedDays } = fakeSupabase(itinerary, place());
+
+    const result = await addPlaceActivity("abc123", 1, "p1", supabase);
+
+    // No update should have been issued to persist a duplicate.
+    expect(getCapturedDays()).toBeNull();
+    const resultDays = result.days as Array<{ activities: Array<{ place_id: string }> }>;
+    expect(resultDays[0].activities.filter((a) => a.place_id === "p1")).toHaveLength(1);
   });
 });

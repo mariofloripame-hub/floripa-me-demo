@@ -5,6 +5,7 @@ import type { ItineraryRow } from "@/lib/supabase/types";
 import { ItineraryNotFoundError } from "./removeActivity";
 
 export class PlaceNotFoundError extends Error {}
+export class DayNotFoundError extends Error {}
 
 function nextTimeSlot(activities: ItineraryActivity[]): string {
   if (activities.length === 0) return "09:00";
@@ -31,7 +32,13 @@ export async function addPlaceActivity(
 
   const days = itinerary.days as ItineraryDay[];
   const day = days.find((d) => d.day_number === dayNumber);
-  const time = nextTimeSlot(day?.activities ?? []);
+  if (!day) throw new DayNotFoundError(`Day not found: ${dayNumber}`);
+
+  if (day.activities.some((a) => a.place_id === placeId)) {
+    return itinerary;
+  }
+
+  const time = nextTimeSlot(day.activities);
 
   const newActivity: ItineraryActivity = {
     place_id: place.id,

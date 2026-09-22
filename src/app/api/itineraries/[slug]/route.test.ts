@@ -18,7 +18,7 @@ vi.mock("@/lib/itinerary/addPlaceActivity", async () => {
 import { GET, PATCH } from "./route";
 import { getItineraryBySlug } from "@/lib/supabase/queries";
 import { removeActivity, ItineraryNotFoundError } from "@/lib/itinerary/removeActivity";
-import { addPlaceActivity, PlaceNotFoundError } from "@/lib/itinerary/addPlaceActivity";
+import { addPlaceActivity, PlaceNotFoundError, DayNotFoundError } from "@/lib/itinerary/addPlaceActivity";
 
 describe("GET /api/itineraries/[slug]", () => {
   it("returns the itinerary as JSON when found", async () => {
@@ -86,6 +86,16 @@ describe("PATCH /api/itineraries/[slug]", () => {
     const req = new Request("http://localhost/x", {
       method: "PATCH",
       body: JSON.stringify({ day_number: 1, add_place_id: "missing" }),
+    });
+    const response = await PATCH(req, { params: Promise.resolve({ slug: "abc123" }) });
+    expect(response.status).toBe(404);
+  });
+
+  it("returns 404 when the day doesn't exist", async () => {
+    vi.mocked(addPlaceActivity).mockRejectedValue(new DayNotFoundError("not found"));
+    const req = new Request("http://localhost/x", {
+      method: "PATCH",
+      body: JSON.stringify({ day_number: 99, add_place_id: "p1" }),
     });
     const response = await PATCH(req, { params: Promise.resolve({ slug: "abc123" }) });
     expect(response.status).toBe(404);

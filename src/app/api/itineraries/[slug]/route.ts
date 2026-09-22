@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { getItineraryBySlug } from "@/lib/supabase/queries";
 import { removeActivity, ItineraryNotFoundError } from "@/lib/itinerary/removeActivity";
 import { addActivity } from "@/lib/itinerary/addActivity";
-import { addPlaceActivity, PlaceNotFoundError } from "@/lib/itinerary/addPlaceActivity";
+import { addPlaceActivity, PlaceNotFoundError, DayNotFoundError } from "@/lib/itinerary/addPlaceActivity";
 
 interface RouteContext {
   params: Promise<{ slug: string }>;
@@ -59,6 +59,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
     if (error instanceof PlaceNotFoundError) {
       return NextResponse.json({ error: "Lugar não encontrado" }, { status: 404 });
+    }
+    if (error instanceof DayNotFoundError) {
+      return NextResponse.json({ error: "Dia não encontrado" }, { status: 404 });
     }
     console.error("Failed to update itinerary", error);
     return NextResponse.json({ error: "Não foi possível salvar a alteração." }, { status: 500 });

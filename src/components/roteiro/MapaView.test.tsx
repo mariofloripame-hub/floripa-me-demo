@@ -267,4 +267,37 @@ describe("MapaView", () => {
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
+
+  it("disables the Adicionar button while the add request is in flight", async () => {
+    const nearby: NearbyPlace[] = [nearbyPlace({ id: "n1", name: "Restaurante X" })];
+    let resolveFetch!: (value: { ok: boolean; json: () => Promise<unknown> }) => void;
+    global.fetch = vi.fn().mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+
+    render(
+      <MapaView slug="abc123" days={[{ day_number: 1, theme: "Dia 1", activities: [] }]} nearby={nearby} />,
+    );
+    await waitFor(() => expect(screen.getByText("Restaurante X")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /restaurante x/i }));
+
+    const addButton = await screen.findByRole("button", { name: /adicionar ao roteiro/i });
+    fireEvent.click(addButton);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /adicionando/i })).toBeDisabled());
+
+    resolveFetch({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          id: "1",
+          slug: "abc123",
+          days: [{ day_number: 1, theme: "Dia 1", activities: [activity({ place_id: "n1", name: "Restaurante X" })] }],
+        }),
+    });
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
 });

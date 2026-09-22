@@ -124,6 +124,19 @@ describe("EstablishmentModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /adicionar ao roteiro/i }));
     expect(onAdd).toHaveBeenCalledTimes(1);
   });
+
+  it("disables the Adicionar button while adding is true, and enables it otherwise", () => {
+    const { rerender } = render(
+      <EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} />,
+    );
+    expect(screen.getByRole("button", { name: /adicionar ao roteiro/i })).not.toBeDisabled();
+
+    rerender(<EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} adding={false} />);
+    expect(screen.getByRole("button", { name: /adicionar ao roteiro/i })).not.toBeDisabled();
+
+    rerender(<EstablishmentModal detail={detail({})} onClose={() => {}} onAdd={() => {}} adding />);
+    expect(screen.getByRole("button", { name: /adicionando/i })).toBeDisabled();
+  });
 });
 
 describe("nearbyPlaceToDetail", () => {

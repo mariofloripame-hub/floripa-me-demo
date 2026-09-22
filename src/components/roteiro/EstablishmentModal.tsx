@@ -75,10 +75,12 @@ export function EstablishmentModal({
   detail,
   onClose,
   onAdd,
+  adding,
 }: {
   detail: EstablishmentDetail | null;
   onClose: () => void;
   onAdd?: () => void;
+  adding?: boolean;
 }) {
   useEffect(() => {
     if (!detail) return;
@@ -160,9 +162,10 @@ export function EstablishmentModal({
           <button
             type="button"
             onClick={onAdd}
-            className="mt-4 w-full rounded-pill bg-turquoise py-2 text-center text-xs font-bold text-graphite"
+            disabled={adding}
+            className="mt-4 w-full rounded-pill bg-turquoise py-2 text-center text-xs font-bold text-graphite disabled:opacity-60"
           >
-            ➕ Adicionar ao roteiro
+            {adding ? "Adicionando..." : "➕ Adicionar ao roteiro"}
           </button>
         )}
 
