@@ -51,6 +51,7 @@ export function MapaView({ slug, days: initialDays, nearby: initialNearby }: Map
   const [selectedDay, setSelectedDay] = useState(() => firstDayWithCoords(initialDays));
   const [activeCategory, setActiveCategory] = useState("todos");
   const [sheetOpen, setSheetOpen] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -132,21 +133,27 @@ export function MapaView({ slug, days: initialDays, nearby: initialNearby }: Map
   }, [ready, visibleSuggestions]);
 
   async function handleAddSuggestion(placeId: string) {
-    const response = await fetch(`/api/itineraries/${slug}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ day_number: selectedDay, add_place_id: placeId }),
-    });
-    if (!response.ok) return;
-    const updated = await response.json();
-    setDays(updated.days as ItineraryDay[]);
-    setNearby((current) => current.filter((p) => p.id !== placeId));
-    setDetail(null);
+    if (isAdding) return;
+    setIsAdding(true);
+    try {
+      const response = await fetch(`/api/itineraries/${slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day_number: selectedDay, add_place_id: placeId }),
+      });
+      if (!response.ok) return;
+      const updated = await response.json();
+      setDays(updated.days as ItineraryDay[]);
+      setNearby((current) => current.filter((p) => p.id !== placeId));
+      setDetail(null);
+    } finally {
+      setIsAdding(false);
+    }
   }
 
   return (
     <main className="relative min-h-screen pb-24">
-      <div ref={mapRef} className="h-[calc(100vh-64px)] w-full bg-graphite-deep" />
+      <div ref={mapRef} className="isolate h-[calc(100vh-64px)] w-full bg-graphite-deep" />
 
       {days.length > 1 && (
         <div className="no-scrollbar absolute left-3 right-3 top-3 flex gap-2 overflow-x-auto">
@@ -184,7 +191,7 @@ export function MapaView({ slug, days: initialDays, nearby: initialNearby }: Map
       </div>
 
       {visibleSuggestions.length > 0 && (
-        <div className="absolute inset-x-0 bottom-16 rounded-t-2xl bg-graphite/95 px-3 pb-2 pt-2 shadow-lg">
+        <div className="fixed inset-x-0 bottom-16 rounded-t-2xl bg-graphite/95 px-3 pb-2 pt-2 shadow-lg">
           <button
             type="button"
             onClick={() => setSheetOpen((v) => !v)}
@@ -213,6 +220,7 @@ export function MapaView({ slug, days: initialDays, nearby: initialNearby }: Map
         detail={detail}
         onClose={() => setDetail(null)}
         onAdd={detail ? () => handleAddSuggestion(detail.id) : undefined}
+        adding={isAdding}
       />
 
       <BottomNav slug={slug} />
