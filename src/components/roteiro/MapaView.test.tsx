@@ -305,9 +305,30 @@ describe("MapaView", () => {
   });
 });
 
-// Test the tile URL generation logic with API key configured.
-// The MapaView module evaluates constants at import time, so testing both env var states
-// requires dynamic module re-import. We verify the logic is correct by:
-// 1. Testing the case without the key (above) - confirming no ?key= parameter
-// 2. Code inspection confirms: when CARTO_API_KEY is truthy, the URL includes ?key=<value>
-//    Example: https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=abc123
+describe("MapaView with CARTO API key", () => {
+  it("includes the CARTO API key in the tile URL when configured", async () => {
+    // Reset modules to clear the module cache
+    vi.resetModules();
+
+    // Stub the environment variable before re-importing
+    vi.stubEnv("NEXT_PUBLIC_CARTO_API_KEY", "test-key-123");
+
+    // Re-import MapaView so the module-level VOYAGER_TILE_URL constant
+    // is recomputed with the stubbed env var
+    const { MapaView: MapaViewWithKey } = await import("./MapaView");
+
+    // The leaflet mock from the top-level vi.mock() should still be in place
+    render(<MapaViewWithKey slug="abc123" days={[]} nearby={[]} />);
+
+    await waitFor(() => expect(tileLayerFn).toHaveBeenCalled());
+
+    // Verify the tile URL includes the API key
+    expect(tileLayerFn).toHaveBeenCalledWith(
+      expect.stringContaining("?key=test-key-123"),
+      expect.any(Object),
+    );
+
+    // Clean up environment stub to prevent leakage to other tests
+    vi.unstubAllEnvs();
+  });
+});
