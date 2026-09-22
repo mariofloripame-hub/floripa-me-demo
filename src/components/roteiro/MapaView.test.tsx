@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
@@ -143,5 +143,48 @@ describe("MapaView", () => {
 
     await waitFor(() => expect(markerFn).toHaveBeenCalledTimes(1));
     expect(markerFn).toHaveBeenCalledWith([-27.6, -48.5], expect.any(Object));
+  });
+
+  it("only shows day tabs when there is more than one day", async () => {
+    render(<MapaView slug="abc123" days={[{ day_number: 1, theme: "Dia 1", activities: [] }]} nearby={[]} />);
+    await waitFor(() => expect(mapFn).toHaveBeenCalled());
+    expect(screen.queryByRole("button", { name: "Dia 1" })).not.toBeInTheDocument();
+  });
+
+  it("filters markers to the selected day and switches when a day tab is clicked", async () => {
+    const days: ItineraryDay[] = [
+      {
+        day_number: 1,
+        theme: "Dia 1",
+        activities: [activity({ place_id: "d1", name: "Dia 1 lugar", lat: -27.6, lng: -48.5 })],
+      },
+      {
+        day_number: 2,
+        theme: "Dia 2",
+        activities: [activity({ place_id: "d2", name: "Dia 2 lugar", lat: -27.7, lng: -48.6 })],
+      },
+    ];
+    render(<MapaView slug="abc123" days={days} nearby={[]} />);
+
+    await waitFor(() => expect(markerInstance.bindPopup).toHaveBeenCalledWith("Dia 1 lugar"));
+    expect(markerInstance.bindPopup).not.toHaveBeenCalledWith("Dia 2 lugar");
+
+    fireEvent.click(screen.getByRole("button", { name: "Dia 2" }));
+
+    await waitFor(() => expect(markerInstance.bindPopup).toHaveBeenCalledWith("Dia 2 lugar"));
+  });
+
+  it("defaults to the first day that has activities with coordinates", async () => {
+    const days: ItineraryDay[] = [
+      { day_number: 1, theme: "Dia 1", activities: [activity({ place_id: "d1", lat: null, lng: null })] },
+      {
+        day_number: 2,
+        theme: "Dia 2",
+        activities: [activity({ place_id: "d2", name: "Dia 2 lugar", lat: -27.7, lng: -48.6 })],
+      },
+    ];
+    render(<MapaView slug="abc123" days={days} nearby={[]} />);
+    await waitFor(() => expect(markerInstance.bindPopup).toHaveBeenCalledWith("Dia 2 lugar"));
+    expect(screen.getByRole("button", { name: "Dia 2" })).toHaveClass("bg-turquoise");
   });
 });

@@ -18,6 +18,11 @@ const DEFAULT_CENTER: [number, number] = [-27.5954, -48.548];
 const VOYAGER_TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 const VOYAGER_ATTRIBUTION = '&copy; <a href="https://carto.com/attributions">CARTO</a>';
 
+function firstDayWithCoords(days: ItineraryDay[]): number {
+  const dayWithCoords = days.find((d) => d.activities.some((a) => a.lat !== null && a.lng !== null));
+  return dayWithCoords?.day_number ?? days[0]?.day_number ?? 1;
+}
+
 export function MapaView({ slug, days, nearby }: MapaViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<typeof Leaflet | null>(null);
@@ -25,6 +30,7 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
   const stopMarkersRef = useRef<Leaflet.Marker[]>([]);
   const suggestionMarkersRef = useRef<Leaflet.Marker[]>([]);
   const [ready, setReady] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(() => firstDayWithCoords(days));
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -55,9 +61,10 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
     stopMarkersRef.current.forEach((m) => m.remove());
     stopMarkersRef.current = [];
 
-    const activities = days
-      .flatMap((d) => d.activities)
-      .filter((a): a is typeof a & { lat: number; lng: number } => a.lat !== null && a.lng !== null);
+    const activeDay = days.find((d) => d.day_number === selectedDay);
+    const activities = (activeDay?.activities ?? []).filter(
+      (a): a is typeof a & { lat: number; lng: number } => a.lat !== null && a.lng !== null,
+    );
 
     activities.forEach((act) => {
       const marker = L.marker([act.lat, act.lng], {
@@ -76,7 +83,7 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
     } else {
       map.setView(DEFAULT_CENTER, 12);
     }
-  }, [ready, days]);
+  }, [ready, days, selectedDay]);
 
   useEffect(() => {
     const L = leafletRef.current;
@@ -101,6 +108,24 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
   return (
     <main className="relative min-h-screen pb-24">
       <div ref={mapRef} className="h-[calc(100vh-64px)] w-full bg-graphite-deep" />
+
+      {days.length > 1 && (
+        <div className="no-scrollbar absolute left-3 right-3 top-3 flex gap-2 overflow-x-auto">
+          {days.map((day) => (
+            <button
+              key={day.day_number}
+              type="button"
+              onClick={() => setSelectedDay(day.day_number)}
+              className={`shrink-0 rounded-pill px-3 py-1.5 text-xs font-bold shadow ${
+                selectedDay === day.day_number ? "bg-turquoise text-graphite" : "bg-white/90 text-graphite"
+              }`}
+            >
+              Dia {day.day_number}
+            </button>
+          ))}
+        </div>
+      )}
+
       <BottomNav slug={slug} />
     </main>
   );
