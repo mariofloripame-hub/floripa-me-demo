@@ -9,7 +9,7 @@ vi.mock("leaflet/dist/leaflet.css", () => ({}));
 const markerInstance = {
   addTo: vi.fn().mockReturnThis(),
   bindPopup: vi.fn().mockReturnThis(),
-  on: vi.fn().mockReturnThis(),
+  on: vi.fn((_event: string, _cb: () => void) => markerInstance).mockReturnThis(),
   remove: vi.fn(),
 };
 const tileLayerInstance = { addTo: vi.fn() };
@@ -17,7 +17,7 @@ const mapInstance = { remove: vi.fn(), setView: vi.fn().mockReturnThis(), fitBou
 
 const mapFn = vi.fn(() => mapInstance);
 const tileLayerFn = vi.fn(() => tileLayerInstance);
-const markerFn = vi.fn(() => markerInstance);
+const markerFn = vi.fn((_coords: [number, number], _opts: unknown) => markerInstance);
 const divIconFn = vi.fn((opts: unknown) => opts);
 const latLngBoundsFn = vi.fn((coords: unknown) => coords);
 
