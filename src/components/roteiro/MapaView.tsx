@@ -17,7 +17,10 @@ interface MapaViewProps {
 }
 
 const DEFAULT_CENTER: [number, number] = [-27.5954, -48.548];
-const VOYAGER_TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const CARTO_API_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY;
+const VOYAGER_TILE_URL = CARTO_API_KEY
+  ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+  : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 const VOYAGER_ATTRIBUTION = '&copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 function firstDayWithCoords(days: ItineraryDay[]): number {
