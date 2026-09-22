@@ -187,4 +187,27 @@ describe("MapaView", () => {
     await waitFor(() => expect(markerInstance.bindPopup).toHaveBeenCalledWith("Dia 2 lugar"));
     expect(screen.getByRole("button", { name: "Dia 2" })).toHaveClass("bg-turquoise");
   });
+
+  it("filters nearby suggestion markers by category chip", async () => {
+    const nearby: NearbyPlace[] = [
+      nearbyPlace({ id: "n1", name: "Praia Y", category: "Praia", lat: -27.61, lng: -48.51 }),
+      nearbyPlace({ id: "n2", name: "Restaurante Z", category: "Gastronomia", lat: -27.62, lng: -48.52 }),
+    ];
+    render(<MapaView slug="abc123" days={[]} nearby={nearby} />);
+    await waitFor(() => expect(markerFn).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "Gastronomia" }));
+
+    await waitFor(() => expect(markerInstance.remove).toHaveBeenCalled());
+    expect(markerFn).toHaveBeenLastCalledWith([-27.62, -48.52], expect.any(Object));
+  });
+
+  it("shows a collapsible list of the visible suggestions", async () => {
+    const nearby: NearbyPlace[] = [nearbyPlace({ id: "n1", name: "Restaurante Z" })];
+    render(<MapaView slug="abc123" days={[]} nearby={nearby} />);
+    await waitFor(() => expect(screen.getByText("Restaurante Z")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: /recolher sugest/i }));
+    expect(screen.queryByText("Restaurante Z")).not.toBeInTheDocument();
+  });
 });

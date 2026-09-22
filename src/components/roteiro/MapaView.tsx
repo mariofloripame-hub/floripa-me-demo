@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { categoryIconOptions } from "@/lib/itinerary/mapIcons";
+import { STYLE_CATEGORIES } from "@/lib/itinerary/filterCandidates";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
@@ -23,6 +24,19 @@ function firstDayWithCoords(days: ItineraryDay[]): number {
   return dayWithCoords?.day_number ?? days[0]?.day_number ?? 1;
 }
 
+const CATEGORY_CHIPS: { value: string; label: string }[] = [
+  { value: "todos", label: "Todos" },
+  { value: "praia", label: "Praia" },
+  { value: "gastronomia", label: "Gastronomia" },
+  { value: "compras", label: "Compras" },
+  { value: "cultura", label: "Cultura" },
+];
+
+function matchesCategory(chip: string, category: string): boolean {
+  if (chip === "todos") return true;
+  return (STYLE_CATEGORIES[chip] ?? []).includes(category);
+}
+
 export function MapaView({ slug, days, nearby }: MapaViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<typeof Leaflet | null>(null);
@@ -31,6 +45,8 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
   const suggestionMarkersRef = useRef<Leaflet.Marker[]>([]);
   const [ready, setReady] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => firstDayWithCoords(days));
+  const [activeCategory, setActiveCategory] = useState("todos");
+  const [sheetOpen, setSheetOpen] = useState(true);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -85,6 +101,15 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
     }
   }, [ready, days, selectedDay]);
 
+  const visibleSuggestions = useMemo(
+    () =>
+      nearby.filter(
+        (p): p is typeof p & { lat: number; lng: number } =>
+          p.lat !== null && p.lng !== null && matchesCategory(activeCategory, p.category),
+      ),
+    [nearby, activeCategory],
+  );
+
   useEffect(() => {
     const L = leafletRef.current;
     const map = leafletMapRef.current;
@@ -93,17 +118,15 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
     suggestionMarkersRef.current.forEach((m) => m.remove());
     suggestionMarkersRef.current = [];
 
-    nearby
-      .filter((p): p is typeof p & { lat: number; lng: number } => p.lat !== null && p.lng !== null)
-      .forEach((place) => {
-        const marker = L.marker([place.lat, place.lng], {
-          icon: L.divIcon(categoryIconOptions(place.category, "suggestion")),
-        })
-          .addTo(map)
-          .bindPopup(place.name);
-        suggestionMarkersRef.current.push(marker);
-      });
-  }, [ready, nearby]);
+    visibleSuggestions.forEach((place) => {
+      const marker = L.marker([place.lat, place.lng], {
+        icon: L.divIcon(categoryIconOptions(place.category, "suggestion")),
+      })
+        .addTo(map)
+        .bindPopup(place.name);
+      suggestionMarkersRef.current.push(marker);
+    });
+  }, [ready, visibleSuggestions]);
 
   return (
     <main className="relative min-h-screen pb-24">
@@ -123,6 +146,45 @@ export function MapaView({ slug, days, nearby }: MapaViewProps) {
               Dia {day.day_number}
             </button>
           ))}
+        </div>
+      )}
+
+      <div
+        className="no-scrollbar absolute left-3 right-3 flex gap-2 overflow-x-auto"
+        style={{ top: days.length > 1 ? 56 : 12 }}
+      >
+        {CATEGORY_CHIPS.map((chip) => (
+          <button
+            key={chip.value}
+            type="button"
+            onClick={() => setActiveCategory(chip.value)}
+            className={`shrink-0 rounded-pill px-3 py-1.5 text-xs font-bold shadow ${
+              activeCategory === chip.value ? "bg-turquoise text-graphite" : "bg-white/90 text-graphite"
+            }`}
+          >
+            {chip.label}
+          </button>
+        ))}
+      </div>
+
+      {visibleSuggestions.length > 0 && (
+        <div className="absolute inset-x-0 bottom-16 rounded-t-2xl bg-graphite/95 px-3 pb-2 pt-2 shadow-lg">
+          <button
+            type="button"
+            onClick={() => setSheetOpen((v) => !v)}
+            aria-label={sheetOpen ? "Recolher sugestões" : "Expandir sugestões"}
+            className="mx-auto block h-1 w-9 rounded-full bg-white/30"
+          />
+          {sheetOpen && (
+            <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
+              {visibleSuggestions.map((place) => (
+                <div key={place.id} className="w-28 shrink-0 rounded-card bg-white/10 p-2 text-left">
+                  <p className="truncate text-xs font-bold text-ink">{place.name}</p>
+                  <p className="truncate text-[10px] text-ink-dim">{place.category}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
