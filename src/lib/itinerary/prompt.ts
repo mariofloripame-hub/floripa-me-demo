@@ -11,13 +11,6 @@ export const SYSTEM_PROMPT = [
   "Escreva em português do Brasil, em tom caloroso e local, como um amigo dando dicas.",
 ].join(" ");
 
-const TIMING_LABEL: Record<string, string> = {
-  aviao: "chegando de avião",
-  onibus_chegada: "chegando de ônibus",
-  carro_chegada: "chegando de carro",
-  agora: "já está em Floripa",
-};
-
 const REGION_LABEL: Record<string, string> = {
   centro: "Centro / Continente",
   norte: "Norte da Ilha",
@@ -50,7 +43,6 @@ export function buildItineraryPrompt(candidates: Place[], answers: QuizAnswers):
     )
     .join("\n");
 
-  const timingLabel = answers.timing ? (TIMING_LABEL[answers.timing] ?? "não informado") : "não informado";
   const regionLabel =
     answers.region && answers.region !== "nao"
       ? (REGION_LABEL[answers.region] ?? "não informado")
@@ -61,10 +53,9 @@ export function buildItineraryPrompt(candidates: Place[], answers: QuizAnswers):
     `- Companhia: ${answers.group ?? "não informado"}`,
     `- Dias na cidade: ${answers.days ?? "não informado"} (monte exatamente ${dayCount} dia(s))`,
     `- Estilo de viagem: ${(answers.style ?? []).join(", ") || "não informado"}`,
-    `- Orçamento diário: R$${answers.budget ?? 150}`,
+    `- Orçamento: ${answers.budget ?? "não informado"}`,
     `- Transporte: ${answers.transport ?? "não informado"}`,
     `- Necessidade especial: ${answers.special ?? "nenhuma"}`,
-    `- Chegada: ${timingLabel}`,
     `- Região de hospedagem: ${regionLabel}`,
     "",
     "Lugares disponíveis (use SOMENTE estes, referenciando pelo place_id):",

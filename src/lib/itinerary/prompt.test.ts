@@ -41,10 +41,14 @@ describe("buildItineraryPrompt", () => {
     expect(prompt).toMatch(/exatamente 2 dia/);
   });
 
-  it("includes readable timing and region labels when informed", () => {
-    const prompt = buildItineraryPrompt([place({})], { timing: "aviao", region: "leste" });
-    expect(prompt).toContain("chegando de avião");
+  it("includes a readable region label when informed", () => {
+    const prompt = buildItineraryPrompt([place({})], { region: "leste" });
     expect(prompt).toContain("Leste da Ilha");
+  });
+
+  it("no longer mentions arrival/chegada — the prompt doesn't use the timing answer anymore", () => {
+    const prompt = buildItineraryPrompt([place({})], { region: "leste" });
+    expect(prompt).not.toMatch(/chegada/i);
   });
 
   it("tells Claude to use the stay region for logistical ordering", () => {
@@ -52,12 +56,20 @@ describe("buildItineraryPrompt", () => {
     expect(prompt.toLowerCase()).toMatch(/região de hospedagem.*ordenar|ordenar.*regi(ã|a)o/);
   });
 
-  it("falls back to a sensible default when timing/region are absent or 'não informar'", () => {
+  it("falls back to a sensible default when region is absent or 'não informar'", () => {
     const prompt = buildItineraryPrompt([place({})], {});
-    expect(prompt).toContain("- Chegada: não informado");
     expect(prompt).toContain("- Região de hospedagem: não informado");
 
     const promptWithNao = buildItineraryPrompt([place({})], { region: "nao" });
     expect(promptWithNao).toContain("- Região de hospedagem: não informado");
+  });
+
+  it("describes budget as a tier label, not a currency amount", () => {
+    const prompt = buildItineraryPrompt([place({})], { budget: "medio" });
+    expect(prompt).toContain("- Orçamento: medio");
+    expect(prompt).not.toContain("R$medio");
+
+    const promptWithout = buildItineraryPrompt([place({})], {});
+    expect(promptWithout).toContain("- Orçamento: não informado");
   });
 });
