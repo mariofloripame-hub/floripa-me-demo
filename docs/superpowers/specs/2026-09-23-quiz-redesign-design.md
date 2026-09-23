@@ -19,15 +19,21 @@ de eventos sazonais funcionando (`EventRow`, `src/lib/supabase/types.ts:30-41`,
 `filterEventsForTraveler`, `src/lib/events/filterEvents.ts`), mas hoje só aparece numa aba separada
 ("Dicas pra você", `src/components/dicas/DicasView.tsx`), sem ligação com o quiz nem com o roteiro.
 
-Este design substitui a pergunta `timing` por duas novas perguntas mais úteis (`purpose` e `when`),
-simplifica `budget` para 3 opções fixas, remove `days` (roteiro passa a ter sempre 3 dias),
-remove a opção "Negócios" de `style`, e cria um bloco de **Avisos personalizados** alimentado pelas
-respostas do quiz, substituindo o card estático atual. O quiz continua com 8 perguntas no total.
+Este design substitui a pergunta `timing` por duas novas perguntas mais úteis (`purpose` e
+`when`), simplifica `budget` para 3 opções fixas, remove a opção "Negócios" de `style`, e cria um
+bloco de **Avisos personalizados** alimentado pelas respostas do quiz, substituindo o card estático
+atual. O quiz passa de 8 para 9 perguntas.
+
+`days` (quantidade de dias) e `transport` (como vai se locomover) **ficam exatamente como estão
+hoje** — sem mudança de opções, e sem novo uso (`transport` continua só virando texto solto no
+prompt da IA, como hoje; não vira gatilho de Avisos nesta etapa).
 
 **Fora de escopo** (decidido em brainstorming, fica para uma spec futura): lógica de progressão
-geográfica no roteiro (dia 1 perto da hospedagem, dias seguintes mais longe) e integração de
-previsão do tempo em tempo real. Esta spec não mexe em `filterCandidates`, `rankCandidates` nem em
-como os dias são montados pela IA além da contagem fixa de dias (seção 3).
+geográfica no roteiro (dia 1 perto da hospedagem, dias seguintes mais longe), integração de
+previsão do tempo em tempo real, e dica de Avisos por modo de transporte (a ideia original desta
+spec) — adiada porque exige escrever e manter conteúdo prático novo (ex.: linhas/tarifas de
+ônibus) que ainda não existe em lugar nenhum do app. Esta spec não mexe em `filterCandidates`,
+`rankCandidates` nem em como os dias são montados pela IA.
 
 ## 1. Nova pergunta: motivo da viagem (`purpose`)
 
@@ -46,7 +52,7 @@ opções:
 ```
 
 Não filtra nem prioriza estabelecimentos (`filterCandidates.ts` não muda por causa desta pergunta).
-Serve exclusivamente para escolher qual bloco extra aparece no sistema de Avisos (seção 7):
+Serve exclusivamente para escolher qual bloco extra aparece no sistema de Avisos (seção 5):
 `negocios` e `estudo_congresso` mostram um bloco de dica prática de trabalho/evento;
 `atividade_fisica` mostra um bloco de trilhas/pontos de treino; `passeio` e `familia_amigos` não
 adicionam bloco extra.
@@ -67,20 +73,11 @@ opções:
   🤔 Ainda estou planejando     → "planejando"
 ```
 
-Usada só pelo sistema de Avisos (seção 7) para calcular um mês de referência e decidir se mostra
-conteúdo sazonal (ver seção 7). Não é passada para o prompt da IA — a IA não precisa saber quando a
-pessoa viaja para montar o roteiro em si.
+Usada só pelo sistema de Avisos (seção 5) para calcular um mês de referência e decidir se mostra
+conteúdo sazonal. Não é passada para o prompt da IA — a IA não precisa saber quando a pessoa viaja
+para montar o roteiro em si.
 
-## 3. Remoção da pergunta `days` → 3 dias fixos
-
-A pergunta `days` sai do quiz inteiramente (não aparece mais, em nenhuma posição).
-
-`dayCountFor()` (`src/lib/itinerary/prompt.ts:29-42`) é removido. `buildItineraryPrompt` passa a
-usar uma constante fixa `const FIXED_DAY_COUNT = 3` no lugar do valor calculado — o texto do prompt
-troca `Dias na cidade: ${answers.days}` por simplesmente instruir a IA a montar 3 dias.
-`QuizAnswers.days` é removido do tipo.
-
-## 4. Orçamento: slider → 3 botões
+## 3. Orçamento: slider → 3 botões
 
 A pergunta `budget` deixa de ser slider numérico (R$50–600) e passa a ser 3 botões:
 
@@ -107,7 +104,7 @@ alto      → ["Gratuito", "R$", "R$$", "R$$$"]  (PRICE_ORDER completo)
 Resultado idêntico ao comportamento atual nos três casos (o slider já colapsava para essas mesmas
 3 faixas por baixo dos panos) — é uma limpeza de UI e de código, não uma mudança de filtro.
 
-## 5. Estilo: remoção da opção "Negócios"
+## 4. Estilo: remoção da opção "Negócios"
 
 A opção `negocios` (💼 "Negócios") sai da pergunta `style`
 (`src/lib/quiz/questions.ts` questão `style`) e de `STYLE_CATEGORIES`
@@ -115,18 +112,13 @@ A opção `negocios` (💼 "Negócios") sai da pergunta `style`
 sinal de forma mais clara; manter as duas criava duas perguntas usando a palavra "negócios" com
 significados diferentes (motivo da viagem vs. categoria de lazer).
 
-## 6. Transporte: de texto solto a gatilho de avisos práticos
-
-A pergunta `transport` não muda (mesmas 4 opções). O que muda é seu uso: hoje só vira uma linha de
-texto no prompt da IA (`prompt.ts:65`); passa a também escolher qual dica prática aparece no bloco
-de Avisos (seção 7), no lugar do card estático genérico atual.
-
-## 7. Sistema de Avisos (novo)
+## 5. Sistema de Avisos (novo)
 
 Substitui o componente `ImportantNotice` atual (`RoteiroView.tsx:93-135`, lista estática
 `NOTICE_TIPS`) por um bloco montado a partir das respostas do quiz. Conteúdo estático (dicionários
 em código, sem escrita em banco — consistente com a preferência já usada em outras telas de dados
-de demonstração), com três fontes combinadas:
+de demonstração). `transport` não participa disso nesta etapa (ver "Fora de escopo" no Contexto) —
+as fontes combinadas são:
 
 ### a) Dica de época do ano (a partir de `when`)
 
@@ -148,17 +140,12 @@ Quando um mês de referência foi calculado (casos acima), reaproveita
 filtra por perfil de grupo + mês. Mostra até N eventos ativos naquele mês como parte do bloco de
 Avisos (hoje só aparecem em "Dicas pra você").
 
-### c) Dica prática de transporte (a partir de `transport`)
+### c) Dicas gerais fixas (sem depender de resposta)
 
-Um dicionário `TRANSPORT_TIPS` com uma dica por resposta de `transport`:
-
-- `carro` → dica de estacionamento + trânsito (reaproveita texto de `NOTICE_TIPS` atual)
-- `app` → dica de Uber/99 (reaproveita texto de `NOTICE_TIPS` atual)
-- `onibus` → dica de linhas/passagem (conteúdo novo, hoje não existe nenhum texto sobre ônibus)
-- `pe` → dica de caminhada/segurança (conteúdo novo)
-
-A dica de "Cuidados" (sol/água/correnteza) do `NOTICE_TIPS` atual continua sempre visível,
-independente de `transport` — não é específica de um modo de locomoção.
+As 4 dicas do `NOTICE_TIPS` atual (Uber/99, Estacionamento, Trânsito, Cuidados) continuam
+aparecendo, exatamente como hoje — nenhuma delas some ou passa a depender de `transport`. Esta spec
+não altera esse bloco; ele só passa a ficar ao lado das dicas condicionais abaixo, em vez de
+sozinho.
 
 ### d) Dica de propósito (a partir de `purpose`)
 
@@ -169,9 +156,9 @@ adicionam nada aqui.
 ### Layout
 
 Mesmo componente visual de card colapsável que existe hoje (`⚠️ Aviso importante`, expandir/
-recolher), só troca a fonte da lista de itens: em vez de `NOTICE_TIPS` fixo, monta a lista
-combinando (sempre) Cuidados + dica de transporte, e (condicionalmente) dica de época, eventos e
-dica de propósito.
+recolher), só troca a fonte da lista de itens: em vez de só `NOTICE_TIPS` fixo, monta a lista
+combinando (sempre) as 4 dicas gerais atuais, e (condicionalmente) dica de época, eventos e dica de
+propósito.
 
 ## Modelo de dados: `QuizAnswers`
 
@@ -193,6 +180,7 @@ export interface QuizAnswers {
   purpose?: "passeio" | "negocios" | "estudo_congresso" | "atividade_fisica" | "familia_amigos";
   when?: "chegou" | "proximos_7_dias" | "2_a_4_semanas" | "mais_de_um_mes" | "planejando";
   region?: string;
+  days?: string;
   group?: string;
   style?: string[];
   transport?: string;
@@ -201,22 +189,23 @@ export interface QuizAnswers {
 }
 ```
 
-`timing` e `days` somem do tipo. Respostas antigas já salvas em `quiz_answers` (JSONB,
-`supabase/migrations/0001_init.sql:60`) continuam existindo no banco para itinerários já gerados —
-como é histórico read-only e não há re-geração automática de roteiros antigos, não precisa de
-migração de dados, só o código novo passa a ignorar `timing`/`days` e não vai mais receber esses
-campos em respostas novas.
+Só `timing` some do tipo (substituído por `purpose` + `when`). `days` e `transport` continuam
+exatamente como hoje, sem mudança de tipo nem de opções. Respostas antigas já salvas em
+`quiz_answers` (JSONB, `supabase/migrations/0001_init.sql:60`) continuam existindo no banco para
+itinerários já gerados — como é histórico read-only e não há re-geração automática de roteiros
+antigos, não precisa de migração de dados, só o código novo passa a ignorar `timing` e não vai mais
+receber esse campo em respostas novas.
 
 ## Testes
 
 - `filterCandidates`: atualizar teste de `allowedPriceRanges`/orçamento para os 3 valores enum em
   vez de números; remover qualquer caso que dependa de `negocios` em `STYLE_CATEGORIES`.
-- `prompt.ts`: atualizar teste de `buildItineraryPrompt` para contagem fixa de 3 dias (sem
-  `answers.days`) e sem `TIMING_LABEL`.
+- `prompt.ts`: atualizar teste de `buildItineraryPrompt` para remover `TIMING_LABEL`/`timing`;
+  `dayCountFor`/`answers.days` continuam sem mudança, sem teste novo necessário aí.
 - Novo teste para a função de mês de referência a partir de `when` (casos: cada uma das 5 opções +
   resposta ausente).
-- Novo teste para a montagem do bloco de Avisos: confirma que Cuidados + transporte sempre
-  aparecem, que época/eventos só aparecem para `when` de curto prazo, e que a dica de propósito só
-  aparece para `negocios`/`estudo_congresso`/`atividade_fisica`.
-- Atualizar snapshot/teste do componente do quiz (`QuestionCard`/fluxo) para a nova lista de 8
+- Novo teste para a montagem do bloco de Avisos: confirma que as 4 dicas gerais sempre aparecem,
+  que época/eventos só aparecem para `when` de curto prazo, e que a dica de propósito só aparece
+  para `negocios`/`estudo_congresso`/`atividade_fisica`.
+- Atualizar snapshot/teste do componente do quiz (`QuestionCard`/fluxo) para a nova lista de 9
   perguntas na nova ordem.
