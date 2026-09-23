@@ -2,15 +2,29 @@ import type { QuizQuestion } from "./types";
 
 export const QUESTIONS: QuizQuestion[] = [
   {
-    id: "timing",
-    text: "Como você chega em Floripa?",
-    sub: "Isso nos ajuda a montar o roteiro desde a sua chegada.",
+    id: "purpose",
+    text: "Qual o motivo da sua viagem a Florianópolis?",
+    sub: "Isso nos ajuda a te mostrar dicas mais relevantes pra sua viagem.",
     type: "rows",
     options: [
-      { emoji: "✈️", label: "Vou chegar de avião", desc: "Aeroporto Hercílio Luz", value: "aviao" },
-      { emoji: "🚌", label: "Vou chegar de ônibus", desc: "Terminal TICEN ou Rodoviária", value: "onibus_chegada" },
-      { emoji: "🚗", label: "Vou chegar de carro", desc: "Já tenho meu próprio veículo", value: "carro_chegada" },
-      { emoji: "📍", label: "Já estou em Floripa", desc: "Quero o roteiro agora!", value: "agora" },
+      { emoji: "🏖️", label: "Passeio / Turismo", desc: "Viagem de lazer", value: "passeio" },
+      { emoji: "💼", label: "Negócios", desc: "Trabalho na cidade", value: "negocios" },
+      { emoji: "🎓", label: "Estudo ou Congresso", desc: "Evento, curso ou faculdade", value: "estudo_congresso" },
+      { emoji: "🏃", label: "Atividade Física/Competição", desc: "Treino, prova ou trilha", value: "atividade_fisica" },
+      { emoji: "👨‍👩‍👧", label: "Visitar Família/Amigos", desc: "Reencontro por aqui", value: "familia_amigos" },
+    ],
+  },
+  {
+    id: "when",
+    text: "Quando você vem para Florianópolis?",
+    sub: "Assim conseguimos te avisar sobre eventos e a época da sua viagem.",
+    type: "rows",
+    options: [
+      { emoji: "📍", label: "Já estou em Floripa", desc: "Quero o roteiro agora!", value: "chegou" },
+      { emoji: "🗓️", label: "Nos próximos 7 dias", desc: "Viagem é essa semana", value: "proximos_7_dias" },
+      { emoji: "📆", label: "Entre 2 e 4 semanas", desc: "Ainda tenho um tempinho", value: "2_a_4_semanas" },
+      { emoji: "🔭", label: "Daqui a mais de um mês", desc: "Planejando com calma", value: "mais_de_um_mes" },
+      { emoji: "🤔", label: "Ainda estou planejando", desc: "Sem data definida", value: "planejando" },
     ],
   },
   {
@@ -64,7 +78,6 @@ export const QUESTIONS: QuizQuestion[] = [
       { emoji: "🛍️", label: "Compras", desc: "Shoppings, feiras e lojas", value: "compras" },
       { emoji: "🏛️", label: "Lazer & Cultura", desc: "História, arte e passeios", value: "cultura" },
       { emoji: "🌙", label: "Balada & Bares", desc: "A noite é jovem", value: "noite" },
-      { emoji: "💼", label: "Negócios", desc: "Trabalho + aproveitar a cidade", value: "negocios" },
     ],
   },
   {
@@ -81,13 +94,14 @@ export const QUESTIONS: QuizQuestion[] = [
   },
   {
     id: "budget",
-    text: "Qual o seu orçamento diário?",
-    sub: "Valor estimado por pessoa, tudo incluído.",
-    type: "slider",
-    min: 50,
-    max: 600,
-    default: 150,
-    unit: "R$",
+    text: "Qual o seu orçamento?",
+    sub: "Isso ajuda a sugerir lugares dentro do seu perfil de gasto.",
+    type: "rows",
+    options: [
+      { emoji: "💰", label: "Econômico", desc: "Rolê redondo sem gastar muito", value: "economico" },
+      { emoji: "💵", label: "Médio", desc: "Equilíbrio entre custo e conforto", value: "medio" },
+      { emoji: "💎", label: "Alto", desc: "Conforto e experiências em primeiro lugar", value: "alto" },
+    ],
   },
   {
     id: "special",

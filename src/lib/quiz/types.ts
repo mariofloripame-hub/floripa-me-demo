@@ -29,12 +29,13 @@ export interface QuizSliderQuestion extends QuizQuestionBase {
 export type QuizQuestion = QuizChoiceQuestion | QuizSliderQuestion;
 
 export interface QuizAnswers {
-  timing?: string;
+  purpose?: "passeio" | "negocios" | "estudo_congresso" | "atividade_fisica" | "familia_amigos";
+  when?: "chegou" | "proximos_7_dias" | "2_a_4_semanas" | "mais_de_um_mes" | "planejando";
   region?: string;
   days?: string;
   group?: string;
   style?: string[];
   transport?: string;
-  budget?: number;
+  budget?: "economico" | "medio" | "alto";
   special?: string;
 }
