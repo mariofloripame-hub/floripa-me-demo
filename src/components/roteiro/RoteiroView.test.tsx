@@ -5,6 +5,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/roteiro/abc123" }));
 
 import { RoteiroView } from "./RoteiroView";
 import type { ItineraryRow, Place } from "@/lib/supabase/types";
+import type { Tip } from "@/lib/avisos/types";
 
 const itinerary: ItineraryRow = {
   id: "1", slug: "abc123", quiz_answers: {},
@@ -25,6 +26,25 @@ describe("RoteiroView", () => {
       "href",
       "/roteiro/abc123/mapa",
     );
+  });
+
+  it("shows the general avisos tips by default when no tips prop is given", () => {
+    render(<RoteiroView itinerary={itinerary} />);
+    expect(screen.getByText(/uber\/99/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /ver mais/i }));
+    expect(screen.getByText(/cuidados/i)).toBeInTheDocument();
+  });
+
+  it("renders a custom tips list instead of the defaults when tips is passed", () => {
+    const tips: Tip[] = [{ icon: "🎉", label: "Festival de Inverno", text: "Rola no Centro em julho." }];
+    render(<RoteiroView itinerary={itinerary} tips={tips} />);
+    expect(screen.getByText(/festival de inverno/i)).toBeInTheDocument();
+    expect(screen.queryByText(/uber\/99/i)).not.toBeInTheDocument();
+  });
+
+  it("renders no avisos card when tips is an empty array", () => {
+    render(<RoteiroView itinerary={itinerary} tips={[]} />);
+    expect(screen.queryByText(/aviso importante/i)).not.toBeInTheDocument();
   });
 
   it("removes an activity via PATCH and updates the view optimistically", async () => {

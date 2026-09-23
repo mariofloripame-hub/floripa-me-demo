@@ -11,6 +11,8 @@ import { getTripTitle, getTripChips } from "@/lib/itinerary/tripSummary";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import type { ItineraryRow, Place } from "@/lib/supabase/types";
 import type { ItineraryDay } from "@/lib/itinerary/assemble";
+import type { Tip } from "@/lib/avisos/types";
+import { GENERAL_TIPS } from "@/lib/avisos/generalTips";
 
 function ArrowLeftIcon({ className }: { className?: string }) {
   return (
@@ -90,32 +92,10 @@ const HERO_IMAGES_BY_GROUP: Record<string, { src: string; focus?: string }[]> = 
   ],
 };
 
-const NOTICE_TIPS = [
-  {
-    icon: "🚕",
-    label: "Uber/99",
-    text: "costuma ser a forma mais prática de ir entre praias — o valor varia bastante conforme distância e horário, então confira o app antes de sair.",
-  },
-  {
-    icon: "🅿️",
-    label: "Estacionamento",
-    text: "em pontos turísticos como Lagoa da Conceição e Centro, chegue cedo ou prefira deixar o carro na pousada e usar apps de transporte.",
-  },
-  {
-    icon: "🕒",
-    label: "Trânsito",
-    text: "evite a Via Expressa/SC-401 no fim da tarde em dias úteis — costuma ser o horário de maior movimento da ilha.",
-  },
-  {
-    icon: "☀️",
-    label: "Cuidados",
-    text: "leve protetor solar e água mesmo em dias nublados, e confira as condições do mar antes de entrar — várias praias têm correnteza forte.",
-  },
-];
-
-function ImportantNotice() {
+function ImportantNotice({ tips }: { tips: Tip[] }) {
   const [expanded, setExpanded] = useState(false);
-  const visibleTips = expanded ? NOTICE_TIPS : NOTICE_TIPS.slice(0, 1);
+  if (tips.length === 0) return null;
+  const visibleTips = expanded ? tips : tips.slice(0, 1);
 
   return (
     <div className="rounded-card border border-coral/40 bg-coral/10 p-4">
@@ -211,9 +191,11 @@ function PartnersSection({ partners }: { partners: Place[] }) {
 export function RoteiroView({
   itinerary,
   partners = [],
+  tips = GENERAL_TIPS,
 }: {
   itinerary: ItineraryRow;
   partners?: Place[];
+  tips?: Tip[];
 }) {
   const [days, setDays] = useState(itinerary.days as ItineraryDay[]);
   const [favorite, setFavorite] = useState(false);
@@ -361,7 +343,7 @@ export function RoteiroView({
       </div>
 
       <div className="relative mt-4 px-6">
-        <ImportantNotice />
+        <ImportantNotice tips={tips} />
       </div>
 
       <div className="relative mt-6 flex flex-col gap-6 px-6">
