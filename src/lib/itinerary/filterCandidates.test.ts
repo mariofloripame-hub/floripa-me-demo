@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { filterCandidates } from "./filterCandidates";
+import { filterCandidates, STYLE_CATEGORIES } from "./filterCandidates";
 import type { Place } from "@/lib/supabase/types";
 
 function place(overrides: Partial<Place>): Place {
@@ -30,16 +30,34 @@ describe("filterCandidates", () => {
     expect(result.map((p) => p.id)).toEqual(["a"]);
   });
 
-  it("excludes places above the allowed price range for a low budget", () => {
+  it("excludes places above the allowed price range for an 'economico' budget", () => {
     const places = [place({ id: "a", price_range: "Gratuito" }), place({ id: "b", price_range: "R$$$" })];
-    const result = filterCandidates(places, { budget: 60 });
+    const result = filterCandidates(places, { budget: "economico" });
     expect(result.map((p) => p.id)).toEqual(["a"]);
   });
 
-  it("allows all price ranges for a high budget", () => {
+  it("allows all price ranges for an 'alto' budget", () => {
     const places = [place({ id: "a", price_range: "Gratuito" }), place({ id: "b", price_range: "R$$$" })];
-    const result = filterCandidates(places, { budget: 500 });
+    const result = filterCandidates(places, { budget: "alto" });
     expect(result.map((p) => p.id).sort()).toEqual(["a", "b"]);
+  });
+
+  it("allows up to R$$ for a 'medio' budget", () => {
+    const places = [
+      place({ id: "a", price_range: "R$$" }),
+      place({ id: "b", price_range: "R$$$" }),
+    ];
+    const result = filterCandidates(places, { budget: "medio" });
+    expect(result.map((p) => p.id)).toEqual(["a"]);
+  });
+
+  it("defaults to the 'medio' price range when no budget was answered", () => {
+    const places = [
+      place({ id: "a", price_range: "R$$" }),
+      place({ id: "b", price_range: "R$$$" }),
+    ];
+    const result = filterCandidates(places, {});
+    expect(result.map((p) => p.id)).toEqual(["a"]);
   });
 
   it("filters by category compatible with the selected style(s)", () => {
@@ -88,7 +106,11 @@ describe("filterCandidates", () => {
       place({ id: "wrong-profile", target_profiles: ["Família"], price_range: "R$", category: "Gastronomia" }),
       place({ id: "wrong-category", target_profiles: ["Casal"], price_range: "R$", category: "Bar / Noturno" }),
     ];
-    const result = filterCandidates(places, { group: "casal", budget: 150, style: ["gastronomia"] });
+    const result = filterCandidates(places, { group: "casal", budget: "medio", style: ["gastronomia"] });
     expect(result.map((p) => p.id)).toEqual(["match"]);
+  });
+
+  it("no longer has a 'negocios' entry in STYLE_CATEGORIES", () => {
+    expect(STYLE_CATEGORIES.negocios).toBeUndefined();
   });
 });

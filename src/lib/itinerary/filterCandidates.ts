@@ -14,16 +14,14 @@ export const STYLE_CATEGORIES: Record<string, string[]> = {
   compras: ["Atividade", "Passeio"],
   cultura: ["Cultura", "Passeio"],
   noite: ["Bar / Noturno", "Beach Club"],
-  negocios: ["Cultura", "Gastronomia"],
 };
 
 const PRICE_ORDER = ["Gratuito", "R$", "R$$", "R$$$"];
 
-function allowedPriceRanges(budget: number | undefined): string[] {
-  const value = budget ?? 150;
-  if (value < 100) return ["Gratuito", "R$"];
-  if (value < 250) return ["Gratuito", "R$", "R$$"];
-  return PRICE_ORDER;
+function allowedPriceRanges(budget: QuizAnswers["budget"]): string[] {
+  if (budget === "economico") return ["Gratuito", "R$"];
+  if (budget === "alto") return PRICE_ORDER;
+  return ["Gratuito", "R$", "R$$"]; // "medio" and unanswered/legacy values both fall back here
 }
 
 export function filterCandidates(places: Place[], answers: QuizAnswers): Place[] {
