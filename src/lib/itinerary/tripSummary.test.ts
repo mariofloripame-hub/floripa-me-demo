@@ -16,17 +16,15 @@ describe("getTripTitle", () => {
 describe("getTripChips", () => {
   it("builds one chip per recognized answer, in order", () => {
     const chips = getTripChips({
-      timing: "agora",
       region: "semhospedagem",
       group: "amigos",
-      budget: 200,
+      budget: "medio",
       days: "3-4",
     });
     expect(chips).toEqual([
-      { icon: "📍", label: "Já em Floripa" },
       { icon: "🏨", label: "Sem hospedagem" },
       { icon: "👥", label: "Com amigos" },
-      { icon: "💰", label: "R$200/dia" },
+      { icon: "💰", label: "Médio" },
       { icon: "📅", label: "3 a 4 dias" },
     ]);
   });
@@ -34,5 +32,11 @@ describe("getTripChips", () => {
   it("skips answers that are missing or not recognized", () => {
     expect(getTripChips({})).toEqual([]);
     expect(getTripChips({ region: "nao" })).toEqual([]);
+  });
+
+  it("gracefully ignores a legacy numeric budget from itineraries created before this change", () => {
+    // old rows have quiz_answers.budget as a number (e.g. 150) and quiz_answers.timing as a string —
+    // neither should produce a chip anymore, and neither should throw.
+    expect(getTripChips({ timing: "agora", budget: 150 })).toEqual([]);
   });
 });
