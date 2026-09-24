@@ -14,11 +14,11 @@ interface UseQuizFlowResult {
 }
 
 function sliderDefaults(questions: QuizQuestion[]): QuizAnswers {
-  const answers: QuizAnswers = {};
+  const answers: Record<string, number> = {};
   for (const q of questions) {
-    if (q.type === "slider" && q.id === "budget") answers.budget = q.default;
+    if (q.type === "slider") answers[q.id] = q.default;
   }
-  return answers;
+  return answers as QuizAnswers;
 }
 
 export function useQuizFlow(questions: QuizQuestion[]): UseQuizFlowResult {

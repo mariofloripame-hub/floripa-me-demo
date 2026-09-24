@@ -19,13 +19,14 @@ import type { QuizAnswers } from "../src/lib/quiz/types";
 import type { ItineraryGeneration } from "../src/lib/itinerary/schema";
 
 const SAMPLE_ANSWERS: QuizAnswers = {
-  timing: "aviao",
+  purpose: "passeio",
+  when: "proximos_7_dias",
   region: "leste",
   days: "2",
   group: "casal",
   style: ["praia", "gastronomia"],
   transport: "carro",
-  budget: 200,
+  budget: "medio",
   special: "nenhuma",
 };
 
