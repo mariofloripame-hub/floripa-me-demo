@@ -62,4 +62,25 @@ describe("buildAvisos", () => {
     // when it receives that shape cast as QuizAnswers.
     expect(() => buildAvisos({ answers: { timing: "agora" } as never, events: [], now: NOW })).not.toThrow();
   });
+
+  it("puts personalized tips (season/events/purpose) before the general ones, so the collapsed card shows a personalized tip first", () => {
+    const tips = buildAvisos({ answers: { when: "chegou", purpose: "negocios" }, events: [], now: NOW });
+    expect(tips[0].label).not.toBe("Uber/99");
+    expect(["Alta temporada", "Trabalho"]).toContain(tips[0].label);
+    // the 4 general tips are still all present, just not first
+    const labels = tips.map((t) => t.label);
+    expect(labels).toEqual(expect.arrayContaining(["Uber/99", "Estacionamento", "Trânsito", "Cuidados"]));
+  });
+
+  it("caps event tips at 3 even when more events match the month", () => {
+    const events = [
+      event({ id: "e1", name: "Evento 1" }),
+      event({ id: "e2", name: "Evento 2" }),
+      event({ id: "e3", name: "Evento 3" }),
+      event({ id: "e4", name: "Evento 4" }),
+    ];
+    const tips = buildAvisos({ answers: { when: "chegou" }, events, now: NOW });
+    const eventTips = tips.filter((t) => t.icon === "🎉");
+    expect(eventTips).toHaveLength(3);
+  });
 });

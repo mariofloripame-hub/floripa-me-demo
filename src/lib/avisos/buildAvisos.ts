@@ -7,17 +7,19 @@ import { purposeTip } from "./purposeTips";
 import { resolveTravelMonth } from "./travelWindow";
 import type { Tip } from "./types";
 
+const MAX_EVENT_TIPS = 3;
+
 export function buildAvisos(params: { answers: QuizAnswers; events: EventRow[]; now?: Date }): Tip[] {
   const { answers, events, now = new Date() } = params;
-  const tips: Tip[] = [...GENERAL_TIPS];
+  const personalizedTips: Tip[] = [];
 
   const month = resolveTravelMonth(answers.when, now);
   if (month !== null) {
     const season = seasonTipForMonth(month);
-    if (season) tips.push(season);
+    if (season) personalizedTips.push(season);
 
-    for (const event of filterEventsForTraveler(events, answers, month)) {
-      tips.push({
+    for (const event of filterEventsForTraveler(events, answers, month).slice(0, MAX_EVENT_TIPS)) {
+      personalizedTips.push({
         icon: "🎉",
         label: event.name,
         text: event.notes ? `${event.location} — ${event.notes}` : event.location,
@@ -26,7 +28,10 @@ export function buildAvisos(params: { answers: QuizAnswers; events: EventRow[]; 
   }
 
   const purpose = purposeTip(answers.purpose);
-  if (purpose) tips.push(purpose);
+  if (purpose) personalizedTips.push(purpose);
 
-  return tips;
+  // Personalized tips come first so the collapsed Avisos card (which shows only the
+  // first tip) leads with something the traveler's own answers produced, not a
+  // generic tip that's identical for every visitor.
+  return [...personalizedTips, ...GENERAL_TIPS];
 }

@@ -8,14 +8,14 @@ describe("submitQuizAnswers", () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ slug: "abc123" }) });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await submitQuizAnswers({ timing: "aviao", budget: 150 });
+    const result = await submitQuizAnswers({ purpose: "passeio", budget: "medio" });
 
     expect(result).toEqual({ slug: "abc123" });
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/itineraries",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ answers: { timing: "aviao", budget: 150 } }),
+        body: JSON.stringify({ answers: { purpose: "passeio", budget: "medio" } }),
       }),
     );
   });

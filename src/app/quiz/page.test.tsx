@@ -71,7 +71,18 @@ describe("QuizPage", () => {
     await waitFor(() => expect(screen.getByText("Montando seu roteiro...")).toBeInTheDocument());
     expect(screen.queryByText(/alguma necessidade especial/i)).not.toBeInTheDocument();
 
-    await waitFor(() => expect(submitQuizAnswers).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(submitQuizAnswers).toHaveBeenCalledWith({
+        purpose: "estudo_congresso",
+        when: "chegou",
+        days: "1",
+        group: "solo",
+        style: ["praia"],
+        transport: "pe",
+        budget: "economico",
+        special: "nenhuma",
+      }),
+    );
     await waitFor(() => expect(push).toHaveBeenCalledWith("/roteiro/abc123"));
     expect(window.localStorage.getItem("floripa_last_itinerary_slug")).toBe("abc123");
   });
