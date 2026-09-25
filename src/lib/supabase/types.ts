@@ -25,6 +25,10 @@ export interface Place {
   special_needs_tags: string[];
   is_verified: boolean;
   created_at: string;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  submission_source?: string;
 }
 
 export interface EventRow {
