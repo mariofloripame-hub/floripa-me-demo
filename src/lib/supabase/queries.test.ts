@@ -10,6 +10,7 @@ import {
   updateItineraryDays,
   updatePlaceEnrichment,
   getPlaceById,
+  insertPlace,
 } from "./queries";
 
 function makeChain(result: { data: unknown; error: unknown }) {
@@ -55,6 +56,20 @@ describe("queries", () => {
     const created = { id: "1", ...row, created_at: "2026-01-01T00:00:00Z" };
     const client = fakeClientFor("itineraries", makeChain({ data: created, error: null }));
     await expect(insertItinerary(client, row)).resolves.toEqual(created);
+  });
+
+  it("insertPlace inserts and returns the created row", async () => {
+    const row = {
+      region: "Sul", neighborhood: "Campeche", name: "Bar do Zé", category: "Bar / Noturno",
+      target_profiles: [], price_range: "R$$" as const, point_type: "Bar", short_description: "d",
+      address: "Rua X", opening_hours: null, phone: null, instagram: null, notes: null,
+      google_place_id: null, lat: null, lng: null, rating: null, photos: [],
+      is_partner: false, partner_plan: null, partner_offer: null, partner_status: null,
+      special_needs_tags: [], is_verified: false, submission_source: "self_signup",
+    };
+    const created = { id: "1", ...row, created_at: "2026-01-01T00:00:00Z" };
+    const client = fakeClientFor("places", makeChain({ data: created, error: null }));
+    await expect(insertPlace(client, row)).resolves.toEqual(created);
   });
 
   it("getItineraryBySlug returns null when not found", async () => {

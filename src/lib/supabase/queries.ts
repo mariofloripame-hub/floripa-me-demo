@@ -36,6 +36,15 @@ export async function insertItinerary(
   return data as ItineraryRow;
 }
 
+export async function insertPlace(
+  client: SupabaseClient,
+  row: Omit<Place, "id" | "created_at">,
+): Promise<Place> {
+  const { data, error } = await client.from("places").insert(row).select().single();
+  if (error) throw error;
+  return data as Place;
+}
+
 export async function getItineraryBySlug(client: SupabaseClient, slug: string): Promise<ItineraryRow | null> {
   const { data, error } = await client.from("itineraries").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;
