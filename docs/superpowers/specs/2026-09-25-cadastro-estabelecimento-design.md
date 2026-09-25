@@ -31,7 +31,7 @@ No other schema change is needed. Reused as-is from the current `places` schema:
 
 ## Storage
 
-New Supabase Storage bucket `establishment-photos`, created **private** (not public). Photos are uploaded to it only from the server (the API route below) using the existing service-role client — never directly from the browser — so a private bucket doesn't block the upload flow. After upload, the route generates a public URL for each stored file and saves those URLs into `photos[]`, matching how `photos[]` is already consumed by the rest of the app (rendered as plain `<img src>`).
+New Supabase Storage bucket `establishment-photos`, created **public for reading** (Supabase's "Public bucket" toggle on). This only controls whether an uploaded file's URL is fetchable without a signed token — it does not open up who can *upload*. Every upload still happens exclusively from the server (the API route below) using the service-role client; the app has no anon/browser Supabase client at all, so there is no path for anyone to write to the bucket except through our own validated route. Public-read is required because approved photos are rendered on the public, unauthenticated tourist-facing site as plain `<img src>` (the same way `photos[]` is already consumed everywhere else) — a private bucket would 403 on every one of those requests.
 
 No new environment variables are required — the API route reuses `getSupabaseAdminClient()` (`src/lib/supabase/client.ts`), which already holds `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`, for both the Storage upload and the `places` insert.
 
