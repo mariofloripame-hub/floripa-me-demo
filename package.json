@@ -19,11 +19,13 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
     "@googlemaps/js-api-loader": "^1.16.10",
+    "@hookform/resolvers": "^5.9.1",
     "@supabase/supabase-js": "^2.112.4",
     "leaflet": "^1.9.4",
     "next": "15.5.24",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.88.0",
     "xlsx": "^0.18.5",
     "zod": "^4.5.4"
   },
