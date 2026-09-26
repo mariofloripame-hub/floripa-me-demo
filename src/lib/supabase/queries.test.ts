@@ -11,6 +11,8 @@ import {
   updatePlaceEnrichment,
   getPlaceById,
   insertPlace,
+  updatePlace,
+  deletePlace,
 } from "./queries";
 
 function makeChain(result: { data: unknown; error: unknown }) {
@@ -20,6 +22,7 @@ function makeChain(result: { data: unknown; error: unknown }) {
   chain.eq = self;
   chain.insert = self;
   chain.update = self;
+  chain.delete = self;
   chain.single = () => Promise.resolve(result);
   chain.maybeSingle = () => Promise.resolve(result);
   chain.then = (resolve: (r: typeof result) => void) => resolve(result);
@@ -111,5 +114,23 @@ describe("queries", () => {
 
     const missingClient = fakeClientFor("places", makeChain({ data: null, error: null }));
     await expect(getPlaceById(missingClient, "missing")).resolves.toBeNull();
+  });
+
+  it("updatePlace patches arbitrary fields and returns the updated row", async () => {
+    const patch = { is_verified: true, is_partner: true };
+    const updated = { id: "p1", name: "JJR Surfe Coach", ...patch };
+    const client = fakeClientFor("places", makeChain({ data: updated, error: null }));
+    await expect(updatePlace(client, "p1", patch)).resolves.toEqual(updated);
+  });
+
+  it("deletePlace removes the row by id", async () => {
+    const client = fakeClientFor("places", makeChain({ data: null, error: null }));
+    await expect(deletePlace(client, "p1")).resolves.toBeUndefined();
+    expect(client.from).toHaveBeenCalledWith("places");
+  });
+
+  it("deletePlace throws when Supabase returns an error", async () => {
+    const client = fakeClientFor("places", makeChain({ data: null, error: new Error("boom") }));
+    await expect(deletePlace(client, "p1")).rejects.toThrow("boom");
   });
 });

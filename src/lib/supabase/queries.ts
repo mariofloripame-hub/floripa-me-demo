@@ -76,3 +76,18 @@ export async function getPlaceById(client: SupabaseClient, id: string): Promise<
   if (error) throw error;
   return data as Place | null;
 }
+
+export async function updatePlace(
+  client: SupabaseClient,
+  id: string,
+  patch: Partial<Omit<Place, "id" | "created_at">>,
+): Promise<Place> {
+  const { data, error } = await client.from("places").update(patch).eq("id", id).select().single();
+  if (error) throw error;
+  return data as Place;
+}
+
+export async function deletePlace(client: SupabaseClient, id: string): Promise<void> {
+  const { error } = await client.from("places").delete().eq("id", id);
+  if (error) throw error;
+}
