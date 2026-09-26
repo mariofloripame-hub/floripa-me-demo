@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
+import { BrandWordmark } from "@/components/clube/BrandWordmark";
 import {
   establishmentFieldsSchema,
   validatePhotos,
@@ -84,119 +86,135 @@ export default function CadastroEstabelecimentoPage() {
 
   if (submitted) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
-        <h1 className="font-display text-2xl font-extrabold text-teal-ink">Cadastro recebido!</h1>
-        <p className="text-sm text-teal-ink/60">
-          Nossa equipe vai revisar as informações e entrar em contato em breve.
-        </p>
+      <main className="min-h-dvh bg-sand text-teal-ink">
+        <div className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
+          <BrandWordmark />
+          <h1 className="font-display text-2xl font-extrabold text-teal-ink">Cadastro recebido!</h1>
+          <p className="text-sm text-teal-ink/60">
+            Nossa equipe vai revisar as informações e entrar em contato em breve.
+          </p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-xl p-6">
-      <h1 className="font-display text-2xl font-extrabold text-teal-ink">Cadastre seu estabelecimento</h1>
-      <p className="mt-2 text-sm text-teal-ink/60">
-        Preencha os dados abaixo para aparecer no Floripa.me. Sua listagem entra em análise antes de ficar visível.
-      </p>
+    <main className="min-h-dvh bg-sand text-teal-ink">
+      <div className="mx-auto max-w-xl p-6">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            aria-label="Voltar"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-teal-ink/10 bg-white text-teal-ink"
+          >
+            ←
+          </Link>
+          <BrandWordmark />
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 flex flex-col gap-8">
-        <section className="flex flex-col gap-3">
-          <h2 className="font-display text-lg font-bold text-teal-ink">Sobre o negócio</h2>
-          <input {...register("name")} placeholder="Nome do estabelecimento" className={inputClass} />
-          <FieldError message={errors.name?.message} />
+        <h1 className="mt-6 font-display text-2xl font-extrabold text-teal-ink">Cadastre seu estabelecimento</h1>
+        <p className="mt-2 text-sm text-teal-ink/60">
+          Preencha os dados abaixo para aparecer no Floripa.me. Sua listagem entra em análise antes de ficar visível.
+        </p>
 
-          <select {...register("category")} className={inputClass}>
-            {CATEGORY_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <FieldError message={errors.category?.message} />
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 flex flex-col gap-8">
+          <section className="flex flex-col gap-3">
+            <h2 className="font-display text-lg font-bold text-teal-ink">Sobre o negócio</h2>
+            <input {...register("name")} placeholder="Nome do estabelecimento" className={inputClass} />
+            <FieldError message={errors.name?.message} />
 
-          <input {...register("point_type")} placeholder="Tipo (ex: Restaurante, Pousada, Bar)" className={inputClass} />
-          <FieldError message={errors.point_type?.message} />
+            <select {...register("category")} className={inputClass}>
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <FieldError message={errors.category?.message} />
 
-          <select {...register("price_range")} className={inputClass}>
-            {PRICE_RANGE_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <FieldError message={errors.price_range?.message} />
+            <input {...register("point_type")} placeholder="Tipo (ex: Restaurante, Pousada, Bar)" className={inputClass} />
+            <FieldError message={errors.point_type?.message} />
 
-          <textarea
-            {...register("short_description")}
-            placeholder="Breve descrição do que vocês oferecem"
-            rows={3}
-            className={textareaClass}
+            <select {...register("price_range")} className={inputClass}>
+              {PRICE_RANGE_OPTIONS.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <FieldError message={errors.price_range?.message} />
+
+            <textarea
+              {...register("short_description")}
+              placeholder="Breve descrição do que vocês oferecem"
+              rows={3}
+              className={textareaClass}
+            />
+            <FieldError message={errors.short_description?.message} />
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h2 className="font-display text-lg font-bold text-teal-ink">Localização e contato</h2>
+            <select {...register("region")} className={inputClass}>
+              {REGION_OPTIONS.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <FieldError message={errors.region?.message} />
+
+            <input {...register("neighborhood")} placeholder="Bairro" className={inputClass} />
+            <FieldError message={errors.neighborhood?.message} />
+
+            <input {...register("address")} placeholder="Endereço completo" className={inputClass} />
+            <FieldError message={errors.address?.message} />
+
+            <input {...register("phone")} placeholder="Telefone" className={inputClass} />
+            <FieldError message={errors.phone?.message} />
+
+            <input {...register("instagram")} placeholder="@seuinstagram (opcional)" className={inputClass} />
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h2 className="font-display text-lg font-bold text-teal-ink">Horário de funcionamento</h2>
+            <input {...register("opening_hours")} placeholder="Ex: Seg a Sáb, 9h às 18h" className={inputClass} />
+            <FieldError message={errors.opening_hours?.message} />
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h2 className="font-display text-lg font-bold text-teal-ink">Fotos</h2>
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handlePhotoChange} />
+            {photos.length > 0 && <p className="text-xs text-teal-ink/60">{photos.length} foto(s) selecionada(s)</p>}
+            <FieldError message={photoError ?? undefined} />
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h2 className="font-display text-lg font-bold text-teal-ink">Seus dados de contato</h2>
+            <p className="text-xs text-teal-ink/60">
+              Não aparecem publicamente — só usamos para falar com você durante a revisão.
+            </p>
+            <input {...register("contact_name")} placeholder="Seu nome" className={inputClass} />
+            <FieldError message={errors.contact_name?.message} />
+
+            <input {...register("contact_email")} placeholder="Seu e-mail" className={inputClass} />
+            <FieldError message={errors.contact_email?.message} />
+
+            <input {...register("contact_phone")} placeholder="Seu telefone" className={inputClass} />
+            <FieldError message={errors.contact_phone?.message} />
+          </section>
+
+          <input
+            type="text"
+            name="website"
+            ref={honeypotRef}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="absolute -left-[9999px] h-0 w-0 opacity-0"
           />
-          <FieldError message={errors.short_description?.message} />
-        </section>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="font-display text-lg font-bold text-teal-ink">Localização e contato</h2>
-          <select {...register("region")} className={inputClass}>
-            {REGION_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <FieldError message={errors.region?.message} />
+          {submitError && <p className="text-sm text-coral">{submitError}</p>}
 
-          <input {...register("neighborhood")} placeholder="Bairro" className={inputClass} />
-          <FieldError message={errors.neighborhood?.message} />
-
-          <input {...register("address")} placeholder="Endereço completo" className={inputClass} />
-          <FieldError message={errors.address?.message} />
-
-          <input {...register("phone")} placeholder="Telefone" className={inputClass} />
-          <FieldError message={errors.phone?.message} />
-
-          <input {...register("instagram")} placeholder="@seuinstagram (opcional)" className={inputClass} />
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="font-display text-lg font-bold text-teal-ink">Horário de funcionamento</h2>
-          <input {...register("opening_hours")} placeholder="Ex: Seg a Sáb, 9h às 18h" className={inputClass} />
-          <FieldError message={errors.opening_hours?.message} />
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="font-display text-lg font-bold text-teal-ink">Fotos</h2>
-          <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handlePhotoChange} />
-          {photos.length > 0 && <p className="text-xs text-teal-ink/60">{photos.length} foto(s) selecionada(s)</p>}
-          <FieldError message={photoError ?? undefined} />
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="font-display text-lg font-bold text-teal-ink">Seus dados de contato</h2>
-          <p className="text-xs text-teal-ink/60">
-            Não aparecem publicamente — só usamos para falar com você durante a revisão.
-          </p>
-          <input {...register("contact_name")} placeholder="Seu nome" className={inputClass} />
-          <FieldError message={errors.contact_name?.message} />
-
-          <input {...register("contact_email")} placeholder="Seu e-mail" className={inputClass} />
-          <FieldError message={errors.contact_email?.message} />
-
-          <input {...register("contact_phone")} placeholder="Seu telefone" className={inputClass} />
-          <FieldError message={errors.contact_phone?.message} />
-        </section>
-
-        <input
-          type="text"
-          name="website"
-          ref={honeypotRef}
-          tabIndex={-1}
-          autoComplete="off"
-          aria-hidden="true"
-          className="absolute -left-[9999px] h-0 w-0 opacity-0"
-        />
-
-        {submitError && <p className="text-sm text-coral">{submitError}</p>}
-
-        <Button type="submit" disabled={submitting}>
-          {submitting ? "Enviando..." : "Enviar cadastro"}
-        </Button>
-      </form>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Enviando..." : "Enviar cadastro"}
+          </Button>
+        </form>
+      </div>
     </main>
   );
 }
