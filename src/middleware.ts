@@ -21,4 +21,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ["/admin/:path*", "/api/admin/:path*"],
+  // adminAuth.ts uses Node's `crypto` (createHash/timingSafeEqual), which
+  // the default Edge Runtime doesn't support — run this middleware on the
+  // Node.js runtime instead.
+  runtime: "nodejs",
 };

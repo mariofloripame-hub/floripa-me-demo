@@ -2,6 +2,11 @@ import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { listPlaces } from "@/lib/supabase/queries";
 import { PlacesTabs } from "@/components/admin/PlacesTabs";
 
+// This page reads live data behind the admin session cookie on every visit
+// — it must never be statically prerendered at build time (which would also
+// require live Supabase credentials to exist in the build environment).
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const places = await listPlaces(getSupabaseAdminClient());
   return (
