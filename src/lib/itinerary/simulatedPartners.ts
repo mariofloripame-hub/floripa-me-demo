@@ -43,9 +43,19 @@ const EXCLUSIVE_PROMO_OFFERS: Record<string, string> = {
   "Restaurante Lindacap": "Batata frita grátis na compra de um prato selecionado",
 };
 
+function stripContactInfo(p: Place): Place {
+  const { contact_name, contact_email, contact_phone, ...rest } = p;
+  void contact_name;
+  void contact_email;
+  void contact_phone;
+  return rest;
+}
+
 export function selectPartners(places: Place[]): Place[] {
   return places
+    .filter((p) => p.is_verified)
     .filter((p) => !EXCLUDED_NAMES.has(p.name))
     .filter((p) => p.is_partner || SIMULATED_PARTNER_NAMES.has(p.name))
-    .map((p) => (!p.is_partner && EXCLUSIVE_PROMO_OFFERS[p.name] ? { ...p, partner_offer: EXCLUSIVE_PROMO_OFFERS[p.name] } : p));
+    .map((p) => (!p.is_partner && EXCLUSIVE_PROMO_OFFERS[p.name] ? { ...p, partner_offer: EXCLUSIVE_PROMO_OFFERS[p.name] } : p))
+    .map(stripContactInfo);
 }

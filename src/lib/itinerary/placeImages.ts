@@ -27,9 +27,11 @@ function fallbackImage(name: string): string {
 }
 
 export function getPlaceImage(name: string, photo?: string): string {
-  // `photo`, when present, is a bare Google Places photo reference (e.g.
-  // "places/ChIJ.../photos/abc") — route it through our own server so the
-  // Google API key never reaches the visitor's browser.
+  // An absolute URL (e.g. a self-signup photo already hosted in Supabase
+  // Storage) is servable as-is — only a bare Google Places photo reference
+  // (e.g. "places/ChIJ.../photos/abc") needs routing through our own server
+  // so the Google API key never reaches the visitor's browser.
+  if (photo?.startsWith("http")) return photo;
   if (photo) return `/api/place-photo?ref=${encodeURIComponent(photo)}`;
   return PLACE_IMAGES[name] || fallbackImage(name);
 }

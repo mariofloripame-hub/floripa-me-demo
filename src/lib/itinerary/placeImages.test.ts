@@ -8,6 +8,11 @@ describe("getPlaceImage", () => {
     );
   });
 
+  it("passes through an absolute URL as-is (e.g. a self-signup photo stored in Supabase Storage)", () => {
+    const url = "https://project.supabase.co/storage/v1/object/public/establishment-photos/abc/foto.jpg";
+    expect(getPlaceImage("Bar do Zé", url)).toBe(url);
+  });
+
   it("falls back to the local mapping for a known place name", () => {
     expect(getPlaceImage("Praia do Campeche")).toBe("/images/praia-campeche.jpg");
   });

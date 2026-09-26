@@ -7,6 +7,17 @@ const nextConfig = {
   experimental: {
     cpus: 1,
   },
+  images: {
+    remotePatterns: [
+      // Self-signup establishment photos, uploaded to the public
+      // `establishment-photos` Supabase Storage bucket.
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

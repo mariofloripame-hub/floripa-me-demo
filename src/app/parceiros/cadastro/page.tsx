@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
 import {
   establishmentFieldsSchema,
   validatePhotos,
@@ -31,8 +32,9 @@ export default function CadastroEstabelecimentoPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useForm<EstablishmentFields>({
+  } = useForm<z.input<typeof establishmentFieldsSchema>, unknown, EstablishmentFields>({
     resolver: zodResolver(establishmentFieldsSchema),
     defaultValues: {
       name: "", category: CATEGORY_OPTIONS[0], point_type: "", short_description: "",
@@ -67,6 +69,11 @@ export default function CadastroEstabelecimentoPage() {
       await submitEstablishmentForm(values, photos, honeypotRef.current?.value ?? "");
       setSubmitted(true);
     } catch (err) {
+      if (err instanceof EstablishmentSubmissionError && err.fieldErrors) {
+        for (const [field, message] of Object.entries(err.fieldErrors)) {
+          setError(field as keyof z.input<typeof establishmentFieldsSchema>, { message });
+        }
+      }
       setSubmitError(
         err instanceof EstablishmentSubmissionError || err instanceof Error ? err.message : "Erro inesperado.",
       );
@@ -176,6 +183,7 @@ export default function CadastroEstabelecimentoPage() {
 
         <input
           type="text"
+          name="website"
           ref={honeypotRef}
           tabIndex={-1}
           autoComplete="off"

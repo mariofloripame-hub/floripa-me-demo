@@ -73,6 +73,29 @@ describe("selectPartners", () => {
     expect(selectPartners(places)).toEqual([]);
   });
 
+  it("strips private contact fields before a place is exposed as a public partner", () => {
+    const places = [
+      place({
+        id: "k", name: "Ostradamus", is_partner: true,
+        contact_name: "Dono", contact_email: "dono@example.com", contact_phone: "123",
+      }),
+    ];
+    const [result] = selectPartners(places);
+    expect(result.contact_name).toBeUndefined();
+    expect(result.contact_email).toBeUndefined();
+    expect(result.contact_phone).toBeUndefined();
+  });
+
+  it("excludes an unverified self-signup row even if its name matches the simulated-partner list", () => {
+    const places = [place({ id: "i", name: "Bar do Arantes", is_partner: false, is_verified: false })];
+    expect(selectPartners(places)).toEqual([]);
+  });
+
+  it("excludes an unverified row even if is_partner is somehow true", () => {
+    const places = [place({ id: "j", name: "Ostradamus", is_partner: true, is_verified: false })];
+    expect(selectPartners(places)).toEqual([]);
+  });
+
   it("simulates the new restaurant replacements", () => {
     const names = ["Restaurante do Moraes", "Artusi Ristorante", "Osli Restaurante", "Restaurante Lindacap"];
     const places = names.map((name, i) => place({ id: `r${i}`, name }));

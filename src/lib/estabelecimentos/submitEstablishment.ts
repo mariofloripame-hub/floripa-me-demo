@@ -24,6 +24,12 @@ export interface SubmitEstablishmentDeps {
 
 const PHOTO_BUCKET = "establishment-photos";
 
+const EXTENSION_BY_MIME: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
 export async function submitEstablishment(
   input: SubmitEstablishmentInput,
   deps: SubmitEstablishmentDeps,
@@ -73,7 +79,8 @@ export async function submitEstablishment(
 async function uploadPhotos(supabase: SupabaseClient, photos: File[]): Promise<string[]> {
   const urls: string[] = [];
   for (const photo of photos) {
-    const path = `${crypto.randomUUID()}/${photo.name}`;
+    const extension = EXTENSION_BY_MIME[photo.type] ?? "jpg";
+    const path = `${crypto.randomUUID()}.${extension}`;
     const { data: uploadData, error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, photo);
     if (error) throw error;
     const { data } = supabase.storage.from(PHOTO_BUCKET).getPublicUrl(uploadData.path);

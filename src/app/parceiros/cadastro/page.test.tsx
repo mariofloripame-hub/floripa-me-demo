@@ -66,4 +66,19 @@ describe("CadastroEstabelecimentoPage", () => {
     await waitFor(() => expect(screen.getByText(/não foi possível enviar/i)).toBeInTheDocument());
     expect(screen.getByPlaceholderText(/nome do estabelecimento/i)).toHaveValue("Bar do Zé");
   });
+
+  it("surfaces server-returned field errors next to the offending field", async () => {
+    vi.mocked(submitEstablishmentForm).mockRejectedValue(
+      new EstablishmentSubmissionError("Dados inválidos", { name: "Nome já cadastrado" }),
+    );
+    render(<CadastroEstabelecimentoPage />);
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole("button", { name: /enviar cadastro/i }));
+    await waitFor(() => expect(screen.getByText(/nome já cadastrado/i)).toBeInTheDocument());
+  });
+
+  it("renders the honeypot field with the name the server expects", () => {
+    const { container } = render(<CadastroEstabelecimentoPage />);
+    expect(container.querySelector('input[name="website"]')).not.toBeNull();
+  });
 });

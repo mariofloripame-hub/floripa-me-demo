@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { submitEstablishment, InvalidFieldsError, InvalidPhotosError } from "@/lib/estabelecimentos/submitEstablishment";
+import { MAX_PHOTOS, MAX_PHOTO_SIZE_BYTES } from "@/lib/estabelecimentos/schema";
+
+// Slack on top of the photo budget for the text fields themselves and
+// multipart boundary overhead.
+const MAX_REQUEST_BYTES = MAX_PHOTOS * MAX_PHOTO_SIZE_BYTES + 1024 * 1024;
 
 export async function POST(request: Request) {
+  const contentLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return NextResponse.json({ error: "Envio muito grande." }, { status: 413 });
+  }
+
   const formData = await request.formData().catch(() => null);
   if (!formData) {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 400 });
