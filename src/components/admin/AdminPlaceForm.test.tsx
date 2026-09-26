@@ -112,6 +112,12 @@ describe("AdminPlaceForm (edit mode)", () => {
     expect(srcs).toEqual([`/api/place-photo?ref=${encodeURIComponent(ref)}`, "https://cdn.test/a.jpg"]);
   });
 
+  it("offers a visible Adicionar fotos button wired to the file input", () => {
+    render(<AdminPlaceForm mode="edit" place={place()} />);
+    const input = screen.getByLabelText(/adicionar fotos/i);
+    expect(input).toHaveAttribute("type", "file");
+  });
+
   it("removing an existing photo excludes it from the save payload", async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
     render(<AdminPlaceForm mode="edit" place={place()} />);

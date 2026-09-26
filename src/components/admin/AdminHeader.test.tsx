@@ -18,4 +18,19 @@ describe("AdminHeader", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/login"));
     expect(fetch).toHaveBeenCalledWith("/api/admin/logout", expect.objectContaining({ method: "POST" }));
   });
+
+  it("shows the brand wordmark", () => {
+    render(<AdminHeader />);
+    expect(screen.getByText("Floripa")).toBeInTheDocument();
+  });
+
+  it("shows a visible Voltar button pointing to backHref when given", () => {
+    render(<AdminHeader backHref="/admin" />);
+    expect(screen.getByRole("link", { name: /voltar/i })).toHaveAttribute("href", "/admin");
+  });
+
+  it("hides the Voltar button when no backHref is given", () => {
+    render(<AdminHeader />);
+    expect(screen.queryByRole("link", { name: /voltar/i })).not.toBeInTheDocument();
+  });
 });

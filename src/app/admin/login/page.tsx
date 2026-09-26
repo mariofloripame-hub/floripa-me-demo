@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { BrandWordmark } from "@/components/clube/BrandWordmark";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -33,7 +34,10 @@ export default function AdminLoginPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-sand p-6">
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-        <h1 className="font-display text-2xl font-extrabold text-teal-ink">Painel administrativo</h1>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <BrandWordmark />
+          <h1 className="font-display text-2xl font-extrabold text-teal-ink">Painel administrativo</h1>
+        </div>
         <input
           type="password"
           value={password}

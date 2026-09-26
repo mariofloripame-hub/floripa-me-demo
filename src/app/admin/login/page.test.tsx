@@ -28,4 +28,9 @@ describe("AdminLoginPage", () => {
     await waitFor(() => expect(screen.getByText(/senha incorreta/i)).toBeInTheDocument());
     expect(push).not.toHaveBeenCalled();
   });
+
+  it("shows the brand wordmark above the title", () => {
+    render(<AdminLoginPage />);
+    expect(screen.getByText("Floripa")).toBeInTheDocument();
+  });
 });

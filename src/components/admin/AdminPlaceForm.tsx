@@ -274,12 +274,16 @@ export function AdminPlaceForm(props: Props) {
         {props.mode === "create" && newPhotoFiles.length > 0 && (
           <p className="text-xs text-teal-ink/60">{newPhotoFiles.length} foto(s) selecionada(s)</p>
         )}
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          onChange={(e) => handleAddPhotos(Array.from(e.target.files ?? []))}
-        />
+        <label className="flex w-fit cursor-pointer items-center gap-2 rounded-pill border border-teal-ink/15 bg-white px-4 py-2 text-sm font-bold text-teal-ink">
+          + Adicionar fotos
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="sr-only"
+            onChange={(e) => handleAddPhotos(Array.from(e.target.files ?? []))}
+          />
+        </label>
         <FieldError message={photoError ?? undefined} />
       </section>
 
