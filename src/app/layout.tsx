@@ -6,7 +6,7 @@ const syne = Syne({ subsets: ["latin"], weight: ["700", "800"], variable: "--fon
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-dm-sans" });
 
 export const metadata: Metadata = {
-  title: "Floripa.my — Seu roteiro por IA",
+  title: "Floripa.My — Seu roteiro por IA",
   description: "Responda 8 perguntas e receba um roteiro personalizado para Florianópolis, gerado por IA.",
   manifest: "/manifest.json",
 };

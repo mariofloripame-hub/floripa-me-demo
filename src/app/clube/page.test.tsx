@@ -113,7 +113,7 @@ describe("ClubePage", () => {
   it("shows the brand wordmark, value proposition, and social proof on the plans step", () => {
     render(<ClubePage />);
     expect(screen.getByText("Floripa")).toBeInTheDocument();
-    expect(screen.getByText(".my")).toBeInTheDocument();
+    expect(screen.getByText(".My")).toBeInTheDocument();
     expect(screen.getByText(/já pode pagar sua mensalidade/i)).toBeInTheDocument();
     expect(screen.getByText(/cancele quando quiser/i)).toBeInTheDocument();
     expect(screen.getByText(/8 parceiros/i)).toBeInTheDocument();

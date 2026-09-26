@@ -285,7 +285,7 @@ export function RoteiroView({
               </Link>
               <span className="font-display text-sm font-extrabold [text-shadow:0_2px_8px_rgba(0,0,0,0.6)]">
                 Floripa<span className="text-coral">.</span>
-                <span className="text-turquoise">me</span>
+                <span className="text-turquoise">My</span>
               </span>
             </div>
             <div className="flex gap-2">

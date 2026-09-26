@@ -1,6 +1,6 @@
-# Floripa.me v2
+# Floripa.My v2
 
-Floripa.me is a tourism app for Florianópolis: the user answers an 8-question quiz and receives, in a
+Floripa.My is a tourism app for Florianópolis: the user answers an 8-question quiz and receives, in a
 few seconds, a personalized AI-generated itinerary (a warm welcome message plus a day-by-day plan of
 beaches, food, sports, trails, and activities), built from a curated catalog of real places enriched
 via the Google Places API. Partner establishments are surfaced more often but never exclusively. No

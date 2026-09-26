@@ -114,7 +114,7 @@ export default function CadastroEstabelecimentoPage() {
 
         <h1 className="mt-6 font-display text-2xl font-extrabold text-teal-ink">Cadastre seu estabelecimento</h1>
         <p className="mt-2 text-sm text-teal-ink/60">
-          Preencha os dados abaixo para aparecer no Floripa.me. Sua listagem entra em análise antes de ficar visível.
+          Preencha os dados abaixo para aparecer no Floripa.My. Sua listagem entra em análise antes de ficar visível.
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 flex flex-col gap-8">

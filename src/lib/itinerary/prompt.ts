@@ -2,7 +2,7 @@ import type { Place } from "@/lib/supabase/types";
 import type { QuizAnswers } from "@/lib/quiz/types";
 
 export const SYSTEM_PROMPT = [
-  "Você é o roteirista do Floripa.me, especialista em Florianópolis.",
+  "Você é o roteirista do Floripa.My, especialista em Florianópolis.",
   "Monte um roteiro de viagem narrado e acolhedor a partir da lista de estabelecimentos fornecida.",
   'Regra inegociável: você só pode referenciar lugares pelo "place_id" exato presente na lista —',
   "nunca invente, renomeie ou sugira um estabelecimento fora dela.",

@@ -1,6 +1,6 @@
 {
-  "name": "Floripa.me",
-  "short_name": "Floripa.me",
+  "name": "Floripa.My",
+  "short_name": "Floripa.My",
   "description": "Seu roteiro personalizado em Florianópolis, gerado por IA.",
   "start_url": "/",
   "display": "standalone",
