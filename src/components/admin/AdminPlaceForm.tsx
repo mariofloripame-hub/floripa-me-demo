@@ -11,6 +11,7 @@ import {
   type AdminPlaceFields,
 } from "@/lib/estabelecimentos/adminSchema";
 import { CATEGORY_OPTIONS, REGION_OPTIONS, PRICE_RANGE_OPTIONS, validatePhotos } from "@/lib/estabelecimentos/schema";
+import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import type { Place } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/Button";
 
@@ -257,7 +258,7 @@ export function AdminPlaceForm(props: Props) {
             {photos.map((url) => (
               <div key={url} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-20 w-20 rounded-card object-cover" />
+                <img src={getPlaceImage(props.place.name, url)} alt="" className="h-20 w-20 rounded-card object-cover" />
                 <button
                   type="button"
                   onClick={() => removeExistingPhoto(url)}

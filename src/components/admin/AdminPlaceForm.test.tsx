@@ -105,6 +105,13 @@ describe("AdminPlaceForm (edit mode)", () => {
     expect(screen.getByPlaceholderText(/plano \(ex/i)).toBeInTheDocument();
   });
 
+  it("renders a bare Google Places photo reference through the photo proxy, and a hosted URL as-is", () => {
+    const ref = "places/ChIJabc/photos/xyz";
+    const { container } = render(<AdminPlaceForm mode="edit" place={place({ photos: [ref, "https://cdn.test/a.jpg"] })} />);
+    const srcs = Array.from(container.querySelectorAll("img")).map((img) => img.getAttribute("src"));
+    expect(srcs).toEqual([`/api/place-photo?ref=${encodeURIComponent(ref)}`, "https://cdn.test/a.jpg"]);
+  });
+
   it("removing an existing photo excludes it from the save payload", async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
     render(<AdminPlaceForm mode="edit" place={place()} />);
