@@ -32,12 +32,12 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-sand p-6">
-      <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <BrandWordmark />
-          <h1 className="font-display text-2xl font-extrabold text-teal-ink">Painel administrativo</h1>
-        </div>
+    <main className="flex min-h-dvh flex-col items-center bg-sand p-6">
+      <header className="flex w-full justify-center py-2">
+        <BrandWordmark />
+      </header>
+      <form onSubmit={handleSubmit} className="my-auto flex w-full max-w-sm flex-col gap-4">
+        <h1 className="text-center font-display text-2xl font-extrabold text-teal-ink">Painel administrativo</h1>
         <input
           type="password"
           value={password}
