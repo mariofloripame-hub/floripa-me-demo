@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATEGORY_OPTIONS, REGION_OPTIONS, PRICE_RANGE_OPTIONS } from "./schema";
+import { PRICE_RANGE_OPTIONS } from "./schema";
 
 export const PARTNER_STATUS_OPTIONS = [
   { value: "", label: "Nenhum" },
@@ -7,18 +7,25 @@ export const PARTNER_STATUS_OPTIONS = [
   { value: "pago", label: "Pago" },
 ] as const;
 
-const PARTNER_STATUS_VALUES = PARTNER_STATUS_OPTIONS.map((option) => option.value) as [string, ...string[]];
-
 function requiredText(min = 1, message = "Campo obrigatório") {
   return z.string().trim().min(min, message);
 }
 
+// `category`, `region`, and `partner_status` are plain `text` columns with
+// no DB constraint — the fixed option lists in schema.ts / above exist only
+// to suggest good values in the UI. Validating them as strict enums here
+// would block saving (or silently blank a `partner_status`) any pre-existing
+// row whose value predates the current list — confirmed to already happen in
+// production ("Continente" region; "Cultura / Gastrô" category). So these
+// three stay free text: the <select> in AdminPlaceForm still only offers the
+// known-good choices, but editing an unrelated field on a legacy row never
+// loses or blocks on its current value.
 export const adminPlaceFieldsSchema = z.object({
   name: requiredText(),
-  category: z.enum(CATEGORY_OPTIONS),
+  category: requiredText(),
   point_type: requiredText(),
   short_description: requiredText(10, "Descreva em pelo menos 10 caracteres"),
-  region: z.enum(REGION_OPTIONS),
+  region: requiredText(),
   neighborhood: requiredText(),
   address: requiredText(),
   price_range: z.enum(PRICE_RANGE_OPTIONS),
@@ -30,7 +37,7 @@ export const adminPlaceFieldsSchema = z.object({
   contact_phone: z.string().trim().optional().default(""),
   is_verified: z.boolean(),
   is_partner: z.boolean(),
-  partner_status: z.enum(PARTNER_STATUS_VALUES),
+  partner_status: z.string().trim().optional().default(""),
   partner_plan: z.string().trim().optional().default(""),
   partner_offer: z.string().trim().optional().default(""),
 });

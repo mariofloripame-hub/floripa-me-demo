@@ -31,4 +31,10 @@ describe("POST /api/admin/login", () => {
     const response = await POST(jsonRequest({}));
     expect(response.status).toBe(401);
   });
+
+  it("marks the cookie secure in production, so it's never sent over plain HTTP", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const response = await POST(jsonRequest({ password: "correct-horse-battery-staple" }));
+    expect(response.cookies.get(ADMIN_SESSION_COOKIE)?.secure).toBe(true);
+  });
 });

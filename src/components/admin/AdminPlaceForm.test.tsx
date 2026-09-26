@@ -70,6 +70,34 @@ describe("AdminPlaceForm (edit mode)", () => {
     expect(screen.getByPlaceholderText("Nome do estabelecimento")).toHaveValue("JJR Surfe Coach");
   });
 
+  it("keeps a legacy region/category value (predating the fixed option lists) selected and round-trips it unchanged on save", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    render(<AdminPlaceForm mode="edit" place={place({ region: "Continente", category: "Cultura / Gastrô" })} />);
+    expect(screen.getByDisplayValue("Continente")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Cultura / Gastrô")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /salvar alterações/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith("/api/admin/places/p1", expect.objectContaining({ method: "PATCH" })),
+    );
+    const [, options] = vi.mocked(fetch).mock.calls[0];
+    const body = JSON.parse(options!.body as string);
+    expect(body.region).toBe("Continente");
+    expect(body.category).toBe("Cultura / Gastrô");
+  });
+
+  it("shows and prefills the submitter's contact fields, so the team can reach them during review", () => {
+    render(
+      <AdminPlaceForm
+        mode="edit"
+        place={place({ contact_name: "Felipe Sperdutti", contact_email: "felipe@example.com", contact_phone: "48 98414-0800" })}
+      />,
+    );
+    expect(screen.getByDisplayValue("Felipe Sperdutti")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("felipe@example.com")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("48 98414-0800")).toBeInTheDocument();
+  });
+
   it("shows the partner sub-fields only while is_partner is checked", () => {
     render(<AdminPlaceForm mode="edit" place={place({ is_partner: false })} />);
     expect(screen.queryByPlaceholderText(/plano \(ex/i)).not.toBeInTheDocument();

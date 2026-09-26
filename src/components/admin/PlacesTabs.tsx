@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Place } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/Button";
 
@@ -22,23 +23,41 @@ function matchesTab(place: Place, tab: Tab): boolean {
 }
 
 export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
+  const router = useRouter();
   const [places, setPlaces] = useState(initialPlaces);
   const [tab, setTab] = useState<Tab>("pendentes");
+  const [error, setError] = useState<string | null>(null);
+
+  function handleActionFailure(status: number) {
+    if (status === 401) {
+      router.push("/admin/login");
+      return;
+    }
+    setError("Não foi possível concluir a ação. Tente novamente.");
+  }
 
   async function handleApprove(id: string) {
+    setError(null);
     const response = await fetch(`/api/admin/places/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ is_verified: true }),
     });
-    if (!response.ok) return;
+    if (!response.ok) {
+      handleActionFailure(response.status);
+      return;
+    }
     setPlaces((current) => current.map((p) => (p.id === id ? { ...p, is_verified: true } : p)));
   }
 
   async function handleDelete(id: string) {
     if (!confirm("Excluir esse estabelecimento? Essa ação não pode ser desfeita.")) return;
+    setError(null);
     const response = await fetch(`/api/admin/places/${id}`, { method: "DELETE" });
-    if (!response.ok) return;
+    if (!response.ok) {
+      handleActionFailure(response.status);
+      return;
+    }
     setPlaces((current) => current.filter((p) => p.id !== id));
   }
 
@@ -63,6 +82,7 @@ export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
       <Link href="/admin/estabelecimentos/novo">
         <Button type="button">Novo estabelecimento</Button>
       </Link>
+      {error && <p className="text-sm text-coral">{error}</p>}
       <div className="flex flex-col gap-3">
         {visible.length === 0 && <p className="text-sm text-teal-ink/60">Nada por aqui.</p>}
         {visible.map((place) => (

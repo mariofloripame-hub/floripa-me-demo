@@ -19,9 +19,22 @@ describe("adminPlaceFieldsSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects an invalid partner_status", () => {
-    const result = adminPlaceFieldsSchema.safeParse(validPayload({ partner_status: "vip" }));
-    expect(result.success).toBe(false);
+  it("accepts a partner_status outside the fixed option list, so a legacy value survives an unrelated edit", () => {
+    const result = adminPlaceFieldsSchema.safeParse(validPayload({ partner_status: "vip-legado" }));
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.partner_status).toBe("vip-legado");
+  });
+
+  it("accepts a region outside REGION_OPTIONS, so a place from before this list existed can still be saved", () => {
+    const result = adminPlaceFieldsSchema.safeParse(validPayload({ region: "Continente" }));
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.region).toBe("Continente");
+  });
+
+  it("accepts a category outside CATEGORY_OPTIONS, so a place from before this list existed can still be saved", () => {
+    const result = adminPlaceFieldsSchema.safeParse(validPayload({ category: "Cultura / Gastrô" }));
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.category).toBe("Cultura / Gastrô");
   });
 
   it("rejects a non-boolean is_verified", () => {
@@ -44,7 +57,7 @@ describe("adminPlacePatchSchema", () => {
   });
 
   it("still validates a field's format when it is present", () => {
-    const result = adminPlacePatchSchema.safeParse({ partner_status: "vip" });
+    const result = adminPlacePatchSchema.safeParse({ is_verified: "not-a-boolean" });
     expect(result.success).toBe(false);
   });
 

@@ -1,5 +1,9 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
 import { PlacesTabs } from "./PlacesTabs";
 import type { Place } from "@/lib/supabase/types";
 
@@ -16,6 +20,7 @@ function place(overrides: Partial<Place>): Place {
 }
 
 beforeEach(() => {
+  push.mockClear();
   vi.stubGlobal("fetch", vi.fn());
   vi.stubGlobal("confirm", vi.fn().mockReturnValue(true));
 });
@@ -69,6 +74,33 @@ describe("PlacesTabs", () => {
     fireEvent.click(screen.getByRole("button", { name: /aprovados/i }));
     fireEvent.click(screen.getByRole("button", { name: /excluir/i }));
     expect(fetch).not.toHaveBeenCalled();
+    expect(screen.getByText("Aprovado")).toBeInTheDocument();
+  });
+
+  it("shows an error message when approving fails, and keeps the place in Pendentes", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 502 } as Response);
+    const places = [place({ id: "a", name: "Pendente", is_verified: false })];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.click(screen.getByRole("button", { name: /^aprovar$/i }));
+    await waitFor(() => expect(screen.getByText(/não foi possível/i)).toBeInTheDocument());
+    expect(screen.getByText("Pendente")).toBeInTheDocument();
+  });
+
+  it("redirects to the login page when an action fails because the session expired (401)", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401 } as Response);
+    const places = [place({ id: "a", name: "Pendente", is_verified: false })];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.click(screen.getByRole("button", { name: /^aprovar$/i }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/login"));
+  });
+
+  it("shows an error message when deleting fails, and keeps the place in the list", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 502 } as Response);
+    const places = [place({ id: "a", name: "Aprovado", is_verified: true })];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.click(screen.getByRole("button", { name: /aprovados/i }));
+    fireEvent.click(screen.getByRole("button", { name: /excluir/i }));
+    await waitFor(() => expect(screen.getByText(/não foi possível/i)).toBeInTheDocument());
     expect(screen.getByText("Aprovado")).toBeInTheDocument();
   });
 });

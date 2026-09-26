@@ -43,7 +43,7 @@ describe("PATCH /api/admin/places/[id]", () => {
   });
 
   it("returns 400 with field errors when a present field is invalid, without updating", async () => {
-    const response = await PATCH(patchRequest({ partner_status: "vip" }), { params: Promise.resolve({ id: "p1" }) });
+    const response = await PATCH(patchRequest({ short_description: "curto" }), { params: Promise.resolve({ id: "p1" }) });
     expect(response.status).toBe(400);
     expect(updatePlace).not.toHaveBeenCalled();
   });

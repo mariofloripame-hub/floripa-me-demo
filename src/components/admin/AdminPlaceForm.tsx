@@ -24,6 +24,16 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-coral">{message}</p>;
 }
 
+// `category`/`region`/`partner_status` are free text in the DB (see
+// adminSchema.ts) — the fixed lists below are only suggestions. If the
+// place being edited already has a value outside the list (data older
+// than the list itself), inject it as a selectable option so the <select>
+// shows it correctly instead of silently falling back to the first option
+// and blanking the real value on save.
+function optionsWithCurrentValue(options: readonly string[], current: string): string[] {
+  return current && !options.includes(current) ? [current, ...options] : [...options];
+}
+
 type FormInput = z.input<typeof adminPlaceFieldsSchema>;
 
 function defaultsFor(place?: Place): FormInput {
@@ -37,7 +47,7 @@ function defaultsFor(place?: Place): FormInput {
   }
   return {
     name: place.name, category: place.category, point_type: place.point_type,
-    short_description: place.short_description, region: place.region as FormInput["region"], neighborhood: place.neighborhood,
+    short_description: place.short_description, region: place.region, neighborhood: place.neighborhood,
     address: place.address, price_range: place.price_range, opening_hours: place.opening_hours ?? "",
     phone: place.phone ?? "", instagram: place.instagram ?? "", contact_name: place.contact_name ?? "",
     contact_email: place.contact_email ?? "", contact_phone: place.contact_phone ?? "",
@@ -60,6 +70,18 @@ export function AdminPlaceForm(props: Props) {
     resolver: zodResolver(adminPlaceFieldsSchema),
     defaultValues: defaultsFor(props.mode === "edit" ? props.place : undefined),
   });
+
+  const categoryOptions = optionsWithCurrentValue(
+    CATEGORY_OPTIONS,
+    props.mode === "edit" ? props.place.category : "",
+  );
+  const regionOptions = optionsWithCurrentValue(REGION_OPTIONS, props.mode === "edit" ? props.place.region : "");
+  const partnerStatusValues = PARTNER_STATUS_OPTIONS.map((option) => option.value) as string[];
+  const currentPartnerStatus = props.mode === "edit" ? (props.place.partner_status ?? "") : "";
+  const partnerStatusOptions =
+    currentPartnerStatus && !partnerStatusValues.includes(currentPartnerStatus)
+      ? [{ value: currentPartnerStatus, label: currentPartnerStatus }, ...PARTNER_STATUS_OPTIONS]
+      : PARTNER_STATUS_OPTIONS;
 
   const [photos, setPhotos] = useState<string[]>(props.mode === "edit" ? props.place.photos : []);
   const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
@@ -139,7 +161,7 @@ export function AdminPlaceForm(props: Props) {
         <FieldError message={errors.name?.message} />
 
         <select {...register("category")} className={inputClass}>
-          {CATEGORY_OPTIONS.map((option) => (
+          {categoryOptions.map((option) => (
             <option key={option} value={option}>{option}</option>
           ))}
         </select>
@@ -162,7 +184,7 @@ export function AdminPlaceForm(props: Props) {
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-bold text-teal-ink">Localização e contato</h2>
         <select {...register("region")} className={inputClass}>
-          {REGION_OPTIONS.map((option) => (
+          {regionOptions.map((option) => (
             <option key={option} value={option}>{option}</option>
           ))}
         </select>
@@ -187,6 +209,16 @@ export function AdminPlaceForm(props: Props) {
       </section>
 
       <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-bold text-teal-ink">Contato do responsável</h2>
+        <p className="text-xs text-teal-ink/60">
+          Não aparece publicamente — use pra falar com quem enviou o cadastro.
+        </p>
+        <input {...register("contact_name")} placeholder="Nome de quem cadastrou" className={inputClass} />
+        <input {...register("contact_email")} placeholder="E-mail de contato" className={inputClass} />
+        <input {...register("contact_phone")} placeholder="Telefone de contato" className={inputClass} />
+      </section>
+
+      <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-bold text-teal-ink">Aprovação</h2>
         <label className="flex items-center gap-2 text-sm text-teal-ink">
           <input type="checkbox" {...register("is_verified")} />
@@ -203,7 +235,7 @@ export function AdminPlaceForm(props: Props) {
         {isPartner && (
           <>
             <select {...register("partner_status")} className={inputClass}>
-              {PARTNER_STATUS_OPTIONS.map((option) => (
+              {partnerStatusOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
