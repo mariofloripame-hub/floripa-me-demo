@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
           className="w-full rounded-pill border border-teal-ink/15 bg-white px-4 py-3 text-sm text-teal-ink placeholder:text-teal-ink/40"
         />
         {error && <p className="text-sm text-coral">{error}</p>}
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" size="sm" disabled={submitting} className="self-center">
           {submitting ? "Entrando..." : "Entrar"}
         </Button>
       </form>

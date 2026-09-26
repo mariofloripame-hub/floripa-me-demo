@@ -79,8 +79,8 @@ export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
           </button>
         ))}
       </div>
-      <Link href="/admin/estabelecimentos/novo">
-        <Button type="button">Novo estabelecimento</Button>
+      <Link href="/admin/estabelecimentos/novo" className="self-start">
+        <Button type="button" size="sm">+ Novo estabelecimento</Button>
       </Link>
       {error && <p className="text-sm text-coral">{error}</p>}
       <div className="flex flex-col gap-3">
