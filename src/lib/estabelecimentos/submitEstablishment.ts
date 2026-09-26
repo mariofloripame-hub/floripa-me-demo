@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { establishmentFieldsSchema, validatePhotos } from "./schema";
 import { insertPlace } from "@/lib/supabase/queries";
+import { uploadPhotos } from "./uploadPhotos";
 
 export class InvalidFieldsError extends Error {
   fieldErrors: Record<string, string>;
@@ -21,14 +22,6 @@ export interface SubmitEstablishmentInput {
 export interface SubmitEstablishmentDeps {
   supabase: SupabaseClient;
 }
-
-const PHOTO_BUCKET = "establishment-photos";
-
-const EXTENSION_BY_MIME: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 export async function submitEstablishment(
   input: SubmitEstablishmentInput,
@@ -74,17 +67,4 @@ export async function submitEstablishment(
   });
 
   return { skipped: false };
-}
-
-async function uploadPhotos(supabase: SupabaseClient, photos: File[]): Promise<string[]> {
-  const urls: string[] = [];
-  for (const photo of photos) {
-    const extension = EXTENSION_BY_MIME[photo.type] ?? "jpg";
-    const path = `${crypto.randomUUID()}.${extension}`;
-    const { data: uploadData, error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, photo);
-    if (error) throw error;
-    const { data } = supabase.storage.from(PHOTO_BUCKET).getPublicUrl(uploadData.path);
-    urls.push(data.publicUrl);
-  }
-  return urls;
 }

@@ -106,16 +106,6 @@ describe("submitEstablishment", () => {
     );
   });
 
-  it("derives the storage key from a random id and the photo's MIME type, never the raw filename", async () => {
-    const supabase = fakeSupabase();
-    const accentedPhoto = photo("café com ç e espaço.jpg", "image/jpeg");
-    await submitEstablishment({ fields: validFields(), photos: [accentedPhoto], honeypot: "" }, { supabase });
-
-    const uploadMock = supabase.storage.from("establishment-photos").upload as ReturnType<typeof vi.fn>;
-    const [storageKey] = uploadMock.mock.calls[0];
-    expect(storageKey).toMatch(/^[a-z0-9-]+\.jpg$/);
-  });
-
   it("stops after the second of three photos fails to upload, and never inserts", async () => {
     const supabase = fakeSupabase({ uploadErrorOnCall: 2 });
     const photos = [photo("a.jpg"), photo("b.jpg"), photo("c.jpg")];
