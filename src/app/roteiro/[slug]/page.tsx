@@ -4,6 +4,7 @@ import { getItineraryBySlug, listPlaces, listEvents } from "@/lib/supabase/queri
 import { RoteiroView } from "@/components/roteiro/RoteiroView";
 import { selectPartners, selectPublicPlaces } from "@/lib/itinerary/simulatedPartners";
 import { buildAvisos } from "@/lib/avisos/buildAvisos";
+import { liveOfferMap } from "@/lib/cortesia/liveOffers";
 import type { QuizAnswers } from "@/lib/quiz/types";
 
 export default async function RoteiroPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -15,5 +16,13 @@ export default async function RoteiroPage({ params }: { params: Promise<{ slug: 
   const partners = selectPartners(places);
   const events = await listEvents(client);
   const tips = buildAvisos({ answers: itinerary.quiz_answers as QuizAnswers, events });
-  return <RoteiroView itinerary={itinerary} partners={partners} places={selectPublicPlaces(places)} tips={tips} />;
+  return (
+    <RoteiroView
+      itinerary={itinerary}
+      partners={partners}
+      places={selectPublicPlaces(places)}
+      liveOffers={liveOfferMap(places)}
+      tips={tips}
+    />
+  );
 }

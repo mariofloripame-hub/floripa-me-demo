@@ -194,11 +194,13 @@ export function RoteiroView({
   itinerary,
   partners = [],
   places = [],
+  liveOffers = {},
   tips = GENERAL_TIPS,
 }: {
   itinerary: ItineraryRow;
   partners?: Place[];
   places?: Place[];
+  liveOffers?: Record<string, string>;
   tips?: Tip[];
 }) {
   const [days, setDays] = useState(itinerary.days as ItineraryDay[]);
@@ -368,6 +370,8 @@ export function RoteiroView({
             day={day}
             partners={partners}
             places={places}
+            liveOffers={liveOffers}
+            itinerarySlug={itinerary.slug}
             onRemove={(placeId) => handleRemove(day.day_number, placeId)}
             onAddActivity={(input) => handleAddActivity(day.day_number, input)}
             onReplace={(oldPlaceId, newPlaceId) => handleReplace(day.day_number, oldPlaceId, newPlaceId)}

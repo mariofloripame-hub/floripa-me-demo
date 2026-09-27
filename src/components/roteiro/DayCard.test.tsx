@@ -109,17 +109,41 @@ describe("DayCard", () => {
     );
   });
 
-  it("shows the exclusive offer ribbon only for places on the offer list", () => {
-    const offerDay: ItineraryDay = {
-      day_number: 1,
-      theme: "Leste",
-      activities: [
-        { place_id: "p4", name: "Zilá", time: "12:30", category: "Gastronomia", price_range: "R$$", is_partner: false, address: "", lat: null, lng: null },
-        { place_id: "p5", name: "Tia Jú", time: "09:00", category: "Gastronomia", price_range: "R$", is_partner: false, address: "", lat: null, lng: null },
-      ],
-    };
-    render(<DayCard day={offerDay} />);
-    expect(screen.getByText(/oferta exclusiva/i)).toBeInTheDocument();
+  it("shows the exclusive offer ribbon only for activities with a live offer", () => {
+    render(<DayCard day={day} liveOffers={{ p2: "Sobremesa cortesia" }} />);
+    expect(screen.getAllByText(/oferta exclusiva/i)).toHaveLength(1);
+  });
+
+  it("shows no ribbon when nothing has a live offer", () => {
+    render(<DayCard day={day} />);
+    expect(screen.queryByText(/oferta exclusiva/i)).not.toBeInTheDocument();
+  });
+
+  it("shows 'Resgate sua cortesia' only on activities with a live offer", () => {
+    render(<DayCard day={day} liveOffers={{ p2: "Sobremesa cortesia" }} itinerarySlug="abc123" />);
+    expect(screen.getAllByRole("button", { name: "🎁 Resgate sua cortesia" })).toHaveLength(1);
+  });
+
+  it("hides the courtesy button without an itinerary slug", () => {
+    render(<DayCard day={day} liveOffers={{ p2: "Sobremesa cortesia" }} />);
+    expect(screen.queryByRole("button", { name: "🎁 Resgate sua cortesia" })).not.toBeInTheDocument();
+  });
+
+  it("opens the courtesy sheet for that place when the button is clicked", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ code: "FMY-4K7P", offerText: "Sobremesa cortesia", expiresAt: "2999-01-01T00:00:00Z" }),
+      }),
+    );
+    window.localStorage.clear();
+    render(<DayCard day={day} liveOffers={{ p2: "Sobremesa cortesia" }} itinerarySlug="abc123" />);
+    fireEvent.click(screen.getByRole("button", { name: "🎁 Resgate sua cortesia" }));
+    expect(await screen.findByRole("dialog", { name: "Cortesia Ostradamus" })).toBeInTheDocument();
+    expect(await screen.findByText("FMY-4K7P")).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   it("renders real partner places passed in, with their photo and name", () => {

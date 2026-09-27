@@ -10,6 +10,7 @@ import { guessCategory, isCustomActivity } from "@/lib/itinerary/customActivity"
 import { rankSwapOptions } from "@/lib/itinerary/swapOptions";
 import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
 import { SwapSheet } from "./SwapSheet";
+import { CourtesySheet } from "./CourtesySheet";
 
 function priceBadge(priceRange: string): string {
   return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
@@ -28,8 +29,6 @@ const DISPLAY_NAME: Record<string, string> = {
 function displayName(name: string): string {
   return DISPLAY_NAME[name] ?? name;
 }
-
-const EXCLUSIVE_OFFER_PLACES = new Set(["Zilá", "Restaurante do Ceará"]);
 
 const MAX_SUGGESTED_PARTNERS = 12;
 
@@ -208,6 +207,8 @@ export function DayCard({
   day,
   partners = [],
   places = [],
+  liveOffers = {},
+  itinerarySlug,
   onRemove,
   onAddActivity,
   onReplace,
@@ -215,12 +216,15 @@ export function DayCard({
   day: ItineraryDay;
   partners?: Place[];
   places?: Place[];
+  liveOffers?: Record<string, string>;
+  itinerarySlug?: string;
   onRemove?: (placeId: string) => void;
   onAddActivity?: (input: { name: string; time: string }) => void;
   onReplace?: (oldPlaceId: string, newPlaceId: string) => void;
 }) {
   const [selected, setSelected] = useState<EstablishmentDetail | null>(null);
   const [swapping, setSwapping] = useState<ItineraryActivity | null>(null);
+  const [redeeming, setRedeeming] = useState<ItineraryActivity | null>(null);
 
   const dayPlaceIds = new Set(day.activities.map((a) => a.place_id));
   const partnerIds = new Set(partners.map((p) => p.id));
@@ -276,7 +280,7 @@ export function DayCard({
                       />
                     )}
                   </div>
-                  {EXCLUSIVE_OFFER_PLACES.has(act.name) && (
+                  {liveOffers[act.place_id] && (
                     <span className="absolute -left-14 top-6 w-48 -rotate-45 bg-coral py-0.5 text-center text-[9px] font-extrabold uppercase leading-none tracking-tight text-graphite shadow-md">
                       Oferta exclusiva
                     </span>
@@ -353,6 +357,18 @@ export function DayCard({
                         </button>
                       )}
                     </div>
+                    {itinerarySlug && liveOffers[act.place_id] && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRedeeming(act);
+                        }}
+                        className="mt-2 inline-flex w-full items-center justify-center gap-1 rounded-pill bg-coral px-3 py-1.5 text-[11px] font-extrabold text-graphite print:hidden"
+                      >
+                        🎁 Resgate sua cortesia
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -388,6 +404,15 @@ export function DayCard({
             setSwapping(null);
           }}
           onClose={() => setSwapping(null)}
+        />
+      )}
+
+      {redeeming && itinerarySlug && (
+        <CourtesySheet
+          placeId={redeeming.place_id}
+          placeName={displayName(redeeming.name)}
+          itinerarySlug={itinerarySlug}
+          onClose={() => setRedeeming(null)}
         />
       )}
     </section>
