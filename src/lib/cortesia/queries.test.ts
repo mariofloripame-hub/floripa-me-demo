@@ -48,6 +48,8 @@ describe("courtesy code queries", () => {
     expect(calls).toContainEqual(["eq", ["place_id", "place-a"]]);
     expect(calls).toContainEqual(["is", ["redeemed_at", null]]);
     expect(calls).toContainEqual(["gt", ["expires_at", now.toISOString()]]);
+    // Oldest first, so concurrent requests all settle on the same code.
+    expect(calls).toContainEqual(["order", ["created_at", { ascending: true }]]);
   });
 
   it("insertCode throws the raw database error so callers can detect collisions", async () => {

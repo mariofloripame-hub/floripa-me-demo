@@ -51,7 +51,11 @@ export async function issueCode(
         offer_text: offerText,
         expires_at: expiresAt,
       });
-      return toIssued(row);
+      // A concurrent request (double tap) may have inserted its own code in the
+      // meantime; everyone returns the oldest active one so the tourist only
+      // ever sees a single code.
+      const settled = await findReusableCode(client, { deviceId, placeId, now });
+      return toIssued(settled ?? row);
     } catch (error) {
       if (!isUniqueViolation(error)) throw error;
     }

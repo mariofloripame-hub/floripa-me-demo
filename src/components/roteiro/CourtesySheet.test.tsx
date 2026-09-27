@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CourtesySheet } from "./CourtesySheet";
@@ -31,6 +32,23 @@ describe("CourtesySheet", () => {
     expect(url).toBe("/api/cortesia");
     expect(JSON.parse(init.body)).toMatchObject({ placeId: "place-a", itinerarySlug: "abc123" });
     expect(window.localStorage.getItem("floripa_cortesia_place-a")).toContain("FMY-4K7P");
+  });
+
+  it("asks for a code only once even when effects run twice, and caches the code it shows", async () => {
+    fetchMock.mockImplementation((url: string) =>
+      url === "/api/cortesia"
+        ? jsonResponse(200, { code: `FMY-${fetchMock.mock.calls.length === 1 ? "AAAA" : "BBBB"}`, offerText: "Sobremesa", expiresAt: "2999-01-01T00:00:00Z" })
+        : jsonResponse(200, { status: "active", expiresAt: "2999-01-01T00:00:00Z" }),
+    );
+    render(
+      <StrictMode>
+        <CourtesySheet placeId="place-a" placeName="Ostradamus" itinerarySlug="abc123" onClose={() => {}} />
+      </StrictMode>,
+    );
+    const shown = (await screen.findByText(/^FMY-/)).textContent;
+    const posts = fetchMock.mock.calls.filter(([url]) => url === "/api/cortesia");
+    expect(posts).toHaveLength(1);
+    expect(JSON.parse(window.localStorage.getItem("floripa_cortesia_place-a") ?? "{}").code).toBe(shown);
   });
 
   it("shows the cached code without generating a new one", async () => {

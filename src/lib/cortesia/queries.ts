@@ -20,7 +20,8 @@ export async function findReusableCode(
     .eq("place_id", placeId)
     .is("redeemed_at", null)
     .gt("expires_at", now.toISOString())
-    .order("created_at", { ascending: false })
+    // Oldest first, so concurrent requests all settle on the same code.
+    .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
   if (error) throw error;

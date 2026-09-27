@@ -12,7 +12,19 @@ import { usedLabel, validityLabel } from "@/lib/cortesia/labels";
 
 type SheetState = { kind: "loading" } | { kind: "ready"; code: CachedCode } | { kind: "error" };
 
-async function requestNewCode(placeId: string, itinerarySlug: string): Promise<CachedCode | null> {
+// One request per place at a time: a double tap, or React running the effect
+// twice, shares the same request, so the code shown is the code cached.
+const pendingRequests = new Map<string, Promise<CachedCode | null>>();
+
+function requestNewCode(placeId: string, itinerarySlug: string): Promise<CachedCode | null> {
+  const pending = pendingRequests.get(placeId);
+  if (pending) return pending;
+  const request = fetchNewCode(placeId, itinerarySlug).finally(() => pendingRequests.delete(placeId));
+  pendingRequests.set(placeId, request);
+  return request;
+}
+
+async function fetchNewCode(placeId: string, itinerarySlug: string): Promise<CachedCode | null> {
   const response = await fetch("/api/cortesia", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

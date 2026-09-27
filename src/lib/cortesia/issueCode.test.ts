@@ -46,6 +46,14 @@ describe("issueCode", () => {
     expect(insertCode).not.toHaveBeenCalled();
   });
 
+  it("returns the earliest active code when a concurrent request inserted one first (double tap)", async () => {
+    vi.mocked(findReusableCode)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ code: "FMY-AAAA", offer_text: "Sobremesa cortesia", expires_at: "2026-09-28T14:59:59Z" } as never);
+    const issued = await issueCode(client, { ...args, generate: () => "FMY-BBBB" });
+    expect(issued.code).toBe("FMY-AAAA");
+  });
+
   it("retries with a new code on a collision", async () => {
     const codes = ["FMY-AAAA", "FMY-BBBB"];
     vi.mocked(insertCode)
