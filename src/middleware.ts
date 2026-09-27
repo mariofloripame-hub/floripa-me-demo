@@ -1,9 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ADMIN_SESSION_COOKIE, isValidAdminSession } from "@/lib/adminAuth";
+import { refreshPartnerSession } from "@/lib/parceiro/middlewareSession";
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/api/admin/login"];
+const PUBLIC_PARTNER_PATHS = ["/parceiro/entrar", "/parceiro/auth/callback", "/api/parceiro/login"];
 
-export function middleware(request: NextRequest) {
+function isPartnerPath(pathname: string): boolean {
+  return pathname === "/parceiro" || pathname.startsWith("/parceiro/") || pathname.startsWith("/api/parceiro/");
+}
+
+function adminGate(request: NextRequest): NextResponse {
   if (PUBLIC_ADMIN_PATHS.includes(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -19,8 +25,29 @@ export function middleware(request: NextRequest) {
   return NextResponse.redirect(new URL("/admin/login", request.url));
 }
 
+async function partnerGate(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl;
+  if (PUBLIC_PARTNER_PATHS.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  const { userId, response } = await refreshPartnerSession(request);
+  if (userId) return response;
+
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+  const login = new URL("/parceiro/entrar", request.url);
+  login.searchParams.set("next", pathname);
+  return NextResponse.redirect(login);
+}
+
+export async function middleware(request: NextRequest) {
+  return isPartnerPath(request.nextUrl.pathname) ? partnerGate(request) : adminGate(request);
+}
+
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/parceiro/:path*", "/api/parceiro/:path*"],
   // adminAuth.ts uses Node's `crypto` (createHash/timingSafeEqual), which
   // the default Edge Runtime doesn't support — run this middleware on the
   // Node.js runtime instead.
