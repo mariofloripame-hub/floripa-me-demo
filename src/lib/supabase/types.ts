@@ -29,6 +29,8 @@ export interface Place {
   contact_email?: string | null;
   contact_phone?: string | null;
   submission_source?: string;
+  pending_offer?: string | null;
+  pending_offer_submitted_at?: string | null;
 }
 
 export interface EventRow {
