@@ -26,6 +26,16 @@ beforeEach(() => {
 });
 
 describe("PlacesTabs", () => {
+  it("flags partners with an offer waiting for approval", () => {
+    const places = [
+      place({ id: "a", name: "Com pendência", is_partner: true, pending_offer: "Café", pending_offer_submitted_at: "2026-09-27T15:00:00Z" }),
+      place({ id: "b", name: "Sem pendência", is_partner: true }),
+    ];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.click(screen.getByRole("button", { name: /parceiros/i }));
+    expect(screen.getAllByText("🎁 Oferta pendente")).toHaveLength(1);
+  });
+
   it("defaults to the Pendentes tab, showing only unverified places", () => {
     const places = [
       place({ id: "a", name: "Pendente", is_verified: false }),

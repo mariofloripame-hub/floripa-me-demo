@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Place } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/Button";
+import { hasPendingOffer } from "@/lib/ofertas/pendingOffer";
 
 type Tab = "pendentes" | "aprovados" | "parceiros" | "todos";
 
@@ -91,7 +92,14 @@ export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
             className="flex items-center justify-between rounded-card border border-teal-ink/10 bg-white p-4"
           >
             <div>
-              <p className="font-bold text-teal-ink">{place.name}</p>
+              <p className="font-bold text-teal-ink">
+                {place.name}
+                {hasPendingOffer({ pending_offer_submitted_at: place.pending_offer_submitted_at ?? null }) && (
+                  <span className="ml-2 rounded-pill bg-coral/15 px-2 py-0.5 text-[10px] font-bold text-coral-deep">
+                    🎁 Oferta pendente
+                  </span>
+                )}
+              </p>
               <p className="text-xs text-teal-ink/60">
                 {place.category} · {place.neighborhood}, {place.region}
               </p>
