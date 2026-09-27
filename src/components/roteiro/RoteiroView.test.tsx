@@ -6,6 +6,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/roteiro/abc123" }));
 import { RoteiroView } from "./RoteiroView";
 import type { ItineraryRow, Place } from "@/lib/supabase/types";
 import type { Tip } from "@/lib/avisos/types";
+import type { ItineraryDay } from "@/lib/itinerary/assemble";
 
 const itinerary: ItineraryRow = {
   id: "1", slug: "abc123", quiz_answers: {},
@@ -218,5 +219,50 @@ describe("RoteiroView", () => {
     render(<RoteiroView itinerary={soloItinerary} />);
     const [firstImage] = screen.getAllByRole("presentation", { hidden: true });
     expect(firstImage.getAttribute("src")).toContain("solo-negocios-01");
+  });
+
+  it("swaps an activity via PATCH, keeping the rest of the day, and updates the view", async () => {
+    const trilhaAlt = makePartner({ id: "t9", name: "Trilha do Saquinho", category: "Trilha", is_partner: false });
+    const updated = {
+      ...itinerary,
+      days: [
+        {
+          day_number: 1,
+          theme: "Dia 1",
+          activities: [
+            (itinerary.days as ItineraryDay[])[0].activities[0],
+            { place_id: "t9", name: "Trilha do Saquinho", time: "14:00", category: "Trilha", price_range: "R$$", is_partner: false, address: "", lat: null, lng: null },
+          ],
+        },
+      ],
+    };
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(updated) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<RoteiroView itinerary={itinerary} places={[trilhaAlt]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Trocar Trilha do Morro" }));
+    fireEvent.click(screen.getByRole("button", { name: "Escolher Trilha do Saquinho" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/itineraries/abc123",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ day_number: 1, replace_place_id: "p2", with_place_id: "t9" }),
+        }),
+      ),
+    );
+    await waitFor(() => expect(screen.queryByText("Trilha do Morro")).not.toBeInTheDocument());
+    expect(screen.getByText("Trilha do Saquinho")).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
+  it("caps the page-level partners section at 10 entries", () => {
+    const partners = Array.from({ length: 14 }, (_, i) => makePartner({ id: `pp${i}`, name: `Parceiro ${i}` }));
+    render(<RoteiroView itinerary={itinerary} partners={partners} />);
+    const heading = screen.getByText(/estabelecimentos parceiros/i);
+    const section = within(heading.closest("div") as HTMLElement);
+    expect(section.getAllByRole("button", { name: /parceiro \d+/i })).toHaveLength(10);
   });
 });

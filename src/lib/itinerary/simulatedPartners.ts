@@ -21,6 +21,17 @@ const SIMULATED_PARTNER_NAMES = new Set([
   "Artusi Ristorante",
   "Osli Restaurante",
   "Restaurante Lindacap",
+  "Bar do Vadinho",
+  "Maré Pizzaria",
+  "Entre Mares Sushi",
+  "Marquês da Lagoa",
+  "Freguesia Bar",
+  "Donna Beach Club",
+  "Atôa na Jôa",
+  "Café Cultura - Lagoa",
+  "Krone Café & Padaria",
+  "Barco Pirata",
+  "Sea Wolf Surf School - Campeche",
 ]);
 
 // Excluded even if is_partner is true in the database — tourist points, not
@@ -41,6 +52,12 @@ const EXCLUSIVE_PROMO_OFFERS: Record<string, string> = {
   "Bistrô da Orla": "Couvert grátis",
   "Artusi Ristorante": "Taça de vinho grátis na compra de um prato principal",
   "Restaurante Lindacap": "Batata frita grátis na compra de um prato selecionado",
+  "Maré Pizzaria": "Pizza broto doce grátis na compra de uma grande",
+  "Entre Mares Sushi": "Temaki em dobro às terças",
+  "Donna Beach Club": "Welcome drink na chegada",
+  "Café Cultura - Lagoa": "Pão de queijo grátis com qualquer café",
+  "Barco Pirata": "Crianças até 10 anos não pagam",
+  "Sea Wolf Surf School - Campeche": "20% de desconto na primeira aula",
 };
 
 function stripContactInfo(p: Place): Place {
@@ -58,4 +75,11 @@ export function selectPartners(places: Place[]): Place[] {
     .filter((p) => p.is_partner || SIMULATED_PARTNER_NAMES.has(p.name))
     .map((p) => (!p.is_partner && EXCLUSIVE_PROMO_OFFERS[p.name] ? { ...p, partner_offer: EXCLUSIVE_PROMO_OFFERS[p.name] } : p))
     .map(stripContactInfo);
+}
+
+// Every verified place, safe to send to the browser — feeds the "⇄ Trocar"
+// sheet, which suggests alternatives from the whole catalogue, not just
+// partners.
+export function selectPublicPlaces(places: Place[]): Place[] {
+  return places.filter((p) => p.is_verified).map(stripContactInfo);
 }

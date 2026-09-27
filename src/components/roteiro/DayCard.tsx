@@ -5,7 +5,11 @@ import Image from "next/image";
 import type { ItineraryDay, ItineraryActivity } from "@/lib/itinerary/assemble";
 import type { Place } from "@/lib/supabase/types";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import { getCategoryStyle } from "@/lib/itinerary/mapIcons";
+import { guessCategory, isCustomActivity } from "@/lib/itinerary/customActivity";
+import { rankSwapOptions } from "@/lib/itinerary/swapOptions";
 import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
+import { SwapSheet } from "./SwapSheet";
 
 function priceBadge(priceRange: string): string {
   return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
@@ -27,7 +31,7 @@ function displayName(name: string): string {
 
 const EXCLUSIVE_OFFER_PLACES = new Set(["Zilá", "Restaurante do Ceará"]);
 
-const MAX_SUGGESTED_PARTNERS = 4;
+const MAX_SUGGESTED_PARTNERS = 12;
 
 function activityToDetail(act: ItineraryActivity): EstablishmentDetail {
   return {
@@ -44,6 +48,49 @@ function activityToDetail(act: ItineraryActivity): EstablishmentDetail {
     lat: act.lat,
     lng: act.lng,
   };
+}
+
+// Four-point sparkle, for custom activities we couldn't match to a category.
+const GENERIC_ICON_PATH = "M12 3v4M12 17v4M3 12h4M17 12h4M12 8l1.5 2.5L16 12l-2.5 1.5L12 16l-1.5-2.5L8 12l2.5-1.5Z";
+
+function CustomActivityTile({ category }: { category: string | null }) {
+  const style = category ? getCategoryStyle(category) : { color: "#00E6C8", path: GENERIC_ICON_PATH };
+  return (
+    <div
+      role="img"
+      aria-label={category ? `Ícone de ${category}` : "Ícone de programação personalizada"}
+      className="flex h-full w-full items-center justify-center"
+      style={{ background: `linear-gradient(135deg, ${style.color}40 0%, ${style.color}14 100%)` }}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="34"
+        height="34"
+        fill="none"
+        stroke={style.color}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d={style.path} />
+      </svg>
+    </div>
+  );
+}
+
+function SwapIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 function PartnerSuggestions({
@@ -160,15 +207,31 @@ function AddActivityRow({ onAdd }: { onAdd: (input: { name: string; time: string
 export function DayCard({
   day,
   partners = [],
+  places = [],
   onRemove,
   onAddActivity,
+  onReplace,
 }: {
   day: ItineraryDay;
   partners?: Place[];
+  places?: Place[];
   onRemove?: (placeId: string) => void;
   onAddActivity?: (input: { name: string; time: string }) => void;
+  onReplace?: (oldPlaceId: string, newPlaceId: string) => void;
 }) {
   const [selected, setSelected] = useState<EstablishmentDetail | null>(null);
+  const [swapping, setSwapping] = useState<ItineraryActivity | null>(null);
+
+  const dayPlaceIds = new Set(day.activities.map((a) => a.place_id));
+  const partnerIds = new Set(partners.map((p) => p.id));
+  // Partner entries carry their (possibly simulated) offer, so they win over
+  // the plain catalogue row for the same place.
+  const catalogue = [...partners, ...places.filter((p) => !partnerIds.has(p.id))];
+  const swapCategory = swapping
+    ? isCustomActivity(swapping)
+      ? guessCategory(swapping.name)
+      : swapping.category
+    : null;
 
   return (
     <section>
@@ -201,13 +264,17 @@ export function DayCard({
                   className="relative flex gap-3 overflow-hidden rounded-card border border-white/10 bg-white/5 p-3 text-left"
                 >
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-graphite">
-                    <Image
-                      src={getPlaceImage(act.name, act.photo)}
-                      alt={act.name}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
+                    {isCustomActivity(act) ? (
+                      <CustomActivityTile category={guessCategory(act.name)} />
+                    ) : (
+                      <Image
+                        src={getPlaceImage(act.name, act.photo)}
+                        alt={act.name}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    )}
                   </div>
                   {EXCLUSIVE_OFFER_PLACES.has(act.name) && (
                     <span className="absolute -left-14 top-6 w-48 -rotate-45 bg-coral py-0.5 text-center text-[9px] font-extrabold uppercase leading-none tracking-tight text-graphite shadow-md">
@@ -270,6 +337,21 @@ export function DayCard({
                           📅 Reservar
                         </span>
                       )}
+                      {onReplace && (
+                        <button
+                          type="button"
+                          aria-label={`Trocar ${act.name}`}
+                          title="Trocar por outra opção"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSwapping(act);
+                          }}
+                          className="ml-auto inline-flex items-center gap-1 rounded-pill border border-turquoise/40 bg-turquoise/10 px-2 py-1 text-[10px] font-bold text-turquoise transition-colors hover:bg-turquoise/20 print:hidden"
+                        >
+                          <SwapIcon className="h-3 w-3" />
+                          Trocar
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -282,7 +364,7 @@ export function DayCard({
       <div className="ml-[46px] mt-1">
         <PartnerSuggestions
           partners={partners}
-          excludeIds={new Set(day.activities.map((a) => a.place_id))}
+          excludeIds={dayPlaceIds}
           onSelect={setSelected}
         />
       </div>
@@ -294,6 +376,20 @@ export function DayCard({
       )}
 
       <EstablishmentModal detail={selected} onClose={() => setSelected(null)} />
+
+      {swapping && onReplace && (
+        <SwapSheet
+          activityName={displayName(swapping.name)}
+          categoryLabel={swapCategory}
+          options={rankSwapOptions(catalogue, { category: swapCategory, excludeIds: dayPlaceIds, partnerIds })}
+          partnerIds={partnerIds}
+          onSelect={(place) => {
+            onReplace(swapping.place_id, place.id);
+            setSwapping(null);
+          }}
+          onClose={() => setSwapping(null)}
+        />
+      )}
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { getItineraryBySlug } from "@/lib/supabase/queries";
 import { removeActivity, ItineraryNotFoundError } from "@/lib/itinerary/removeActivity";
 import { addActivity } from "@/lib/itinerary/addActivity";
 import { addPlaceActivity, PlaceNotFoundError, DayNotFoundError } from "@/lib/itinerary/addPlaceActivity";
+import { replaceActivity } from "@/lib/itinerary/replaceActivity";
 
 interface RouteContext {
   params: Promise<{ slug: string }>;
@@ -44,6 +45,15 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         return NextResponse.json({ error: "add_place_id deve ser uma string" }, { status: 400 });
       }
       const row = await addPlaceActivity(slug, dayNumber, addPlaceId, getSupabaseAdminClient());
+      return NextResponse.json(row);
+    }
+
+    if (body?.replace_place_id) {
+      const { replace_place_id: oldPlaceId, with_place_id: newPlaceId } = body;
+      if (typeof oldPlaceId !== "string" || typeof newPlaceId !== "string") {
+        return NextResponse.json({ error: "replace_place_id e with_place_id devem ser strings" }, { status: 400 });
+      }
+      const row = await replaceActivity(slug, dayNumber, oldPlaceId, newPlaceId, getSupabaseAdminClient());
       return NextResponse.json(row);
     }
 

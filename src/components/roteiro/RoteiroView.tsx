@@ -137,6 +137,8 @@ function WelcomeMessage({ message }: { message: string }) {
   );
 }
 
+const MAX_PARTNERS_SECTION = 10;
+
 function PartnersSection({ partners }: { partners: Place[] }) {
   const [selected, setSelected] = useState<EstablishmentDetail | null>(null);
 
@@ -149,7 +151,7 @@ function PartnersSection({ partners }: { partners: Place[] }) {
       </h2>
       <p className="mt-1 text-xs text-ink-dim">Lugares parceiros perto do seu roteiro — fique de olho nas promoções.</p>
       <div className="mt-3 flex flex-col gap-2">
-        {partners.map((place) => (
+        {partners.slice(0, MAX_PARTNERS_SECTION).map((place) => (
           <button
             key={place.id}
             type="button"
@@ -191,10 +193,12 @@ function PartnersSection({ partners }: { partners: Place[] }) {
 export function RoteiroView({
   itinerary,
   partners = [],
+  places = [],
   tips = GENERAL_TIPS,
 }: {
   itinerary: ItineraryRow;
   partners?: Place[];
+  places?: Place[];
   tips?: Tip[];
 }) {
   const [days, setDays] = useState(itinerary.days as ItineraryDay[]);
@@ -252,6 +256,17 @@ export function RoteiroView({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ day_number: dayNumber, activity: input }),
+    });
+    if (!response.ok) return;
+    const updated = await response.json();
+    setDays(updated.days as ItineraryDay[]);
+  }
+
+  async function handleReplace(dayNumber: number, oldPlaceId: string, newPlaceId: string) {
+    const response = await fetch(`/api/itineraries/${itinerary.slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ day_number: dayNumber, replace_place_id: oldPlaceId, with_place_id: newPlaceId }),
     });
     if (!response.ok) return;
     const updated = await response.json();
@@ -352,8 +367,10 @@ export function RoteiroView({
             key={day.day_number}
             day={day}
             partners={partners}
+            places={places}
             onRemove={(placeId) => handleRemove(day.day_number, placeId)}
             onAddActivity={(input) => handleAddActivity(day.day_number, input)}
+            onReplace={(oldPlaceId, newPlaceId) => handleReplace(day.day_number, oldPlaceId, newPlaceId)}
           />
         ))}
       </div>

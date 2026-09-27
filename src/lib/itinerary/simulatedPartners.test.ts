@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { selectPartners } from "./simulatedPartners";
+import { selectPartners, selectPublicPlaces } from "./simulatedPartners";
 import type { Place } from "@/lib/supabase/types";
 
 function place(overrides: Partial<Place>): Place {
@@ -100,5 +100,27 @@ describe("selectPartners", () => {
     const names = ["Restaurante do Moraes", "Artusi Ristorante", "Osli Restaurante", "Restaurante Lindacap"];
     const places = names.map((name, i) => place({ id: `r${i}`, name }));
     expect(selectPartners(places).map((p) => p.name)).toEqual(names);
+  });
+
+  it("simulates enough partners across segments to fill the suggestions carousel (10+)", () => {
+    const names = [
+      "Bar do Vadinho", "Maré Pizzaria", "Entre Mares Sushi", "Marquês da Lagoa", "Freguesia Bar",
+      "Donna Beach Club", "Atôa na Jôa", "Café Cultura - Lagoa", "Krone Café & Padaria", "Barco Pirata",
+      "Sea Wolf Surf School - Campeche",
+    ];
+    const places = names.map((name, i) => place({ id: `n${i}`, name }));
+    expect(selectPartners(places).map((p) => p.name)).toEqual(names);
+  });
+});
+
+describe("selectPublicPlaces", () => {
+  it("keeps only verified places and strips private contact fields", () => {
+    const places = [
+      place({ id: "v", name: "Verificado", contact_name: "Dono", contact_email: "a@b.c", contact_phone: "1" }),
+      place({ id: "u", name: "Pendente", is_verified: false }),
+    ];
+    const result = selectPublicPlaces(places);
+    expect(result.map((p) => p.id)).toEqual(["v"]);
+    expect(result[0].contact_email).toBeUndefined();
   });
 });

@@ -239,4 +239,86 @@ describe("DayCard", () => {
 
     expect(onAddActivity).toHaveBeenCalledWith({ name: "Jantar", time: "18:00" });
   });
+
+  describe("swap (⇄ Trocar)", () => {
+    const catalogue = [
+      partner({ id: "g1", name: "Restaurante A", category: "Gastronomia", is_partner: false, rating: 4.9 }),
+      partner({ id: "g2", name: "Restaurante B", category: "Gastronomia", is_partner: false, rating: 4.5 }),
+      partner({ id: "g3", name: "Restaurante C", category: "Gastronomia", is_partner: false, rating: 4.1 }),
+      partner({ id: "g4", name: "Restaurante D", category: "Gastronomia", is_partner: false, rating: 3.8 }),
+      partner({ id: "gp", name: "Restaurante Parceiro", category: "Gastronomia", rating: 3.5 }),
+      partner({ id: "b1", name: "Praia Qualquer", category: "Praia", is_partner: false, rating: 5 }),
+    ];
+    const partnersList = [catalogue[4]];
+
+    it("does not show a swap button when onReplace is not provided", () => {
+      render(<DayCard day={day} places={catalogue} />);
+      expect(screen.queryByRole("button", { name: /trocar/i })).not.toBeInTheDocument();
+    });
+
+    it("opens a sheet with 3 same-category options, partners first, and a + button for the rest", () => {
+      render(<DayCard day={day} places={catalogue} partners={partnersList} onReplace={vi.fn()} />);
+      fireEvent.click(screen.getByRole("button", { name: "Trocar Ostradamus" }));
+
+      const sheet = screen.getByRole("dialog", { name: /trocar ostradamus/i });
+      const options = within(sheet).getAllByRole("button", { name: /^escolher/i });
+      expect(options.map((o) => o.getAttribute("aria-label"))).toEqual([
+        "Escolher Restaurante Parceiro",
+        "Escolher Restaurante A",
+        "Escolher Restaurante B",
+      ]);
+      expect(within(sheet).queryByText("Praia Qualquer")).not.toBeInTheDocument();
+
+      fireEvent.click(within(sheet).getByRole("button", { name: /mais opções/i }));
+      expect(within(sheet).getAllByRole("button", { name: /^escolher/i })).toHaveLength(5);
+    });
+
+    it("calls onReplace with the old and new place ids and closes the sheet", () => {
+      const onReplace = vi.fn();
+      render(<DayCard day={day} places={catalogue} onReplace={onReplace} />);
+      fireEvent.click(screen.getByRole("button", { name: "Trocar Ostradamus" }));
+      fireEvent.click(screen.getByRole("button", { name: "Escolher Restaurante B" }));
+
+      expect(onReplace).toHaveBeenCalledWith("p2", "g2");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("does not open the establishment modal when the swap button is clicked", () => {
+      render(<DayCard day={day} places={catalogue} onReplace={vi.fn()} />);
+      fireEvent.click(screen.getByRole("button", { name: "Trocar Ostradamus" }));
+      expect(screen.getAllByRole("dialog")).toHaveLength(1);
+      expect(screen.getByRole("dialog", { name: /trocar/i })).toBeInTheDocument();
+    });
+  });
+
+  describe("custom activity card", () => {
+    const customDay: ItineraryDay = {
+      day_number: 1,
+      theme: "Livre",
+      activities: [
+        { place_id: "custom-1", name: "Jantar romântico", time: "20:00", category: "Personalizado", price_range: "—", is_partner: false, address: "", lat: null, lng: null },
+      ],
+    };
+
+    it("shows a category icon guessed from its name instead of a photo", () => {
+      render(<DayCard day={customDay} />);
+      expect(screen.queryByRole("img", { name: "Jantar romântico" })).not.toBeInTheDocument();
+      expect(screen.getByRole("img", { name: /ícone de gastronomia/i })).toBeInTheDocument();
+    });
+
+    it("shows a generic icon when the category can't be guessed", () => {
+      const genericDay = { ...customDay, activities: [{ ...customDay.activities[0], name: "Descansar no hotel" }] };
+      render(<DayCard day={genericDay} />);
+      expect(screen.getByRole("img", { name: /ícone de programação personalizada/i })).toBeInTheDocument();
+    });
+
+    it("can be swapped for a place from the guessed category", () => {
+      const onReplace = vi.fn();
+      const places = [partner({ id: "g1", name: "Restaurante A", category: "Gastronomia" })];
+      render(<DayCard day={customDay} places={places} onReplace={onReplace} />);
+      fireEvent.click(screen.getByRole("button", { name: "Trocar Jantar romântico" }));
+      fireEvent.click(screen.getByRole("button", { name: "Escolher Restaurante A" }));
+      expect(onReplace).toHaveBeenCalledWith("custom-1", "g1");
+    });
+  });
 });

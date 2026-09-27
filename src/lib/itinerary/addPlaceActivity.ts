@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getItineraryBySlug, getPlaceById, updateItineraryDays } from "@/lib/supabase/queries";
 import type { ItineraryActivity, ItineraryDay } from "./assemble";
-import type { ItineraryRow } from "@/lib/supabase/types";
+import type { ItineraryRow, Place } from "@/lib/supabase/types";
 import { ItineraryNotFoundError } from "./removeActivity";
 
 export class PlaceNotFoundError extends Error {}
@@ -16,6 +16,26 @@ function nextTimeSlot(activities: ItineraryActivity[]): string {
   const nextHours = Math.floor(capped / 60);
   const nextMinutes = capped % 60;
   return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}`;
+}
+
+export function placeToActivity(place: Place, time: string): ItineraryActivity {
+  return {
+    place_id: place.id,
+    name: place.name,
+    time,
+    category: place.category,
+    price_range: place.price_range,
+    is_partner: place.is_partner,
+    address: place.address,
+    lat: place.lat,
+    lng: place.lng,
+    photo: place.photos[0],
+    photos: place.photos,
+    rating: place.rating,
+    google_place_id: place.google_place_id,
+    partner_offer: place.partner_offer,
+    short_description: place.short_description,
+  };
 }
 
 export async function addPlaceActivity(
@@ -40,23 +60,7 @@ export async function addPlaceActivity(
 
   const time = nextTimeSlot(day.activities);
 
-  const newActivity: ItineraryActivity = {
-    place_id: place.id,
-    name: place.name,
-    time,
-    category: place.category,
-    price_range: place.price_range,
-    is_partner: place.is_partner,
-    address: place.address,
-    lat: place.lat,
-    lng: place.lng,
-    photo: place.photos[0],
-    photos: place.photos,
-    rating: place.rating,
-    google_place_id: place.google_place_id,
-    partner_offer: place.partner_offer,
-    short_description: place.short_description,
-  };
+  const newActivity = placeToActivity(place, time);
 
   const updatedDays = days.map((d) =>
     d.day_number === dayNumber

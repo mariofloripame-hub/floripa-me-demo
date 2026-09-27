@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { getItineraryBySlug, listPlaces, listEvents } from "@/lib/supabase/queries";
 import { RoteiroView } from "@/components/roteiro/RoteiroView";
-import { selectPartners } from "@/lib/itinerary/simulatedPartners";
+import { selectPartners, selectPublicPlaces } from "@/lib/itinerary/simulatedPartners";
 import { buildAvisos } from "@/lib/avisos/buildAvisos";
 import type { QuizAnswers } from "@/lib/quiz/types";
 
@@ -15,5 +15,5 @@ export default async function RoteiroPage({ params }: { params: Promise<{ slug: 
   const partners = selectPartners(places);
   const events = await listEvents(client);
   const tips = buildAvisos({ answers: itinerary.quiz_answers as QuizAnswers, events });
-  return <RoteiroView itinerary={itinerary} partners={partners} tips={tips} />;
+  return <RoteiroView itinerary={itinerary} partners={partners} places={selectPublicPlaces(places)} tips={tips} />;
 }
