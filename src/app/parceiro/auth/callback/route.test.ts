@@ -6,10 +6,27 @@ import { GET } from "./route";
 import { createPartnerServerClient } from "@/lib/parceiro/supabaseServer";
 
 const verifyOtp = vi.fn();
+const exchangeCodeForSession = vi.fn();
 
 beforeEach(() => {
   verifyOtp.mockReset();
-  vi.mocked(createPartnerServerClient).mockResolvedValue({ auth: { verifyOtp } } as never);
+  exchangeCodeForSession.mockReset();
+  vi.mocked(createPartnerServerClient).mockResolvedValue({ auth: { verifyOtp, exchangeCodeForSession } } as never);
+});
+
+describe("GET /parceiro/auth/callback — PKCE fallback", () => {
+  it("exchanges a ?code= (first-login confirmation link) for a session and redirects to next", async () => {
+    exchangeCodeForSession.mockResolvedValue({ error: null });
+    const response = await GET(new Request("https://floripa.my/parceiro/auth/callback?next=%2Fparceiro%2Fvalidar&code=pkce123"));
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("pkce123");
+    expect(response.headers.get("location")).toBe("https://floripa.my/parceiro/validar");
+  });
+
+  it("sends a failed code exchange back to the login with an error", async () => {
+    exchangeCodeForSession.mockResolvedValue({ error: new Error("bad code") });
+    const response = await GET(new Request("https://floripa.my/parceiro/auth/callback?next=%2Fparceiro&code=pkce123"));
+    expect(response.headers.get("location")).toBe("https://floripa.my/parceiro/entrar?erro=link");
+  });
 });
 
 describe("GET /parceiro/auth/callback", () => {

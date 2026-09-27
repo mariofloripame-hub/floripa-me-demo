@@ -45,6 +45,9 @@ Faça isso uma vez. Leva uns 15 minutos.
    ```
 
 4. Clique em **Save changes**.
+5. Ainda em **Templates**, abra **Confirm signup** (é o e-mail que o parceiro recebe **na primeira vez** que entra) e faça o mesmo: assunto `Seu acesso ao Portal do Parceiro Floripa.My` e o mesmo corpo acima. Clique em **Save changes**.
+
+> O link só funciona nos endereços da lista do passo 4. Endereços de "preview" do Vercel (os que mudam a cada push) não estão nela — teste o login sempre no endereço principal.
 
 ## 6. Cadastrar o parceiro
 
