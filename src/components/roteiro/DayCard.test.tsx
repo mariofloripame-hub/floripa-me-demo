@@ -124,6 +124,17 @@ describe("DayCard", () => {
     expect(screen.getAllByRole("button", { name: "🎁 Resgate sua cortesia" })).toHaveLength(1);
   });
 
+  it("keeps the courtesy button for a place whose code was already generated, even if the offer went offline", async () => {
+    window.localStorage.clear();
+    window.localStorage.setItem(
+      "floripa_cortesia_p1",
+      JSON.stringify({ code: "FMY-AAAA", offerText: "Café", expiresAt: "2999-01-01T00:00:00Z", redeemedAt: null }),
+    );
+    render(<DayCard day={day} liveOffers={{}} itinerarySlug="abc123" />);
+    expect(await screen.findAllByRole("button", { name: "🎁 Resgate sua cortesia" })).toHaveLength(1);
+    window.localStorage.clear();
+  });
+
   it("hides the courtesy button without an itinerary slug", () => {
     render(<DayCard day={day} liveOffers={{ p2: "Sobremesa cortesia" }} />);
     expect(screen.queryByRole("button", { name: "🎁 Resgate sua cortesia" })).not.toBeInTheDocument();

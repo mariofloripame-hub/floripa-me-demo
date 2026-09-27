@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type MouseEvent } from "react";
+import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
 import Image from "next/image";
 import type { ItineraryDay, ItineraryActivity } from "@/lib/itinerary/assemble";
 import type { Place } from "@/lib/supabase/types";
@@ -11,6 +11,7 @@ import { rankSwapOptions } from "@/lib/itinerary/swapOptions";
 import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
 import { SwapSheet } from "./SwapSheet";
 import { CourtesySheet } from "./CourtesySheet";
+import { readCachedCode } from "@/lib/cortesia/deviceStorage";
 
 function priceBadge(priceRange: string): string {
   return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
@@ -225,6 +226,13 @@ export function DayCard({
   const [selected, setSelected] = useState<EstablishmentDetail | null>(null);
   const [swapping, setSwapping] = useState<ItineraryActivity | null>(null);
   const [redeeming, setRedeeming] = useState<ItineraryActivity | null>(null);
+  // A code already generated on this device stays reachable until it expires,
+  // even if the partner's offer went offline in the meantime.
+  const [cachedCodePlaceIds, setCachedCodePlaceIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setCachedCodePlaceIds(new Set(day.activities.filter((a) => readCachedCode(a.place_id)).map((a) => a.place_id)));
+  }, [day.activities, redeeming]);
 
   const dayPlaceIds = new Set(day.activities.map((a) => a.place_id));
   const partnerIds = new Set(partners.map((p) => p.id));
@@ -357,7 +365,7 @@ export function DayCard({
                         </button>
                       )}
                     </div>
-                    {itinerarySlug && liveOffers[act.place_id] && (
+                    {itinerarySlug && (liveOffers[act.place_id] || cachedCodePlaceIds.has(act.place_id)) && (
                       <button
                         type="button"
                         onClick={(e) => {
