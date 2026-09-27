@@ -3,15 +3,19 @@
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 
-type Phase = "idle" | "sending" | "sent" | "invalid";
+type Phase = "idle" | "sending" | "sent" | "invalid" | "unavailable";
+
+const UNAVAILABLE_TEXT = "O portal está indisponível no momento. Tente mais tarde ou fale com a equipe Floripa.My.";
 
 export function PartnerLoginForm({
   next,
   linkError,
+  unavailable = false,
   whatsapp,
 }: {
   next: string;
   linkError: boolean;
+  unavailable?: boolean;
   whatsapp?: string;
 }) {
   const [email, setEmail] = useState("");
@@ -25,7 +29,7 @@ export function PartnerLoginForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, next }),
     }).catch(() => null);
-    setPhase(response?.status === 400 ? "invalid" : "sent");
+    setPhase(response?.status === 400 ? "invalid" : response?.status === 503 ? "unavailable" : "sent");
   }
 
   if (phase === "sent") {
@@ -69,6 +73,9 @@ export function PartnerLoginForm({
         placeholder="seu@email.com"
         className="w-full rounded-pill border border-teal-ink/15 bg-white px-4 py-3 text-sm text-teal-ink placeholder:text-teal-ink/40"
       />
+      {(unavailable || phase === "unavailable") && (
+        <p className="rounded-card bg-coral/10 p-3 text-center text-sm text-coral-deep">{UNAVAILABLE_TEXT}</p>
+      )}
       {phase === "invalid" && <p className="text-sm text-coral">Confira o e-mail digitado.</p>}
       <Button type="submit" size="sm" disabled={phase === "sending"} className="self-center">
         {phase === "sending" ? "Enviando..." : "Receber link de acesso"}

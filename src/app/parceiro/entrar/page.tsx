@@ -16,6 +16,7 @@ export default async function EntrarPage({
       <PartnerLoginForm
         next={safeNextPath(next)}
         linkError={erro === "link"}
+        unavailable={erro === "config"}
         whatsapp={process.env.WHATSAPP_CONTATO || undefined}
       />
     </main>

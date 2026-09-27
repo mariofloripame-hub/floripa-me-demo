@@ -36,6 +36,20 @@ describe("PartnerLoginForm", () => {
     expect(await screen.findByText("Confira o e-mail digitado.")).toBeInTheDocument();
   });
 
+  it("says the portal is unavailable when the server isn't configured", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 503 });
+    render(<PartnerLoginForm next="/parceiro" linkError={false} />);
+    fireEvent.change(screen.getByPlaceholderText("seu@email.com"), { target: { value: "carlos@box32.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Receber link de acesso" }));
+    expect(await screen.findByText("O portal está indisponível no momento. Tente mais tarde ou fale com a equipe Floripa.My.")).toBeInTheDocument();
+    expect(screen.queryByText("Enviamos um link de acesso para seu e-mail.")).not.toBeInTheDocument();
+  });
+
+  it("shows the unavailable notice when sent back by the middleware", () => {
+    render(<PartnerLoginForm next="/parceiro" linkError={false} unavailable />);
+    expect(screen.getByText("O portal está indisponível no momento. Tente mais tarde ou fale com a equipe Floripa.My.")).toBeInTheDocument();
+  });
+
   it("tells the partner when the link they used expired", () => {
     render(<PartnerLoginForm next="/parceiro" linkError />);
     expect(screen.getByText("Esse link expirou ou já foi usado. Peça um novo abaixo.")).toBeInTheDocument();

@@ -88,6 +88,20 @@ describe("middleware — parceiro", () => {
     expect((await middleware(requestFor("/parceiro"))).status).toBe(200);
   });
 
+  it("sends pages to the login with a notice when the partner auth isn't configured", async () => {
+    vi.mocked(refreshPartnerSession).mockRejectedValue(new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await middleware(requestFor("/parceiro/validar"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("http://localhost/parceiro/entrar?erro=config");
+  });
+
+  it("returns 503 for APIs when the partner auth isn't configured", async () => {
+    vi.mocked(refreshPartnerSession).mockRejectedValue(new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await middleware(requestFor("/api/parceiro/validar"))).status).toBe(503);
+  });
+
   it("does not accept the admin cookie as a partner session", async () => {
     partnerSession(null);
     expect((await middleware(requestFor("/parceiro", createAdminSessionToken()))).status).toBe(307);

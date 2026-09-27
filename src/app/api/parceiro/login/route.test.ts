@@ -3,10 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/supabase/client", () => ({ getSupabaseAdminClient: vi.fn().mockReturnValue({}) }));
 vi.mock("@/lib/parceiro/context", () => ({ findPartnerPlaceByEmail: vi.fn() }));
 vi.mock("@/lib/parceiro/supabaseServer", () => ({ createPartnerServerClient: vi.fn() }));
+vi.mock("@/lib/parceiro/authEnv", () => ({ getSupabaseAuthEnv: vi.fn() }));
 
 import { POST } from "./route";
 import { findPartnerPlaceByEmail } from "@/lib/parceiro/context";
 import { createPartnerServerClient } from "@/lib/parceiro/supabaseServer";
+import { getSupabaseAuthEnv } from "@/lib/parceiro/authEnv";
 
 const signInWithOtp = vi.fn();
 
@@ -18,6 +20,7 @@ beforeEach(() => {
   signInWithOtp.mockReset().mockResolvedValue({ error: null });
   vi.mocked(createPartnerServerClient).mockResolvedValue({ auth: { signInWithOtp } } as never);
   vi.mocked(findPartnerPlaceByEmail).mockReset();
+  vi.mocked(getSupabaseAuthEnv).mockReset().mockReturnValue({ url: "https://x.supabase.co", anonKey: "anon" });
 });
 
 describe("POST /api/parceiro/login", () => {
@@ -55,6 +58,15 @@ describe("POST /api/parceiro/login", () => {
     signInWithOtp.mockResolvedValue({ error: new Error("rate limited") });
     vi.spyOn(console, "error").mockImplementation(() => {});
     expect((await POST(post({ email: "carlos@box32.com" }))).status).toBe(200);
+  });
+
+  it("returns 503 (for any email, so partners aren't revealed) when the auth keys are missing", async () => {
+    vi.mocked(getSupabaseAuthEnv).mockImplementation(() => {
+      throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set");
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await POST(post({ email: "curioso@x.com" }))).status).toBe(503);
+    expect(findPartnerPlaceByEmail).not.toHaveBeenCalled();
   });
 
   it("returns 400 for an invalid email", async () => {

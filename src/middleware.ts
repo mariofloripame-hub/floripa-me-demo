@@ -31,7 +31,18 @@ async function partnerGate(request: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
-  const { userId, response } = await refreshPartnerSession(request);
+  let session: Awaited<ReturnType<typeof refreshPartnerSession>>;
+  try {
+    session = await refreshPartnerSession(request);
+  } catch (error) {
+    // Most likely SUPABASE_ANON_KEY is missing — fail closed, but visibly.
+    console.error("Partner session check failed", error);
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Portal indisponível" }, { status: 503 });
+    }
+    return NextResponse.redirect(new URL("/parceiro/entrar?erro=config", request.url));
+  }
+  const { userId, response } = session;
   if (userId) return response;
 
   if (pathname.startsWith("/api/")) {
