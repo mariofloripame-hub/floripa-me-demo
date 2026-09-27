@@ -54,6 +54,35 @@ describe("ValidateCodeForm", () => {
     expect(await screen.findByText("Este código já foi usado em 27/09 às 13h10.")).toBeInTheDocument();
   });
 
+  it("recovers from a network failure while checking, letting staff try again", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    render(<ValidateCodeForm />);
+    typeAndCheck("FMY-4K7P");
+    expect(await screen.findByText("Sem conexão ou erro no servidor. Tente de novo.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Verificar código" })).toBeEnabled();
+  });
+
+  it("keeps the confirm button after a failed confirmation so it can be retried", async () => {
+    fetchMock.mockReturnValueOnce(respond(200, { result: { status: "valid", offerText: "Sobremesa" }, message: "Código válido: Sobremesa" }));
+    render(<ValidateCodeForm />);
+    typeAndCheck("FMY-4K7P");
+    await screen.findByRole("button", { name: "Confirmar entrega" });
+    fetchMock.mockReturnValueOnce(respond(500, "Internal Server Error"));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar entrega" }));
+    expect(await screen.findByText("Sem conexão ou erro no servidor. Tente de novo.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar entrega" })).toBeInTheDocument();
+  });
+
+  it("shows the server's retry message when confirming hit a transient conflict", async () => {
+    fetchMock.mockReturnValueOnce(respond(200, { result: { status: "valid", offerText: "Sobremesa" }, message: "Código válido: Sobremesa" }));
+    render(<ValidateCodeForm />);
+    typeAndCheck("FMY-4K7P");
+    await screen.findByRole("button", { name: "Confirmar entrega" });
+    fetchMock.mockReturnValueOnce(respond(409, { result: { status: "valid", offerText: "Sobremesa" }, message: "Não foi possível confirmar. Tente de novo." }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar entrega" }));
+    expect(await screen.findByText("Não foi possível confirmar. Tente de novo.")).toBeInTheDocument();
+  });
+
   it("sends a logged-out partner to the login", async () => {
     fetchMock.mockReturnValueOnce(respond(401, { error: "Não autenticado" }));
     render(<ValidateCodeForm />);

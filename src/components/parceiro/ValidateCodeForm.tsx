@@ -7,46 +7,71 @@ import type { CheckResult } from "@/lib/cortesia/checkCode";
 type Phase =
   | { kind: "idle" }
   | { kind: "busy" }
-  | { kind: "checked"; code: string; result: CheckResult; message: string }
+  | { kind: "checked"; code: string; result: CheckResult; message: string; notice?: string }
+  | { kind: "error"; message: string }
   | { kind: "confirmed"; offerText: string };
 
+type Answer = { status: number; body: { result: CheckResult; message: string; offerText?: string } };
+
 const LOGIN_PATH = `/parceiro/entrar?next=${encodeURIComponent("/parceiro/validar")}`;
+const FAILURE_TEXT = "Sem conexão ou erro no servidor. Tente de novo.";
 
 export function ValidateCodeForm() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
 
-  async function post(path: string, value: string) {
-    const response = await fetch(path, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: value }),
-    });
-    if (response.status === 401) {
-      router.push(LOGIN_PATH);
-      return null;
+  // "failed" covers a dropped connection or a server error — the counter can retry.
+  async function post(path: string, value: string): Promise<Answer | "login" | "failed"> {
+    try {
+      const response = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: value }),
+      });
+      if (response.status === 401) {
+        router.push(LOGIN_PATH);
+        return "login";
+      }
+      if (response.status >= 500) return "failed";
+      return { status: response.status, body: await response.json() };
+    } catch {
+      return "failed";
     }
-    return { status: response.status, body: await response.json() };
   }
 
   async function handleCheck(event: FormEvent) {
     event.preventDefault();
     setPhase({ kind: "busy" });
     const answer = await post("/api/parceiro/validar", code);
-    if (!answer) return;
+    if (answer === "login") return;
+    if (answer === "failed") {
+      setPhase({ kind: "error", message: FAILURE_TEXT });
+      return;
+    }
     setPhase({ kind: "checked", code, result: answer.body.result, message: answer.body.message });
   }
 
-  async function handleConfirm(checkedCode: string) {
+  async function handleConfirm(checked: Extract<Phase, { kind: "checked" }>) {
     setPhase({ kind: "busy" });
-    const answer = await post("/api/parceiro/confirmar", checkedCode);
-    if (!answer) return;
-    if (answer.status === 200) {
-      setPhase({ kind: "confirmed", offerText: answer.body.offerText });
+    const answer = await post("/api/parceiro/confirmar", checked.code);
+    if (answer === "login") return;
+    if (answer === "failed") {
+      setPhase({ ...checked, notice: FAILURE_TEXT });
       return;
     }
-    setPhase({ kind: "checked", code: checkedCode, result: answer.body.result, message: answer.body.message });
+    if (answer.status === 200) {
+      setPhase({ kind: "confirmed", offerText: answer.body.offerText ?? "" });
+      return;
+    }
+    const { result, message } = answer.body;
+    setPhase({
+      kind: "checked",
+      code: checked.code,
+      result,
+      message,
+      notice: result.status === "valid" ? message : undefined,
+    });
   }
 
   function reset() {
@@ -108,14 +133,17 @@ export function ValidateCodeForm() {
             </button>
             <button
               type="button"
-              onClick={() => handleConfirm(checked.code)}
+              onClick={() => handleConfirm(checked)}
               className="flex-1 rounded-pill bg-turquoise-deep py-2 text-sm font-bold text-white"
             >
               Confirmar entrega
             </button>
           </div>
+          {checked.notice && <p className="text-sm text-coral-deep">{checked.notice}</p>}
         </div>
       )}
+
+      {phase.kind === "error" && <p className="rounded-card bg-coral/10 p-4 text-sm text-coral-deep">{phase.message}</p>}
 
       {checked && checked.result.status !== "valid" && (
         <p className="rounded-card bg-coral/10 p-4 text-sm text-coral-deep">{checked.message}</p>
