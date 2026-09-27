@@ -34,6 +34,8 @@ Faça isso uma vez. Leva uns 15 minutos.
 
 ## 5. Ajustar o e-mail do link mágico
 
+> **Só dá para fazer depois do passo 7 (SMTP próprio).** O Supabase só deixa editar os modelos de e-mail com um SMTP configurado. Sem isso, o login já funciona com o e-mail padrão, **mas o link precisa ser aberto no mesmo navegador em que foi pedido** (não funciona pedir no computador e abrir no celular, nem abrir pelo app do Gmail).
+
 1. **Authentication** → **Emails** → aba **Templates** → **Magic Link**.
 2. Troque o assunto para: `Seu acesso ao Portal do Parceiro Floripa.My`
 3. Apague o corpo e cole:
