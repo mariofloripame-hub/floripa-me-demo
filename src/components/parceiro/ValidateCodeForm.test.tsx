@@ -83,6 +83,35 @@ describe("ValidateCodeForm", () => {
     expect(await screen.findByText("Não foi possível confirmar. Tente de novo.")).toBeInTheDocument();
   });
 
+  it("shows FMY- as a fixed prefix, so staff type only the 4 characters", async () => {
+    fetchMock.mockReturnValueOnce(respond(200, { result: { status: "expired" }, message: "Código expirado." }));
+    render(<ValidateCodeForm />);
+    expect(screen.getByText("FMY-")).toBeInTheDocument();
+    typeAndCheck("4k7p");
+    await screen.findByText("Código expirado.");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ code: "FMY-4K7P" });
+  });
+
+  it("drops a typed or pasted FMY- prefix instead of doubling it", () => {
+    render(<ValidateCodeForm />);
+    const input = screen.getByLabelText("Código do cliente");
+    fireEvent.change(input, { target: { value: "fmy-4k7p" } });
+    expect(input).toHaveValue("4K7P");
+  });
+
+  it("keeps at most 4 characters and only letters or digits", () => {
+    render(<ValidateCodeForm />);
+    const input = screen.getByLabelText("Código do cliente");
+    fireEvent.change(input, { target: { value: "4k-7p9z" } });
+    expect(input).toHaveValue("4K7P");
+  });
+
+  it("only enables Verificar once all 4 characters are typed", () => {
+    render(<ValidateCodeForm />);
+    fireEvent.change(screen.getByLabelText("Código do cliente"), { target: { value: "4k7" } });
+    expect(screen.getByRole("button", { name: "Verificar código" })).toBeDisabled();
+  });
+
   it("sends a logged-out partner to the login", async () => {
     fetchMock.mockReturnValueOnce(respond(401, { error: "Não autenticado" }));
     render(<ValidateCodeForm />);

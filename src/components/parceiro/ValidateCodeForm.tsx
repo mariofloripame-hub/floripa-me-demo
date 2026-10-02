@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { CheckResult } from "@/lib/cortesia/checkCode";
+import { CODE_BODY_LENGTH, CODE_PREFIX, toCodeBody } from "@/lib/cortesia/code";
 
 type Phase =
   | { kind: "idle" }
@@ -43,13 +44,14 @@ export function ValidateCodeForm() {
   async function handleCheck(event: FormEvent) {
     event.preventDefault();
     setPhase({ kind: "busy" });
-    const answer = await post("/api/parceiro/validar", code);
+    const fullCode = `${CODE_PREFIX}${code}`;
+    const answer = await post("/api/parceiro/validar", fullCode);
     if (answer === "login") return;
     if (answer === "failed") {
       setPhase({ kind: "error", message: FAILURE_TEXT });
       return;
     }
-    setPhase({ kind: "checked", code, result: answer.body.result, message: answer.body.message });
+    setPhase({ kind: "checked", code: fullCode, result: answer.body.result, message: answer.body.message });
   }
 
   async function handleConfirm(checked: Extract<Phase, { kind: "checked" }>) {
@@ -104,18 +106,23 @@ export function ValidateCodeForm() {
         <label htmlFor="codigo" className="text-sm font-bold">
           Código do cliente
         </label>
-        <input
-          id="codigo"
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="FMY-4K7P"
-          autoComplete="off"
-          autoCapitalize="characters"
-          className="w-full rounded-card border border-teal-ink/15 px-4 py-4 text-center font-display text-3xl font-extrabold tracking-[0.2em] placeholder:text-teal-ink/20"
-        />
+        <div className="flex items-center justify-center rounded-card border border-teal-ink/15 px-3 py-4 font-mono text-3xl font-bold tracking-[0.15em] focus-within:border-teal-ink/40">
+          <span className="text-teal-ink/40" aria-hidden>
+            {CODE_PREFIX}
+          </span>
+          <input
+            id="codigo"
+            value={code}
+            onChange={(e) => setCode(toCodeBody(e.target.value))}
+            placeholder="4K7P"
+            autoComplete="off"
+            autoCapitalize="characters"
+            className="w-[5ch] bg-transparent tracking-[0.15em] outline-none placeholder:text-teal-ink/20"
+          />
+        </div>
         <button
           type="submit"
-          disabled={!code.trim() || phase.kind === "busy"}
+          disabled={code.length < CODE_BODY_LENGTH || phase.kind === "busy"}
           className="rounded-pill bg-teal-ink px-5 py-3 text-sm font-bold text-sand disabled:opacity-40"
         >
           Verificar código
