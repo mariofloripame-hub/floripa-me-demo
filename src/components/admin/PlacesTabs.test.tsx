@@ -113,4 +113,44 @@ describe("PlacesTabs", () => {
     await waitFor(() => expect(screen.getByText(/não foi possível/i)).toBeInTheDocument());
     expect(screen.getByText("Aprovado")).toBeInTheDocument();
   });
+
+  it("search filters by name, ignoring case and accents", () => {
+    const places = [
+      place({ id: "a", name: "Restaurante Schiavon" }),
+      place({ id: "b", name: "Bar do Zé" }),
+    ];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.click(screen.getByRole("button", { name: /todos/i }));
+    fireEvent.change(screen.getByLabelText("Buscar estabelecimento"), { target: { value: "ze" } });
+    expect(screen.getByText("Bar do Zé")).toBeInTheDocument();
+    expect(screen.queryByText("Restaurante Schiavon")).not.toBeInTheDocument();
+  });
+
+  it("search also matches neighborhood and category", () => {
+    const places = [
+      place({ id: "a", name: "Um", neighborhood: "Ribeirão da Ilha" }),
+      place({ id: "b", name: "Dois", category: "Passeio de barco" }),
+      place({ id: "c", name: "Três" }),
+    ];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.click(screen.getByRole("button", { name: /todos/i }));
+    const search = screen.getByLabelText("Buscar estabelecimento");
+    fireEvent.change(search, { target: { value: "ribeirao" } });
+    expect(screen.getByText("Um")).toBeInTheDocument();
+    expect(screen.queryByText("Três")).not.toBeInTheDocument();
+    fireEvent.change(search, { target: { value: "barco" } });
+    expect(screen.getByText("Dois")).toBeInTheDocument();
+    expect(screen.queryByText("Um")).not.toBeInTheDocument();
+  });
+
+  it("tab counts reflect the search, so you can see which tab has the match", () => {
+    const places = [
+      place({ id: "a", name: "Schiavon", is_verified: false }),
+      place({ id: "b", name: "Outro", is_verified: true }),
+    ];
+    render(<PlacesTabs initialPlaces={places} />);
+    fireEvent.change(screen.getByLabelText("Buscar estabelecimento"), { target: { value: "outro" } });
+    expect(screen.getByRole("button", { name: "Pendentes (0)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aprovados (1)" })).toBeInTheDocument();
+  });
 });

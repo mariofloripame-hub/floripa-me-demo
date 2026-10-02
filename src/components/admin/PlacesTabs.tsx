@@ -23,10 +23,22 @@ function matchesTab(place: Place, tab: Tab): boolean {
   return place.is_verified && !place.is_partner;
 }
 
+// Lowercase and strip accents so "ze" finds "Zé" and "ribeirao" finds "Ribeirão".
+function fold(text: string): string {
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+function matchesSearch(place: Place, query: string): boolean {
+  const needle = fold(query.trim());
+  if (!needle) return true;
+  return [place.name, place.neighborhood, place.category, place.region].some((field) => fold(field ?? "").includes(needle));
+}
+
 export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
   const router = useRouter();
   const [places, setPlaces] = useState(initialPlaces);
   const [tab, setTab] = useState<Tab>("pendentes");
+  const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   function handleActionFailure(status: number) {
@@ -62,10 +74,19 @@ export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
     setPlaces((current) => current.filter((p) => p.id !== id));
   }
 
-  const visible = places.filter((p) => matchesTab(p, tab));
+  const searched = places.filter((p) => matchesSearch(p, query));
+  const visible = searched.filter((p) => matchesTab(p, tab));
 
   return (
     <div className="mt-6 flex flex-col gap-4">
+      <input
+        type="search"
+        aria-label="Buscar estabelecimento"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="🔍 Buscar por nome, bairro ou categoria"
+        className="w-full rounded-pill border border-teal-ink/15 bg-white px-4 py-2 text-sm text-teal-ink placeholder:text-teal-ink/40"
+      />
       <div className="flex flex-wrap gap-2">
         {TABS.map((t) => (
           <button
@@ -76,7 +97,7 @@ export function PlacesTabs({ initialPlaces }: { initialPlaces: Place[] }) {
               tab === t.value ? "bg-teal-ink text-sand" : "bg-white text-teal-ink/60"
             }`}
           >
-            {t.label} ({places.filter((p) => matchesTab(p, t.value)).length})
+            {t.label} ({searched.filter((p) => matchesTab(p, t.value)).length})
           </button>
         ))}
       </div>
