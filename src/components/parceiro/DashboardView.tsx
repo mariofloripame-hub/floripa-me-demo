@@ -6,8 +6,10 @@ import { OfferCard } from "./OfferCard";
 
 const UPSELL_TEXT = "Ative uma cortesia e veja quantos clientes vieram pelo Floripa.My";
 
-function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`flex flex-col gap-3 rounded-card border border-teal-ink/10 bg-white p-5 ${className}`}>{children}</section>;
+// The colors are a replaceable default: Tailwind doesn't let a later class
+// override bg-white/border color, so a tinted card passes its own instead.
+function Card({ children, className = "border-teal-ink/10 bg-white" }: { children: ReactNode; className?: string }) {
+  return <section className={`flex flex-col gap-3 rounded-card border p-5 ${className}`}>{children}</section>;
 }
 
 function formatPercent(rate: number | null): string {
@@ -139,7 +141,7 @@ export function DashboardView({
       <OfferCard liveOffer={liveOffer} pendingOffer={pendingOffer} hasPending={hasPending} />
 
       {!plan?.toLowerCase().includes("premium") && (
-        <Card className="bg-teal-ink text-sand">
+        <Card className="border-teal-ink bg-teal-ink text-sand">
           <p className="font-display text-base font-extrabold">Quer ainda mais destaque?</p>
           <p className="text-sm text-sand/70">No plano Premium seu estabelecimento tem prioridade nas sugestões dos roteiros.</p>
         </Card>
