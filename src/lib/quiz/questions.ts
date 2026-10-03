@@ -2,19 +2,6 @@ import type { QuizQuestion } from "./types";
 
 export const QUESTIONS: QuizQuestion[] = [
   {
-    id: "purpose",
-    text: "Qual o motivo da sua viagem a Florianópolis?",
-    sub: "Isso nos ajuda a te mostrar dicas mais relevantes pra sua viagem.",
-    type: "rows",
-    options: [
-      { emoji: "🏖️", label: "Passeio / Turismo", desc: "Viagem de lazer", value: "passeio" },
-      { emoji: "💼", label: "Negócios", desc: "Trabalho na cidade", value: "negocios" },
-      { emoji: "🎓", label: "Estudo ou Congresso", desc: "Evento, curso ou faculdade", value: "estudo_congresso" },
-      { emoji: "🏃", label: "Atividade Física/Competição", desc: "Treino, prova ou trilha", value: "atividade_fisica" },
-      { emoji: "👨‍👩‍👧", label: "Visitar Família/Amigos", desc: "Reencontro por aqui", value: "familia_amigos" },
-    ],
-  },
-  {
     id: "when",
     text: "Quando você vem para Florianópolis?",
     sub: "Assim conseguimos te avisar sobre eventos e a época da sua viagem.",
@@ -78,6 +65,7 @@ export const QUESTIONS: QuizQuestion[] = [
       { emoji: "🛍️", label: "Compras", desc: "Shoppings, feiras e lojas", value: "compras" },
       { emoji: "🏛️", label: "Lazer & Cultura", desc: "História, arte e passeios", value: "cultura" },
       { emoji: "🌙", label: "Balada & Bares", desc: "A noite é jovem", value: "noite" },
+      { emoji: "💼", label: "Negócios", desc: "Trabalho + aproveitar a cidade", value: "negocios" },
     ],
   },
   {

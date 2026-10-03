@@ -13,13 +13,11 @@ const ATIVIDADE_FISICA: Tip = {
   text: "Floripa tem trilhas conhecidas (Lagoinha do Leste, Morro das Aranhas) e pontos de treino na orla — bom terreno pra quem vem treinar ou competir.",
 };
 
-const PURPOSE_TIPS: Partial<Record<NonNullable<QuizAnswers["purpose"]>, Tip>> = {
+const STYLE_TIPS: Record<string, Tip> = {
+  praia: ATIVIDADE_FISICA,
   negocios: WORK,
-  estudo_congresso: WORK,
-  atividade_fisica: ATIVIDADE_FISICA,
 };
 
-export function purposeTip(purpose: QuizAnswers["purpose"]): Tip | null {
-  if (!purpose) return null;
-  return PURPOSE_TIPS[purpose] ?? null;
+export function styleTips(style: QuizAnswers["style"]): Tip[] {
+  return (style ?? []).flatMap((s) => STYLE_TIPS[s] ?? []);
 }

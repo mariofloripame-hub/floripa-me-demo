@@ -3,7 +3,7 @@ import type { QuizAnswers } from "@/lib/quiz/types";
 import { filterEventsForTraveler } from "@/lib/events/filterEvents";
 import { GENERAL_TIPS } from "./generalTips";
 import { seasonTipForMonth } from "./seasonTips";
-import { purposeTip } from "./purposeTips";
+import { styleTips } from "./styleTips";
 import { resolveTravelMonth } from "./travelWindow";
 import type { Tip } from "./types";
 
@@ -27,8 +27,7 @@ export function buildAvisos(params: { answers: QuizAnswers; events: EventRow[]; 
     }
   }
 
-  const purpose = purposeTip(answers.purpose);
-  if (purpose) personalizedTips.push(purpose);
+  personalizedTips.push(...styleTips(answers.style));
 
   // Personalized tips come first so the collapsed Avisos card (which shows only the
   // first tip) leads with something the traveler's own answers produced, not a

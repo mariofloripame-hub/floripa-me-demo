@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { QUESTIONS } from "./questions";
 
 describe("QUESTIONS", () => {
-  it("has exactly 9 questions in the documented order", () => {
+  it("has exactly 8 questions in the documented order", () => {
     expect(QUESTIONS.map((q) => q.id)).toEqual([
-      "purpose", "when", "region", "days", "group", "style", "transport", "budget", "special",
+      "when", "region", "days", "group", "style", "transport", "budget", "special",
     ]);
   });
 
@@ -28,14 +28,6 @@ describe("QUESTIONS", () => {
     expect(budget?.options.map((o) => o.value)).toEqual(["economico", "medio", "alto"]);
   });
 
-  it("offers 5 purpose options including familia_amigos", () => {
-    const purpose = QUESTIONS.find((q) => q.id === "purpose");
-    if (purpose?.type === "slider") throw new Error("purpose must not be a slider question");
-    expect(purpose?.options.map((o) => o.value)).toEqual([
-      "passeio", "negocios", "estudo_congresso", "atividade_fisica", "familia_amigos",
-    ]);
-  });
-
   it("offers 5 when options for the travel window", () => {
     const when = QUESTIONS.find((q) => q.id === "when");
     if (when?.type === "slider") throw new Error("when must not be a slider question");
@@ -44,10 +36,17 @@ describe("QUESTIONS", () => {
     ]);
   });
 
-  it("no longer offers 'negocios' as a style option (purpose covers that signal now)", () => {
+  it("starts with the 'when' question (the purpose question was removed)", () => {
+    expect(QUESTIONS[0].id).toBe("when");
+    expect(QUESTIONS.some((q) => q.id === "purpose")).toBe(false);
+  });
+
+  it("offers 'negocios' as a style option", () => {
     const style = QUESTIONS.find((q) => q.id === "style");
     if (style?.type === "slider") throw new Error("style must not be a slider question");
-    expect(style?.options.map((o) => o.value)).not.toContain("negocios");
+    expect(style?.options.map((o) => o.value)).toEqual([
+      "praia", "gastronomia", "compras", "cultura", "noite", "negocios",
+    ]);
   });
 
   it("keeps days and transport exactly as before", () => {

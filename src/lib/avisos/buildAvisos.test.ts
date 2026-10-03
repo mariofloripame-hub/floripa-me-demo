@@ -49,12 +49,15 @@ describe("buildAvisos", () => {
     expect(tips.some((t) => t.label === "Evento")).toBe(false);
   });
 
-  it("adds a work-related purpose tip for negocios, nothing for passeio", () => {
-    const withNegocios = buildAvisos({ answers: { purpose: "negocios" }, events: [], now: NOW });
-    expect(withNegocios).toHaveLength(5); // 4 general + 1 purpose
+  it("adds style tips for negocios and praia, nothing for other styles", () => {
+    const withNegocios = buildAvisos({ answers: { style: ["negocios"] }, events: [], now: NOW });
+    expect(withNegocios).toHaveLength(5); // 4 general + 1 work tip
 
-    const withPasseio = buildAvisos({ answers: { purpose: "passeio" }, events: [], now: NOW });
-    expect(withPasseio).toHaveLength(4);
+    const withBoth = buildAvisos({ answers: { style: ["praia", "negocios"] }, events: [], now: NOW });
+    expect(withBoth).toHaveLength(6); // 4 general + atividade física + trabalho
+
+    const withGastronomia = buildAvisos({ answers: { style: ["gastronomia"] }, events: [], now: NOW });
+    expect(withGastronomia).toHaveLength(4);
   });
 
   it("tolerates a legacy quiz_answers shape (old timing field, numeric budget) without throwing", () => {
@@ -63,8 +66,8 @@ describe("buildAvisos", () => {
     expect(() => buildAvisos({ answers: { timing: "agora" } as never, events: [], now: NOW })).not.toThrow();
   });
 
-  it("puts personalized tips (season/events/purpose) before the general ones, so the collapsed card shows a personalized tip first", () => {
-    const tips = buildAvisos({ answers: { when: "chegou", purpose: "negocios" }, events: [], now: NOW });
+  it("puts personalized tips (season/events/style) before the general ones, so the collapsed card shows a personalized tip first", () => {
+    const tips = buildAvisos({ answers: { when: "chegou", style: ["negocios"] }, events: [], now: NOW });
     expect(tips[0].label).not.toBe("Uber/99");
     expect(["Alta temporada", "Trabalho"]).toContain(tips[0].label);
     // the 4 general tips are still all present, just not first

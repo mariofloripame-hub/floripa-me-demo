@@ -110,7 +110,7 @@ describe("filterCandidates", () => {
     expect(result.map((p) => p.id)).toEqual(["match"]);
   });
 
-  it("no longer has a 'negocios' entry in STYLE_CATEGORIES", () => {
-    expect(STYLE_CATEGORIES.negocios).toBeUndefined();
+  it("maps the 'negocios' style to Cultura and Gastronomia", () => {
+    expect(STYLE_CATEGORIES.negocios).toEqual(["Cultura", "Gastronomia"]);
   });
 });

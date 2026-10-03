@@ -14,6 +14,7 @@ export const STYLE_CATEGORIES: Record<string, string[]> = {
   compras: ["Atividade", "Passeio"],
   cultura: ["Cultura", "Passeio"],
   noite: ["Bar / Noturno", "Beach Club"],
+  negocios: ["Cultura", "Gastronomia"],
 };
 
 const PRICE_ORDER = ["Gratuito", "R$", "R$$", "R$$$"];
