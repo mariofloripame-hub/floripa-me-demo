@@ -38,6 +38,7 @@ export const CATEGORY_STYLES: Record<string, CategoryStyle> = {
   Cultura: { color: COLORS.turquoiseDeep, path: "M4 10 12 4l8 6M5 10v9h14v-9M9 19v-6h6v6" },
   "Bar / Noturno": { color: COLORS.coralDeep, path: "M5 4h14l-6 8v7h3v1H8v-1h3v-7L5 4Z" },
   "Beach Club": { color: COLORS.coralDeep, path: "M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9ZM3 15h18M3 19h18" },
+  Hospedagem: { color: COLORS.turquoiseDeep, path: "M3 19V7M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-8v6M7 11.5a1.5 1.5 0 1 0 0-.01" },
 };
 
 export function getCategoryStyle(category: string): CategoryStyle {

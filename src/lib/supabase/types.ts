@@ -31,6 +31,8 @@ export interface Place {
   submission_source?: string;
   pending_offer?: string | null;
   pending_offer_submitted_at?: string | null;
+  booking_whatsapp?: string | null;
+  booking_url?: string | null;
 }
 
 export interface EventRow {
@@ -58,11 +60,17 @@ export interface SosPlace {
   created_at: string;
 }
 
+export interface LodgingSelection {
+  featured_id: string;
+  alternative_ids: string[];
+}
+
 export interface ItineraryRow {
   id: string;
   slug: string;
   quiz_answers: Record<string, unknown>;
   welcome_message: string;
   days: unknown;
+  lodging?: LodgingSelection | null;
   created_at: string;
 }
