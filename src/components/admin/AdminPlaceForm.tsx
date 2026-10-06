@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import {
 } from "@/lib/estabelecimentos/adminSchema";
 import { CATEGORY_OPTIONS, REGION_OPTIONS, PRICE_RANGE_OPTIONS, validatePhotos } from "@/lib/estabelecimentos/schema";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
 import type { Place } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/Button";
 
@@ -44,6 +45,7 @@ function defaultsFor(place?: Place): FormInput {
       region: REGION_OPTIONS[0], neighborhood: "", address: "", price_range: PRICE_RANGE_OPTIONS[0],
       opening_hours: "", phone: "", instagram: "", contact_name: "", contact_email: "", contact_phone: "",
       is_verified: false, is_partner: false, partner_status: "", partner_plan: "", partner_offer: "",
+      booking_whatsapp: "", booking_url: "",
     };
   }
   return {
@@ -55,6 +57,7 @@ function defaultsFor(place?: Place): FormInput {
     is_verified: place.is_verified, is_partner: place.is_partner,
     partner_status: place.partner_status ?? "", partner_plan: place.partner_plan ?? "",
     partner_offer: place.partner_offer ?? "",
+    booking_whatsapp: place.booking_whatsapp ?? "", booking_url: place.booking_url ?? "",
   };
 }
 
@@ -66,6 +69,8 @@ export function AdminPlaceForm(props: Props) {
     register,
     handleSubmit,
     watch,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormInput, unknown, AdminPlaceFields>({
     resolver: zodResolver(adminPlaceFieldsSchema),
@@ -90,6 +95,14 @@ export function AdminPlaceForm(props: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isPartner = watch("is_partner");
+  const isLodgingCategory = watch("category") === LODGING_CATEGORY;
+
+  // Most pousadas answer reservations on the same number — start from it.
+  useEffect(() => {
+    if (isLodgingCategory && !getValues("booking_whatsapp")) {
+      setValue("booking_whatsapp", getValues("phone"));
+    }
+  }, [isLodgingCategory, getValues, setValue]);
 
   async function handleAddPhotos(files: File[]) {
     const error = validatePhotos(props.mode === "create" ? [...newPhotoFiles, ...files] : files);
@@ -177,6 +190,9 @@ export function AdminPlaceForm(props: Props) {
           ))}
         </select>
         <FieldError message={errors.price_range?.message} />
+        {isLodgingCategory && (
+          <p className="text-xs text-teal-ink/60">Hospedagem: R$ até 300/diária · R$$ 300–700 · R$$$ acima de 700</p>
+        )}
 
         <textarea {...register("short_description")} placeholder="Descrição" rows={3} className={textareaClass} />
         <FieldError message={errors.short_description?.message} />
@@ -201,6 +217,20 @@ export function AdminPlaceForm(props: Props) {
         <FieldError message={errors.phone?.message} />
 
         <input {...register("instagram")} placeholder="@instagram" className={inputClass} />
+        {isLodgingCategory && (
+          <>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-teal-ink/70">WhatsApp para reservas</span>
+              <input {...register("booking_whatsapp")} placeholder="(48) 99999-0000" className={inputClass} />
+            </label>
+            <FieldError message={errors.booking_whatsapp?.message} />
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-teal-ink/70">Link de reserva (opcional)</span>
+              <input {...register("booking_url")} placeholder="https://..." className={inputClass} />
+            </label>
+            <FieldError message={errors.booking_url?.message} />
+          </>
+        )}
       </section>
 
       <section className="flex flex-col gap-3">

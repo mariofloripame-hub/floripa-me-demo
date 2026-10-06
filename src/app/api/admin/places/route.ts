@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { listPlaces, insertPlace } from "@/lib/supabase/queries";
-import { adminPlaceFieldsSchema } from "@/lib/estabelecimentos/adminSchema";
+import { adminPlaceFieldsSchema, normalizeLodgingFields } from "@/lib/estabelecimentos/adminSchema";
 import { validatePhotos } from "@/lib/estabelecimentos/schema";
 import { uploadPhotos } from "@/lib/estabelecimentos/uploadPhotos";
 
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const supabase = getSupabaseAdminClient();
     const photoUrls = await uploadPhotos(supabase, photos);
     const created = await insertPlace(supabase, {
-      ...parsed.data,
+      ...normalizeLodgingFields(parsed.data),
       photos: photoUrls,
       submission_source: "admin",
       target_profiles: [],

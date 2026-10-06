@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { adminPlaceFieldsSchema, adminPlacePatchSchema, PARTNER_STATUS_OPTIONS } from "./adminSchema";
+import { adminPlaceFieldsSchema, adminPlacePatchSchema, normalizeLodgingFields, PARTNER_STATUS_OPTIONS, type AdminPlacePatch } from "./adminSchema";
 
 function validPayload(overrides: Record<string, unknown> = {}) {
   return {
@@ -74,5 +74,31 @@ describe("adminPlacePatchSchema", () => {
 describe("PARTNER_STATUS_OPTIONS", () => {
   it("includes Nenhum, Cortesia, and Pago in that order", () => {
     expect(PARTNER_STATUS_OPTIONS.map((o) => o.label)).toEqual(["Nenhum", "Cortesia", "Pago"]);
+  });
+});
+
+describe("lodging booking fields", () => {
+  it("accepts an http(s) booking link", () => {
+    expect(adminPlaceFieldsSchema.safeParse(validPayload({ booking_url: "https://pousada.com/reservas" })).success).toBe(true);
+  });
+
+  it("rejects a booking link that is not a URL", () => {
+    const result = adminPlaceFieldsSchema.safeParse(validPayload({ booking_url: "pousada.com" }));
+    expect(result.success).toBe(false);
+  });
+
+  it("nulls booking fields for other categories", () => {
+    expect(normalizeLodgingFields({ category: "Gastronomia", booking_whatsapp: "48999990000", booking_url: "https://x.com" }))
+      .toMatchObject({ booking_whatsapp: null, booking_url: null });
+  });
+
+  it("keeps booking fields for Hospedagem and turns blanks into null", () => {
+    expect(normalizeLodgingFields({ category: "Hospedagem", booking_whatsapp: "48999990000", booking_url: "" }))
+      .toMatchObject({ booking_whatsapp: "48999990000", booking_url: null });
+  });
+
+  it("leaves a patch without category or booking keys untouched", () => {
+    const patch: AdminPlacePatch = { name: "X" };
+    expect(normalizeLodgingFields(patch)).toEqual({ name: "X" });
   });
 });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PRICE_RANGE_OPTIONS } from "./schema";
+import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
 
 export const PARTNER_STATUS_OPTIONS = [
   { value: "", label: "Nenhum" },
@@ -40,6 +41,13 @@ export const adminPlaceFieldsSchema = z.object({
   partner_status: z.string().trim().optional().default(""),
   partner_plan: z.string().trim().optional().default(""),
   partner_offer: z.string().trim().optional().default(""),
+  booking_whatsapp: z.string().trim().optional().default(""),
+  booking_url: z
+    .string()
+    .trim()
+    .optional()
+    .default("")
+    .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Use um link começando com http:// ou https://"),
 });
 
 export type AdminPlaceFields = z.infer<typeof adminPlaceFieldsSchema>;
@@ -49,3 +57,20 @@ export const adminPlacePatchSchema = adminPlaceFieldsSchema.partial().extend({
 });
 
 export type AdminPlacePatch = z.infer<typeof adminPlacePatchSchema>;
+
+type LodgingFieldsInput = { category?: string; booking_whatsapp?: string | null; booking_url?: string | null };
+type NormalizedLodgingFields<T> = Omit<T, "booking_whatsapp" | "booking_url"> & {
+  booking_whatsapp?: string | null;
+  booking_url?: string | null;
+};
+
+// Booking contact only exists for lodgings; blanks are stored as null.
+export function normalizeLodgingFields<T extends LodgingFieldsInput>(fields: T): NormalizedLodgingFields<T> {
+  const notLodging = fields.category !== undefined && fields.category !== LODGING_CATEGORY;
+  const result: NormalizedLodgingFields<T> = { ...fields };
+  for (const key of ["booking_whatsapp", "booking_url"] as const) {
+    if (notLodging) result[key] = null;
+    else if (key in fields) result[key] = fields[key] || null;
+  }
+  return result;
+}

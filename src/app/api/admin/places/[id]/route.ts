@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/client";
 import { getPlaceById, updatePlace, deletePlace } from "@/lib/supabase/queries";
-import { adminPlacePatchSchema } from "@/lib/estabelecimentos/adminSchema";
+import { adminPlacePatchSchema, normalizeLodgingFields, type AdminPlacePatch } from "@/lib/estabelecimentos/adminSchema";
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
@@ -42,7 +42,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   }
 
   try {
-    const updated = await updatePlace(getSupabaseAdminClient(), id, patch);
+    const updated = await updatePlace(getSupabaseAdminClient(), id, normalizeLodgingFields(patch as AdminPlacePatch));
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Admin place update failed", error);
