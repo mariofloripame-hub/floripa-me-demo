@@ -6,6 +6,7 @@ import Image from "next/image";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { DayCard } from "./DayCard";
 import { HeroCarousel } from "./HeroCarousel";
+import { LodgingCard } from "./LodgingCard";
 import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
 import { getTripTitle, getTripChips } from "@/lib/itinerary/tripSummary";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
@@ -196,12 +197,14 @@ export function RoteiroView({
   places = [],
   liveOffers = {},
   tips = GENERAL_TIPS,
+  lodging = [],
 }: {
   itinerary: ItineraryRow;
   partners?: Place[];
   places?: Place[];
   liveOffers?: Record<string, string>;
   tips?: Tip[];
+  lodging?: Place[];
 }) {
   const [days, setDays] = useState(itinerary.days as ItineraryDay[]);
   const [favorite, setFavorite] = useState(false);
@@ -362,6 +365,12 @@ export function RoteiroView({
       <div className="relative mt-4 px-6">
         <ImportantNotice tips={tips} />
       </div>
+
+      {lodging.length > 0 && (
+        <div className="relative mt-6 px-6">
+          <LodgingCard slug={itinerary.slug} options={lodging} group={group} />
+        </div>
+      )}
 
       <div className="relative mt-6 flex flex-col gap-6 px-6">
         {days.map((day) => (

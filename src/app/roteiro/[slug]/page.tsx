@@ -5,6 +5,7 @@ import { RoteiroView } from "@/components/roteiro/RoteiroView";
 import { selectPartners, selectPublicPlaces } from "@/lib/itinerary/simulatedPartners";
 import { buildAvisos } from "@/lib/avisos/buildAvisos";
 import { liveOfferMap } from "@/lib/cortesia/liveOffers";
+import { resolveLodging } from "@/lib/hospedagem/resolveLodging";
 import type { QuizAnswers } from "@/lib/quiz/types";
 
 export default async function RoteiroPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -23,6 +24,7 @@ export default async function RoteiroPage({ params }: { params: Promise<{ slug: 
       places={selectPublicPlaces(places)}
       liveOffers={liveOfferMap(places)}
       tips={tips}
+      lodging={resolveLodging(itinerary.lodging, places)}
     />
   );
 }
