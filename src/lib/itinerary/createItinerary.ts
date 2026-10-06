@@ -8,6 +8,7 @@ import { generateItinerary, type MessagesParseClient } from "./generate";
 import { getDefaultLlmClient } from "./llmClient";
 import { assembleDays } from "./assemble";
 import { generateSlug } from "./slug";
+import { selectLodging } from "@/lib/hospedagem/selectLodging";
 
 const SPECIAL_NEEDS_TAG: Record<string, string> = {
   acessibilidade: "acessibilidade",
@@ -45,10 +46,15 @@ export async function createItinerary(answers: QuizAnswers, deps: CreateItinerar
   }
   const slug = generateSlug();
 
+  // Only tourists without lodging get a suggestion. The key is omitted (not
+  // null) when there is none, so creation never depends on the column.
+  const lodging = answers.region === "semhospedagem" ? selectLodging(allPlaces, answers, days) : null;
+
   return insertItinerary(deps.supabase, {
     slug,
     quiz_answers: answers as Record<string, unknown>,
     welcome_message: generation.welcome_message,
     days,
+    ...(lodging ? { lodging } : {}),
   });
 }

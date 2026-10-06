@@ -48,6 +48,23 @@ function fakeAnthropic(): MessagesParseClient {
   return { messages: { parse: vi.fn().mockResolvedValue({ parsed_output: VALID_GENERATION }) } };
 }
 
+function recordingSupabase(places: unknown[]) {
+  const inserted: Record<string, unknown>[] = [];
+  const from = vi.fn((table: string) => {
+    const chain: Record<string, unknown> = {};
+    if (table === "places") {
+      chain.select = () => chain;
+      chain.then = (resolve: (r: unknown) => void) => resolve({ data: places, error: null });
+      return chain;
+    }
+    chain.insert = (row: Record<string, unknown>) => { inserted.push(row); return chain; };
+    chain.select = () => chain;
+    chain.single = () => Promise.resolve({ data: { id: "1", ...inserted[0] }, error: null });
+    return chain;
+  });
+  return { supabase: { from } as unknown as SupabaseClient, inserted };
+}
+
 describe("createItinerary", () => {
   it("filters, ranks, generates, assembles, and persists an itinerary", async () => {
     const places = [place()];
@@ -97,5 +114,25 @@ describe("createItinerary", () => {
 
     expect(result).toEqual(insertedRow);
     expect(parse).toHaveBeenCalledTimes(1);
+  });
+
+  it("stores the suggested lodging when the tourist has none", async () => {
+    const lodge = place({ id: "lodge", category: "Hospedagem", price_range: "R$$", is_partner: true, booking_whatsapp: "48999990000" });
+    const { supabase, inserted } = recordingSupabase([place(), lodge]);
+    await createItinerary({ group: "solo", region: "semhospedagem" }, { supabase, anthropicClient: fakeAnthropic() });
+    expect(inserted[0].lodging).toEqual({ featured_id: "lodge", alternative_ids: [] });
+  });
+
+  it("does not send a lodging key when no lodging applies", async () => {
+    const { supabase, inserted } = recordingSupabase([place()]);
+    await createItinerary({ group: "solo", region: "semhospedagem" }, { supabase, anthropicClient: fakeAnthropic() });
+    expect("lodging" in inserted[0]).toBe(false);
+  });
+
+  it("does not suggest lodging to tourists who already have one", async () => {
+    const lodge = place({ id: "lodge", category: "Hospedagem", price_range: "R$$", is_partner: true, booking_whatsapp: "48999990000" });
+    const { supabase, inserted } = recordingSupabase([place(), lodge]);
+    await createItinerary({ group: "solo", region: "norte" }, { supabase, anthropicClient: fakeAnthropic() });
+    expect("lodging" in inserted[0]).toBe(false);
   });
 });
