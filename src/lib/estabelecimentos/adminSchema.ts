@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PRICE_RANGE_OPTIONS } from "./schema";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
+import { normalizeWhatsapp } from "@/lib/hospedagem/contact";
 
 export const PARTNER_STATUS_OPTIONS = [
   { value: "", label: "Nenhum" },
@@ -41,7 +42,12 @@ export const adminPlaceFieldsSchema = z.object({
   partner_status: z.string().trim().optional().default(""),
   partner_plan: z.string().trim().optional().default(""),
   partner_offer: z.string().trim().optional().default(""),
-  booking_whatsapp: z.string().trim().optional().default(""),
+  booking_whatsapp: z
+    .string()
+    .trim()
+    .optional()
+    .default("")
+    .refine((value) => value === "" || normalizeWhatsapp(value) !== null, "Número inválido — use DDD + número"),
   booking_url: z
     .string()
     .trim()

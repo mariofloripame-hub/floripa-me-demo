@@ -26,6 +26,7 @@ describe("eligibility", () => {
     ["not verified", { is_verified: false }],
     ["not a lodging", { category: "Gastronomia" }],
     ["no contact", { booking_whatsapp: "  ", booking_url: null }],
+    ["only an unreadable WhatsApp", { booking_whatsapp: "9999-0000", booking_url: null }],
   ])("rejects a lodging that is %s", (_label, overrides) => {
     expect(isEligibleLodging(makePlace(overrides))).toBe(false);
   });

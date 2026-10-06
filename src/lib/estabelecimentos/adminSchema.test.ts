@@ -87,6 +87,14 @@ describe("lodging booking fields", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects a reservations WhatsApp that can't become a wa.me number", () => {
+    expect(adminPlaceFieldsSchema.safeParse(validPayload({ booking_whatsapp: "9999-0000" })).success).toBe(false);
+  });
+
+  it("accepts a masked reservations WhatsApp", () => {
+    expect(adminPlaceFieldsSchema.safeParse(validPayload({ booking_whatsapp: "(48) 99999-0000" })).success).toBe(true);
+  });
+
   it("nulls booking fields for other categories", () => {
     expect(normalizeLodgingFields({ category: "Gastronomia", booking_whatsapp: "48999990000", booking_url: "https://x.com" }))
       .toMatchObject({ booking_whatsapp: null, booking_url: null });
