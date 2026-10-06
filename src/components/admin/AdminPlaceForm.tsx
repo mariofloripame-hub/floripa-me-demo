@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -97,9 +97,15 @@ export function AdminPlaceForm(props: Props) {
   const isPartner = watch("is_partner");
   const isLodgingCategory = watch("category") === LODGING_CATEGORY;
 
-  // Most pousadas answer reservations on the same number — start from it.
+  const wasLodgingCategory = useRef(isLodgingCategory);
+
+  // Most pousadas answer reservations on the same number — start from it, but
+  // only when the category is switched to Hospedagem: an existing lodging may
+  // have its WhatsApp left empty on purpose (site-only bookings).
   useEffect(() => {
-    if (isLodgingCategory && !getValues("booking_whatsapp")) {
+    const switchedToLodging = isLodgingCategory && !wasLodgingCategory.current;
+    wasLodgingCategory.current = isLodgingCategory;
+    if (switchedToLodging && !getValues("booking_whatsapp")) {
       setValue("booking_whatsapp", getValues("phone"));
     }
   }, [isLodgingCategory, getValues, setValue]);

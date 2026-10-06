@@ -145,3 +145,17 @@ describe("AdminPlaceForm (edit mode)", () => {
     );
   });
 });
+
+describe("AdminPlaceForm (lodging booking fields)", () => {
+  it("prefills the reservations WhatsApp from the phone when switching to Hospedagem", () => {
+    render(<AdminPlaceForm mode="create" />);
+    fireEvent.change(screen.getByPlaceholderText("Telefone"), { target: { value: "(48) 90000-0000" } });
+    fireEvent.change(screen.getByDisplayValue("Praia"), { target: { value: "Hospedagem" } });
+    expect(screen.getByLabelText("WhatsApp para reservas")).toHaveValue("(48) 90000-0000");
+  });
+
+  it("keeps a deliberately empty reservations WhatsApp when editing an existing lodging", () => {
+    render(<AdminPlaceForm mode="edit" place={place({ category: "Hospedagem", booking_whatsapp: null, booking_url: "https://pousada.com" })} />);
+    expect(screen.getByLabelText("WhatsApp para reservas")).toHaveValue("");
+  });
+});
