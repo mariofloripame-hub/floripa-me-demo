@@ -8,7 +8,7 @@ const UPSELL_TEXT = "Ative uma cortesia e veja quantos clientes vieram pelo Flor
 
 // The colors are a replaceable default: Tailwind doesn't let a later class
 // override bg-white/border color, so a tinted card passes its own instead.
-function Card({ children, className = "border-teal-ink/10 bg-white" }: { children: ReactNode; className?: string }) {
+export function Card({ children, className = "border-teal-ink/10 bg-white" }: { children: ReactNode; className?: string }) {
   return <section className={`flex flex-col gap-3 rounded-card border p-5 ${className}`}>{children}</section>;
 }
 
@@ -17,7 +17,7 @@ function formatPercent(rate: number | null): string {
   return `${(rate * 100).toFixed(1).replace(".", ",")}%`;
 }
 
-function deltaText(current: number, previous: number): string {
+export function deltaText(current: number, previous: number): string {
   const diff = current - previous;
   if (diff > 0) return `↑ ${diff} vs mês anterior`;
   if (diff < 0) return `↓ ${-diff} vs mês anterior`;

@@ -63,12 +63,12 @@ function pad(value: number): string {
   return String(value).padStart(2, "0");
 }
 
-function isBetween(iso: string, from: Date, to: Date | null): boolean {
+export function isBetween(iso: string, from: Date, to: Date | null): boolean {
   const time = new Date(iso).getTime();
   return time >= from.getTime() && (to === null || time < to.getTime());
 }
 
-function perDayThisMonth(isoDates: string[], now: Date): DayCount[] {
+export function perDayThisMonth(isoDates: string[], now: Date): DayCount[] {
   const { year, month, day } = saoPauloParts(now);
   const counts = new Map<string, number>();
   for (const iso of isoDates) {
@@ -81,7 +81,7 @@ function perDayThisMonth(isoDates: string[], now: Date): DayCount[] {
   });
 }
 
-function byNewest<T>(items: T[], date: (item: T) => string): T[] {
+export function byNewest<T>(items: T[], date: (item: T) => string): T[] {
   return [...items].sort((a, b) => new Date(date(b)).getTime() - new Date(date(a)).getTime());
 }
 

@@ -9,11 +9,14 @@ export function PartnerShell({
   placeName,
   plan,
   active,
+  showValidate = true,
   children,
 }: {
   placeName: string;
   plan: string | null;
   active: "painel" | "validar";
+  /** Lodgings have no courtesy codes, so they get no validation tab. */
+  showValidate?: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -52,9 +55,11 @@ export function PartnerShell({
           <Link href="/parceiro" className={tabClass("painel")}>
             📊 Painel
           </Link>
-          <Link href="/parceiro/validar" className={tabClass("validar")}>
-            ✅ Validar código
-          </Link>
+          {showValidate && (
+            <Link href="/parceiro/validar" className={tabClass("validar")}>
+              ✅ Validar código
+            </Link>
+          )}
         </nav>
         {children}
       </div>
