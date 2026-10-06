@@ -19,6 +19,24 @@ export async function insertLodgingLead(
   if (error) throw error;
 }
 
+// Whether this roteiro already asked this lodging, on this channel, since `since`.
+export async function hasRecentLodgingLead(
+  client: SupabaseClient,
+  lead: Pick<LodgingLeadRow, "itinerary_slug" | "place_id" | "channel">,
+  since: Date,
+): Promise<boolean> {
+  const { data, error } = await client
+    .from("lodging_leads")
+    .select("id")
+    .eq("itinerary_slug", lead.itinerary_slug)
+    .eq("place_id", lead.place_id)
+    .eq("channel", lead.channel)
+    .gte("created_at", since.toISOString())
+    .limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
+}
+
 export async function listLodgingLeads(client: SupabaseClient, placeId: string, since: Date): Promise<LodgingLeadRow[]> {
   const { data, error } = await client
     .from("lodging_leads")
