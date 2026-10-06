@@ -124,3 +124,14 @@ describe("selectPublicPlaces", () => {
     expect(result[0].contact_email).toBeUndefined();
   });
 });
+
+describe("lodgings", () => {
+  it("are left out of the partners section and the swap catalogue", () => {
+    const places = [
+      place({ id: "r", name: "Ostradamus", is_partner: true }),
+      place({ id: "h", name: "Pousada X", category: "Hospedagem", is_partner: true }),
+    ];
+    expect(selectPartners(places).map((p) => p.id)).toEqual(["r"]);
+    expect(selectPublicPlaces(places).map((p) => p.id)).toEqual(["r"]);
+  });
+});

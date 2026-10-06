@@ -113,4 +113,8 @@ describe("filterCandidates", () => {
   it("maps the 'negocios' style to Cultura and Gastronomia", () => {
     expect(STYLE_CATEGORIES.negocios).toEqual(["Cultura", "Gastronomia"]);
   });
+  it("never offers a lodging as an activity", () => {
+    const places = [place({ id: "a" }), place({ id: "h", category: "Hospedagem", price_range: "R$" })];
+    expect(filterCandidates(places, {}).map((p) => p.id)).toEqual(["a"]);
+  });
 });

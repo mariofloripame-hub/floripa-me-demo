@@ -1,4 +1,5 @@
 import type { Place } from "@/lib/supabase/types";
+import { isLodging } from "@/lib/hospedagem/eligibility";
 
 // TEMPORARY, UI-preview only: these places are NOT real Floripa.me partners
 // (is_partner stays false in the database). Lets us preview the "Outras
@@ -60,7 +61,7 @@ const EXCLUSIVE_PROMO_OFFERS: Record<string, string> = {
   "Sea Wolf Surf School - Campeche": "20% de desconto na primeira aula",
 };
 
-function stripContactInfo(p: Place): Place {
+export function stripContactInfo(p: Place): Place {
   const { contact_name, contact_email, contact_phone, ...rest } = p;
   void contact_name;
   void contact_email;
@@ -71,6 +72,7 @@ function stripContactInfo(p: Place): Place {
 export function selectPartners(places: Place[]): Place[] {
   return places
     .filter((p) => p.is_verified)
+    .filter((p) => !isLodging(p))
     .filter((p) => !EXCLUDED_NAMES.has(p.name))
     .filter((p) => p.is_partner || SIMULATED_PARTNER_NAMES.has(p.name))
     .map((p) => (!p.is_partner && EXCLUSIVE_PROMO_OFFERS[p.name] ? { ...p, partner_offer: EXCLUSIVE_PROMO_OFFERS[p.name] } : p))
@@ -79,7 +81,8 @@ export function selectPartners(places: Place[]): Place[] {
 
 // Every verified place, safe to send to the browser — feeds the "⇄ Trocar"
 // sheet, which suggests alternatives from the whole catalogue, not just
-// partners.
+// partners. Lodgings are never activities — they only appear in the
+// "Onde ficar" card.
 export function selectPublicPlaces(places: Place[]): Place[] {
-  return places.filter((p) => p.is_verified).map(stripContactInfo);
+  return places.filter((p) => p.is_verified && !isLodging(p)).map(stripContactInfo);
 }

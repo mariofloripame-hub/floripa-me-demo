@@ -1,5 +1,6 @@
 import type { Place } from "@/lib/supabase/types";
 import type { QuizAnswers } from "@/lib/quiz/types";
+import { isLodging } from "@/lib/hospedagem/eligibility";
 
 const GROUP_PROFILE_LABEL: Record<string, string> = {
   solo: "Solo",
@@ -35,6 +36,6 @@ export function filterCandidates(places: Place[], answers: QuizAnswers): Place[]
       !profileLabel || place.target_profiles.includes("Todos") || place.target_profiles.includes(profileLabel);
     const priceOk = allowedPrices.includes(place.price_range);
     const styleOk = styleCategories.size === 0 || styleCategories.has(place.category);
-    return place.is_verified && profileOk && priceOk && styleOk;
+    return place.is_verified && !isLodging(place) && profileOk && priceOk && styleOk;
   });
 }
