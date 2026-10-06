@@ -111,7 +111,7 @@ The route validates the body (zod), checks that `place_id` is the featured or an
 
 `AdminPlaceForm` (create and edit): when category is `Hospedagem`, show:
 
-- **WhatsApp para reservas** — on create, pre-filled from the contact phone; editable.
+- **WhatsApp para reservas** — when the category is switched to `Hospedagem` and the field is empty, pre-filled from the establishment's public phone; editable.
 - **Link de reserva (opcional)** — must be a valid `http(s)` URL when filled.
 - Hint under price range: "Hospedagem: R$ até 300/diária · R$$ 300–700 · R$$$ acima de 700".
 
