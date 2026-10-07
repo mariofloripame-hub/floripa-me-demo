@@ -95,6 +95,20 @@ describe("lodging booking fields", () => {
     expect(adminPlaceFieldsSchema.safeParse(validPayload({ booking_whatsapp: "(48) 99999-0000" })).success).toBe(true);
   });
 
+  it("rejects more than 3 highlights", () => {
+    expect(adminPlaceFieldsSchema.safeParse(validPayload({ highlights: "A, B, C, D" })).success).toBe(false);
+  });
+
+  it("stores highlights as a list for Hospedagem", () => {
+    expect(normalizeLodgingFields({ category: "Hospedagem", highlights: "🌊 Vista para o mar, ☕ Café da manhã" }))
+      .toMatchObject({ highlights: ["🌊 Vista para o mar", "☕ Café da manhã"] });
+  });
+
+  it("stores no highlights when the field is blank or the place is not a lodging", () => {
+    expect(normalizeLodgingFields({ category: "Hospedagem", highlights: "" })).toMatchObject({ highlights: null });
+    expect(normalizeLodgingFields({ category: "Gastronomia", highlights: "Piscina" })).toMatchObject({ highlights: null });
+  });
+
   it("nulls booking fields for other categories", () => {
     expect(normalizeLodgingFields({ category: "Gastronomia", booking_whatsapp: "48999990000", booking_url: "https://x.com" }))
       .toMatchObject({ booking_whatsapp: null, booking_url: null });

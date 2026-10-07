@@ -159,3 +159,35 @@ describe("AdminPlaceForm (lodging booking fields)", () => {
     expect(screen.getByLabelText("WhatsApp para reservas")).toHaveValue("");
   });
 });
+
+describe("AdminPlaceForm (cover photo)", () => {
+  it("marks the first photo as the cover", () => {
+    render(<AdminPlaceForm mode="edit" place={place()} />);
+    expect(screen.getByText("Capa")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Usar como capa" })).toHaveLength(1);
+  });
+
+  it("moves the chosen photo to the front when saving", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    render(<AdminPlaceForm mode="edit" place={place()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Usar como capa" }));
+    fireEvent.click(screen.getByRole("button", { name: /salvar alterações/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith("/api/admin/places/p1", expect.objectContaining({ method: "PATCH" })),
+    );
+    const [, options] = vi.mocked(fetch).mock.calls[0];
+    expect(JSON.parse(options!.body as string).photos).toEqual(["https://cdn.test/b.jpg", "https://cdn.test/a.jpg"]);
+  });
+});
+
+describe("AdminPlaceForm (lodging highlights)", () => {
+  it("shows saved highlights as one comma-separated line", () => {
+    render(<AdminPlaceForm mode="edit" place={place({ category: "Hospedagem", highlights: ["🌊 Vista para o mar", "☕ Café da manhã"] })} />);
+    expect(screen.getByLabelText(/Destaques/)).toHaveValue("🌊 Vista para o mar, ☕ Café da manhã");
+  });
+
+  it("does not show highlights for other categories", () => {
+    render(<AdminPlaceForm mode="edit" place={place()} />);
+    expect(screen.queryByLabelText(/Destaques/)).toBeNull();
+  });
+});

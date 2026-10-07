@@ -33,6 +33,7 @@ export interface Place {
   pending_offer_submitted_at?: string | null;
   booking_whatsapp?: string | null;
   booking_url?: string | null;
+  highlights?: string[] | null;
 }
 
 export interface EventRow {

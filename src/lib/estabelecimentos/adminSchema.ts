@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PRICE_RANGE_OPTIONS } from "./schema";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
 import { normalizeWhatsapp } from "@/lib/hospedagem/contact";
+import { highlightsError, parseHighlights } from "@/lib/hospedagem/highlights";
 
 export const PARTNER_STATUS_OPTIONS = [
   { value: "", label: "Nenhum" },
@@ -54,6 +55,15 @@ export const adminPlaceFieldsSchema = z.object({
     .optional()
     .default("")
     .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Use um link começando com http:// ou https://"),
+  highlights: z
+    .string()
+    .trim()
+    .optional()
+    .default("")
+    .superRefine((value, ctx) => {
+      const message = highlightsError(value);
+      if (message) ctx.addIssue({ code: "custom", message });
+    }),
 });
 
 export type AdminPlaceFields = z.infer<typeof adminPlaceFieldsSchema>;
@@ -64,19 +74,32 @@ export const adminPlacePatchSchema = adminPlaceFieldsSchema.partial().extend({
 
 export type AdminPlacePatch = z.infer<typeof adminPlacePatchSchema>;
 
-type LodgingFieldsInput = { category?: string; booking_whatsapp?: string | null; booking_url?: string | null };
-type NormalizedLodgingFields<T> = Omit<T, "booking_whatsapp" | "booking_url"> & {
+type LodgingFieldsInput = {
+  category?: string;
   booking_whatsapp?: string | null;
   booking_url?: string | null;
+  highlights?: string | null;
+};
+type NormalizedLodgingFields<T> = Omit<T, "booking_whatsapp" | "booking_url" | "highlights"> & {
+  booking_whatsapp?: string | null;
+  booking_url?: string | null;
+  highlights?: string[] | null;
 };
 
-// Booking contact only exists for lodgings; blanks are stored as null.
+// Booking contact and highlights only exist for lodgings; blanks are stored as
+// null, and highlights go from the admin's comma-separated line to a list.
 export function normalizeLodgingFields<T extends LodgingFieldsInput>(fields: T): NormalizedLodgingFields<T> {
   const notLodging = fields.category !== undefined && fields.category !== LODGING_CATEGORY;
-  const result: NormalizedLodgingFields<T> = { ...fields };
+  const { highlights, ...rest } = fields;
+  const result = { ...rest } as NormalizedLodgingFields<T>;
   for (const key of ["booking_whatsapp", "booking_url"] as const) {
     if (notLodging) result[key] = null;
     else if (key in fields) result[key] = fields[key] || null;
+  }
+  if (notLodging) result.highlights = null;
+  else if ("highlights" in fields) {
+    const items = parseHighlights(highlights ?? "");
+    result.highlights = items.length > 0 ? items : null;
   }
   return result;
 }

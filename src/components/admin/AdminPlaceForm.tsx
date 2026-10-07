@@ -45,7 +45,7 @@ function defaultsFor(place?: Place): FormInput {
       region: REGION_OPTIONS[0], neighborhood: "", address: "", price_range: PRICE_RANGE_OPTIONS[0],
       opening_hours: "", phone: "", instagram: "", contact_name: "", contact_email: "", contact_phone: "",
       is_verified: false, is_partner: false, partner_status: "", partner_plan: "", partner_offer: "",
-      booking_whatsapp: "", booking_url: "",
+      booking_whatsapp: "", booking_url: "", highlights: "",
     };
   }
   return {
@@ -58,6 +58,7 @@ function defaultsFor(place?: Place): FormInput {
     partner_status: place.partner_status ?? "", partner_plan: place.partner_plan ?? "",
     partner_offer: place.partner_offer ?? "",
     booking_whatsapp: place.booking_whatsapp ?? "", booking_url: place.booking_url ?? "",
+    highlights: (place.highlights ?? []).join(", "),
   };
 }
 
@@ -135,6 +136,11 @@ export function AdminPlaceForm(props: Props) {
 
   function removeExistingPhoto(url: string) {
     setPhotos((current) => current.filter((p) => p !== url));
+  }
+
+  // The first photo is the cover shown in cards (e.g. the "Onde ficar" hero).
+  function makeCover(url: string) {
+    setPhotos((current) => [url, ...current.filter((p) => p !== url)]);
   }
 
   async function onSubmit(values: AdminPlaceFields) {
@@ -235,6 +241,11 @@ export function AdminPlaceForm(props: Props) {
               <input {...register("booking_url")} placeholder="https://..." className={inputClass} />
             </label>
             <FieldError message={errors.booking_url?.message} />
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-teal-ink/70">Destaques (separe por vírgula, até 3)</span>
+              <input {...register("highlights")} placeholder="🌊 Vista para o mar, ☕ Café da manhã" className={inputClass} />
+            </label>
+            <FieldError message={errors.highlights?.message} />
           </>
         )}
       </section>
@@ -291,8 +302,8 @@ export function AdminPlaceForm(props: Props) {
         <h2 className="font-display text-lg font-bold text-teal-ink">Fotos</h2>
         {props.mode === "edit" && (
           <div className="flex flex-wrap gap-2">
-            {photos.map((url) => (
-              <div key={url} className="relative">
+            {photos.map((url, index) => (
+              <div key={url} className="relative flex w-20 flex-col items-center gap-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getPlaceImage(props.place.name, url)} alt="" className="h-20 w-20 rounded-card object-cover" />
                 <button
@@ -303,6 +314,17 @@ export function AdminPlaceForm(props: Props) {
                 >
                   ×
                 </button>
+                {index === 0 ? (
+                  <span className="rounded-pill bg-teal-ink px-2 py-0.5 text-[10px] font-bold text-sand">Capa</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => makeCover(url)}
+                    className="text-[10px] font-bold text-teal-ink/70 underline"
+                  >
+                    Usar como capa
+                  </button>
+                )}
               </div>
             ))}
           </div>
