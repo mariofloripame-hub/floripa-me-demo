@@ -2,7 +2,7 @@ import { z } from "zod";
 import { PRICE_RANGE_OPTIONS } from "./schema";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
 import { normalizeWhatsapp } from "@/lib/hospedagem/contact";
-import { highlightsError, parseHighlights } from "@/lib/hospedagem/highlights";
+import { MAX_HIGHLIGHT_LENGTH, MAX_HIGHLIGHTS, orderHighlights } from "@/lib/hospedagem/highlights";
 
 export const PARTNER_STATUS_OPTIONS = [
   { value: "", label: "Nenhum" },
@@ -56,14 +56,10 @@ export const adminPlaceFieldsSchema = z.object({
     .default("")
     .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Use um link começando com http:// ou https://"),
   highlights: z
-    .string()
-    .trim()
+    .array(z.string().trim().min(1).max(MAX_HIGHLIGHT_LENGTH))
+    .max(MAX_HIGHLIGHTS, `Escolha até ${MAX_HIGHLIGHTS} destaques`)
     .optional()
-    .default("")
-    .superRefine((value, ctx) => {
-      const message = highlightsError(value);
-      if (message) ctx.addIssue({ code: "custom", message });
-    }),
+    .default([]),
 });
 
 export type AdminPlaceFields = z.infer<typeof adminPlaceFieldsSchema>;
@@ -78,7 +74,7 @@ type LodgingFieldsInput = {
   category?: string;
   booking_whatsapp?: string | null;
   booking_url?: string | null;
-  highlights?: string | null;
+  highlights?: string[] | null;
 };
 type NormalizedLodgingFields<T> = Omit<T, "booking_whatsapp" | "booking_url" | "highlights"> & {
   booking_whatsapp?: string | null;
@@ -87,7 +83,7 @@ type NormalizedLodgingFields<T> = Omit<T, "booking_whatsapp" | "booking_url" | "
 };
 
 // Booking contact and highlights only exist for lodgings; blanks are stored as
-// null, and highlights go from the admin's comma-separated line to a list.
+// null, and highlights are kept in the curated list's order.
 export function normalizeLodgingFields<T extends LodgingFieldsInput>(fields: T): NormalizedLodgingFields<T> {
   const notLodging = fields.category !== undefined && fields.category !== LODGING_CATEGORY;
   const { highlights, ...rest } = fields;
@@ -98,7 +94,7 @@ export function normalizeLodgingFields<T extends LodgingFieldsInput>(fields: T):
   }
   if (notLodging) result.highlights = null;
   else if ("highlights" in fields) {
-    const items = parseHighlights(highlights ?? "");
+    const items = orderHighlights(highlights ?? []);
     result.highlights = items.length > 0 ? items : null;
   }
   return result;

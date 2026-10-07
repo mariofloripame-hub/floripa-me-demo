@@ -1,30 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { highlightsError, parseHighlights } from "./highlights";
+import { HIGHLIGHT_OPTIONS, highlightChoices, orderHighlights } from "./highlights";
 
-describe("parseHighlights", () => {
-  it("splits on commas and trims", () => {
-    expect(parseHighlights(" 🌊 Vista para o mar ,☕ Café da manhã ")).toEqual(["🌊 Vista para o mar", "☕ Café da manhã"]);
-  });
-
-  it("drops empty items", () => {
-    expect(parseHighlights("Piscina,, ,")).toEqual(["Piscina"]);
-  });
-
-  it("returns an empty list for blank input", () => {
-    expect(parseHighlights("")).toEqual([]);
+describe("HIGHLIGHT_OPTIONS", () => {
+  it("offers the 10 curated highlights", () => {
+    expect(HIGHLIGHT_OPTIONS).toHaveLength(10);
+    expect(HIGHLIGHT_OPTIONS[0]).toBe("🌊 Vista para o mar");
   });
 });
 
-describe("highlightsError", () => {
-  it("accepts up to 3 short items", () => {
-    expect(highlightsError("Piscina, Spa, Pet friendly")).toBeNull();
+describe("orderHighlights", () => {
+  it("follows the order of the option list, whatever order they were ticked", () => {
+    expect(orderHighlights(["🐾 Pet friendly", "🌊 Vista para o mar"])).toEqual(["🌊 Vista para o mar", "🐾 Pet friendly"]);
   });
 
-  it("rejects more than 3 items", () => {
-    expect(highlightsError("A, B, C, D")).toBe("Use no máximo 3 destaques");
+  it("keeps a legacy highlight that is not in the list, after the listed ones", () => {
+    expect(orderHighlights(["Rooftop", "🏊 Piscina"])).toEqual(["🏊 Piscina", "Rooftop"]);
   });
 
-  it("rejects an item longer than 30 characters", () => {
-    expect(highlightsError("Uma vista absolutamente incrível para o mar")).toBe("Cada destaque pode ter até 30 caracteres");
+  it("drops blanks and duplicates", () => {
+    expect(orderHighlights(["🏊 Piscina", " ", "🏊 Piscina"])).toEqual(["🏊 Piscina"]);
+  });
+});
+
+describe("highlightChoices", () => {
+  it("lists the curated options", () => {
+    expect(highlightChoices([])).toEqual(HIGHLIGHT_OPTIONS);
+  });
+
+  it("adds saved legacy highlights at the end so they are not lost", () => {
+    expect(highlightChoices(["Rooftop", "🏊 Piscina"])).toEqual([...HIGHLIGHT_OPTIONS, "Rooftop"]);
   });
 });

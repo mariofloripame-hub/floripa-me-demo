@@ -50,6 +50,21 @@ describe("POST /api/admin/places", () => {
     );
   });
 
+  it("creates a lodging with every ticked highlight, in list order", async () => {
+    vi.mocked(insertPlace).mockResolvedValue({ id: "new-1" } as never);
+    const formData = new FormData();
+    const lodging = { ...FIELDS, category: "Hospedagem", booking_whatsapp: "48999990000", is_verified: "true", is_partner: "true" };
+    for (const [key, value] of Object.entries(lodging)) formData.append(key, value);
+    formData.append("highlights", "🐾 Pet friendly");
+    formData.append("highlights", "🌊 Vista para o mar");
+    const response = await POST(new Request("http://localhost/api/admin/places", { method: "POST", body: formData }) as never);
+    expect(response.status).toBe(201);
+    expect(insertPlace).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ highlights: ["🌊 Vista para o mar", "🐾 Pet friendly"] }),
+    );
+  });
+
   it("stores is_partner as false when the form sends the literal string \"false\", not just any non-empty string", async () => {
     vi.mocked(insertPlace).mockResolvedValue({ id: "new-1" } as never);
     await POST(formRequest(FIELDS, { is_verified: "false", is_partner: "false" }));

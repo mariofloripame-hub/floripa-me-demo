@@ -13,6 +13,7 @@ import {
 import { CATEGORY_OPTIONS, REGION_OPTIONS, PRICE_RANGE_OPTIONS, validatePhotos } from "@/lib/estabelecimentos/schema";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
+import { highlightChoices, MAX_HIGHLIGHTS } from "@/lib/hospedagem/highlights";
 import type { Place } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/Button";
 
@@ -45,7 +46,7 @@ function defaultsFor(place?: Place): FormInput {
       region: REGION_OPTIONS[0], neighborhood: "", address: "", price_range: PRICE_RANGE_OPTIONS[0],
       opening_hours: "", phone: "", instagram: "", contact_name: "", contact_email: "", contact_phone: "",
       is_verified: false, is_partner: false, partner_status: "", partner_plan: "", partner_offer: "",
-      booking_whatsapp: "", booking_url: "", highlights: "",
+      booking_whatsapp: "", booking_url: "", highlights: [],
     };
   }
   return {
@@ -58,7 +59,7 @@ function defaultsFor(place?: Place): FormInput {
     partner_status: place.partner_status ?? "", partner_plan: place.partner_plan ?? "",
     partner_offer: place.partner_offer ?? "",
     booking_whatsapp: place.booking_whatsapp ?? "", booking_url: place.booking_url ?? "",
-    highlights: (place.highlights ?? []).join(", "),
+    highlights: place.highlights ?? [],
   };
 }
 
@@ -97,6 +98,11 @@ export function AdminPlaceForm(props: Props) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isPartner = watch("is_partner");
   const isLodgingCategory = watch("category") === LODGING_CATEGORY;
+  const selectedHighlights = watch("highlights") ?? [];
+  const highlightsFull = selectedHighlights.length >= MAX_HIGHLIGHTS;
+  const [highlightOptions] = useState(() =>
+    highlightChoices(props.mode === "edit" ? (props.place.highlights ?? []) : []),
+  );
 
   const wasLodgingCategory = useRef(isLodgingCategory);
 
@@ -150,7 +156,8 @@ export function AdminPlaceForm(props: Props) {
       if (props.mode === "create") {
         const formData = new FormData();
         for (const [key, value] of Object.entries(values)) {
-          formData.append(key, typeof value === "boolean" ? String(value) : (value as string));
+          if (Array.isArray(value)) value.forEach((item) => formData.append(key, item));
+          else formData.append(key, typeof value === "boolean" ? String(value) : (value as string));
         }
         for (const file of newPhotoFiles) formData.append("photos", file);
         const response = await fetch("/api/admin/places", { method: "POST", body: formData });
@@ -241,10 +248,33 @@ export function AdminPlaceForm(props: Props) {
               <input {...register("booking_url")} placeholder="https://..." className={inputClass} />
             </label>
             <FieldError message={errors.booking_url?.message} />
-            <label className="flex flex-col gap-1">
-              <span className="text-xs font-bold text-teal-ink/70">Destaques (separe por vírgula, até 3)</span>
-              <input {...register("highlights")} placeholder="🌊 Vista para o mar, ☕ Café da manhã" className={inputClass} />
-            </label>
+<fieldset className="flex flex-col gap-2">
+              <legend className="text-xs font-bold text-teal-ink/70">
+                Destaques no card — escolha até {MAX_HIGHLIGHTS}
+              </legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {highlightOptions.map((option) => {
+                  const checked = selectedHighlights.includes(option);
+                  return (
+                    <label
+                      key={option}
+                      className={`flex cursor-pointer items-center gap-2 rounded-pill border px-3 py-1.5 text-sm ${
+                        checked ? "border-teal-ink bg-teal-ink text-sand" : "border-teal-ink/15 bg-white text-teal-ink"
+                      } ${!checked && highlightsFull ? "cursor-not-allowed opacity-40" : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        value={option}
+                        disabled={!checked && highlightsFull}
+                        {...register("highlights")}
+                        className="sr-only"
+                      />
+                      {option}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
             <FieldError message={errors.highlights?.message} />
           </>
         )}

@@ -181,13 +181,41 @@ describe("AdminPlaceForm (cover photo)", () => {
 });
 
 describe("AdminPlaceForm (lodging highlights)", () => {
-  it("shows saved highlights as one comma-separated line", () => {
-    render(<AdminPlaceForm mode="edit" place={place({ category: "Hospedagem", highlights: ["🌊 Vista para o mar", "☕ Café da manhã"] })} />);
-    expect(screen.getByLabelText(/Destaques/)).toHaveValue("🌊 Vista para o mar, ☕ Café da manhã");
+  const lodging = (highlights: string[]) => place({ category: "Hospedagem", highlights, booking_whatsapp: "48999990000" });
+
+  it("ticks the saved highlights", () => {
+    render(<AdminPlaceForm mode="edit" place={lodging(["🌊 Vista para o mar"])} />);
+    expect(screen.getByLabelText("🌊 Vista para o mar")).toBeChecked();
+    expect(screen.getByLabelText("🏊 Piscina")).not.toBeChecked();
+  });
+
+  it("disables the other options once 3 are ticked", () => {
+    render(<AdminPlaceForm mode="edit" place={lodging(["🌊 Vista para o mar", "🏊 Piscina"])} />);
+    expect(screen.getByLabelText("💆 Spa")).toBeEnabled();
+    fireEvent.click(screen.getByLabelText("🐾 Pet friendly"));
+    expect(screen.getByLabelText("💆 Spa")).toBeDisabled();
+    expect(screen.getByLabelText("🐾 Pet friendly")).toBeEnabled();
+  });
+
+  it("keeps a saved highlight that is not in the list", () => {
+    render(<AdminPlaceForm mode="edit" place={lodging(["Rooftop"])} />);
+    expect(screen.getByLabelText("Rooftop")).toBeChecked();
+  });
+
+  it("saves the ticked highlights", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    render(<AdminPlaceForm mode="edit" place={lodging([])} />);
+    fireEvent.click(screen.getByLabelText("🏊 Piscina"));
+    fireEvent.click(screen.getByRole("button", { name: /salvar alterações/i }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith("/api/admin/places/p1", expect.objectContaining({ method: "PATCH" })),
+    );
+    const [, options] = vi.mocked(fetch).mock.calls[0];
+    expect(JSON.parse(options!.body as string).highlights).toEqual(["🏊 Piscina"]);
   });
 
   it("does not show highlights for other categories", () => {
     render(<AdminPlaceForm mode="edit" place={place()} />);
-    expect(screen.queryByLabelText(/Destaques/)).toBeNull();
+    expect(screen.queryByText(/Escolha até 3/)).toBeNull();
   });
 });

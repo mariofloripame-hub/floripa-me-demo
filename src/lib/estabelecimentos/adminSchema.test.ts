@@ -96,17 +96,18 @@ describe("lodging booking fields", () => {
   });
 
   it("rejects more than 3 highlights", () => {
-    expect(adminPlaceFieldsSchema.safeParse(validPayload({ highlights: "A, B, C, D" })).success).toBe(false);
+    const four = ["🌊 Vista para o mar", "🏊 Piscina", "💆 Spa", "🐾 Pet friendly"];
+    expect(adminPlaceFieldsSchema.safeParse(validPayload({ highlights: four })).success).toBe(false);
   });
 
-  it("stores highlights as a list for Hospedagem", () => {
-    expect(normalizeLodgingFields({ category: "Hospedagem", highlights: "🌊 Vista para o mar, ☕ Café da manhã" }))
-      .toMatchObject({ highlights: ["🌊 Vista para o mar", "☕ Café da manhã"] });
+  it("stores highlights in list order for Hospedagem", () => {
+    expect(normalizeLodgingFields({ category: "Hospedagem", highlights: ["🐾 Pet friendly", "🌊 Vista para o mar"] }))
+      .toMatchObject({ highlights: ["🌊 Vista para o mar", "🐾 Pet friendly"] });
   });
 
-  it("stores no highlights when the field is blank or the place is not a lodging", () => {
-    expect(normalizeLodgingFields({ category: "Hospedagem", highlights: "" })).toMatchObject({ highlights: null });
-    expect(normalizeLodgingFields({ category: "Gastronomia", highlights: "Piscina" })).toMatchObject({ highlights: null });
+  it("stores no highlights when none is ticked or the place is not a lodging", () => {
+    expect(normalizeLodgingFields({ category: "Hospedagem", highlights: [] })).toMatchObject({ highlights: null });
+    expect(normalizeLodgingFields({ category: "Gastronomia", highlights: ["🏊 Piscina"] })).toMatchObject({ highlights: null });
   });
 
   it("nulls booking fields for other categories", () => {

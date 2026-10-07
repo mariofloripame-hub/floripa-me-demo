@@ -22,6 +22,7 @@ export async function POST(request: Request) {
   }
   fields.is_verified = formData.get("is_verified") === "true";
   fields.is_partner = formData.get("is_partner") === "true";
+  fields.highlights = formData.getAll("highlights").filter((value): value is string => typeof value === "string");
 
   const parsed = adminPlaceFieldsSchema.safeParse(fields);
   if (!parsed.success) {
