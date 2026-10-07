@@ -102,4 +102,17 @@ describe("LodgingCard", () => {
     const { container } = render(<LodgingCard slug="abc" options={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("shows the highlights over the photo", () => {
+    render(<LodgingCard slug="abc" options={[makePlace({ highlights: ["🌊 Vista para o mar", "☕ Café da manhã"] })]} />);
+    expect(screen.getByText("🌊 Vista para o mar")).toBeInTheDocument();
+    expect(screen.getByText("☕ Café da manhã")).toBeInTheDocument();
+  });
+
+  it("spells out the guest count", () => {
+    render(<LodgingCard slug="abc" options={[featured]} group="solo" />);
+    expect(screen.getByText("1 hóspede")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mais hóspedes" }));
+    expect(screen.getByText("2 hóspedes")).toBeInTheDocument();
+  });
 });
