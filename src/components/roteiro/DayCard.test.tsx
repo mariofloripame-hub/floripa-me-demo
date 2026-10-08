@@ -50,7 +50,7 @@ describe("DayCard", () => {
     expect(screen.getByText("Praia")).toBeInTheDocument();
     expect(screen.getByText(/mar pra quem busca aventura/i)).toBeInTheDocument();
     expect(screen.getByText(/🎟️ Grátis/)).toBeInTheDocument();
-    expect(screen.getByText(/💰 R\$\$\$/)).toBeInTheDocument();
+    expect(screen.getByText(/💎 Alto/)).toBeInTheDocument();
   });
 
   it("shows a Mapa link built from lat/lng when available, and from name+address otherwise", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
+import { priceBadge } from "@/lib/places/priceLabel";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -135,7 +136,7 @@ export default function CadastroEstabelecimentoPage() {
 
             <select {...register("price_range")} className={inputClass}>
               {PRICE_RANGE_OPTIONS.map((option) => (
-                <option key={option} value={option}>{option}</option>
+                <option key={option} value={option}>{priceBadge(option)}</option>
               ))}
             </select>
             <FieldError message={errors.price_range?.message} />

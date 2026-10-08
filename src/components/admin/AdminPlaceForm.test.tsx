@@ -219,3 +219,11 @@ describe("AdminPlaceForm (lodging highlights)", () => {
     expect(screen.queryByText(/Escolha até 3/)).toBeNull();
   });
 });
+
+describe("AdminPlaceForm (budget labels)", () => {
+  it("shows prices with the quiz's budget words", () => {
+    render(<AdminPlaceForm mode="edit" place={place()} />);
+    expect(screen.getByRole("option", { name: "💰 Econômico" })).toHaveValue("R$");
+    expect(screen.getByRole("option", { name: "💎 Alto" })).toHaveValue("R$$$");
+  });
+});

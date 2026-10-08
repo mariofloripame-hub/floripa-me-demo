@@ -32,7 +32,7 @@ describe("EstablishmentModal", () => {
     expect(screen.getByText("Ilha do Campeche")).toBeInTheDocument();
     expect(screen.getByText(/um dos principais atrativos de floripa/i)).toBeInTheDocument();
     expect(screen.getByText("Praia")).toBeInTheDocument();
-    expect(screen.getByText(/R\$\$\$/)).toBeInTheDocument();
+    expect(screen.getByText(/💎 Alto/)).toBeInTheDocument();
     expect(screen.getByText(/saída da praia do campeche/i)).toBeInTheDocument();
   });
 

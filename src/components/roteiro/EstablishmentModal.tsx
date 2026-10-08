@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import { priceBadge } from "@/lib/places/priceLabel";
 import type { Place } from "@/lib/supabase/types";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
@@ -55,9 +56,6 @@ export function nearbyPlaceToDetail(place: NearbyPlace): EstablishmentDetail {
   };
 }
 
-function priceBadge(priceRange: string): string {
-  return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
-}
 
 function mapsUrl(detail: EstablishmentDetail): string {
   const query =

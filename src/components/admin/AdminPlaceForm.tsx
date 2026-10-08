@@ -12,6 +12,7 @@ import {
 } from "@/lib/estabelecimentos/adminSchema";
 import { CATEGORY_OPTIONS, REGION_OPTIONS, PRICE_RANGE_OPTIONS, validatePhotos } from "@/lib/estabelecimentos/schema";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import { priceBadge } from "@/lib/places/priceLabel";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
 import { highlightChoices, MAX_HIGHLIGHTS } from "@/lib/hospedagem/highlights";
 import type { Place } from "@/lib/supabase/types";
@@ -205,12 +206,12 @@ export function AdminPlaceForm(props: Props) {
 
         <select {...register("price_range")} className={inputClass}>
           {PRICE_RANGE_OPTIONS.map((option) => (
-            <option key={option} value={option}>{option}</option>
+            <option key={option} value={option}>{priceBadge(option)}</option>
           ))}
         </select>
         <FieldError message={errors.price_range?.message} />
         {isLodgingCategory && (
-          <p className="text-xs text-teal-ink/60">Hospedagem: R$ até 300/diária · R$$ 300–700 · R$$$ acima de 700</p>
+          <p className="text-xs text-teal-ink/60">Hospedagem: Econômico até R$ 300/diária · Médio R$ 300–700 · Alto acima de R$ 700</p>
         )}
 
         <textarea {...register("short_description")} placeholder="Descrição" rows={3} className={textareaClass} />

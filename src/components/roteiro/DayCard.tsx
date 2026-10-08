@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { ItineraryDay, ItineraryActivity } from "@/lib/itinerary/assemble";
 import type { Place } from "@/lib/supabase/types";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
+import { priceBadge } from "@/lib/places/priceLabel";
 import { getCategoryStyle } from "@/lib/itinerary/mapIcons";
 import { guessCategory, isCustomActivity } from "@/lib/itinerary/customActivity";
 import { rankSwapOptions } from "@/lib/itinerary/swapOptions";
@@ -13,9 +14,6 @@ import { SwapSheet } from "./SwapSheet";
 import { CourtesySheet } from "./CourtesySheet";
 import { readCachedCode } from "@/lib/cortesia/deviceStorage";
 
-function priceBadge(priceRange: string): string {
-  return priceRange === "Gratuito" ? "🎟️ Grátis" : `💰 ${priceRange}`;
-}
 
 function mapsUrl(act: { name: string; address: string; lat: number | null; lng: number | null }): string {
   const query =
