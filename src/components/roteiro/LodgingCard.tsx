@@ -6,9 +6,14 @@ import type { Place } from "@/lib/supabase/types";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import { dayKey } from "@/lib/time/saoPaulo";
 import {
-  buildAvailabilityMessage, defaultGuests, MAX_GUESTS, MIN_GUESTS, validateStay, whatsappLink,
+  bookingSearchUrl, buildAvailabilityMessage, defaultGuests, MAX_GUESTS, MIN_GUESTS, validateStay, whatsappLink,
 } from "@/lib/hospedagem/contact";
-import { EstablishmentModal, placeToDetail, type EstablishmentDetail } from "./EstablishmentModal";
+import { cardHighlights } from "@/lib/hospedagem/highlights";
+import { priceBadge } from "@/lib/places/priceLabel";
+import { EstablishmentModal, lodgingToDetail, type EstablishmentDetail } from "./EstablishmentModal";
+
+// Booking.com affiliate id, set in Vercel once the affiliate account exists.
+const BOOKING_AFFILIATE_ID = process.env.NEXT_PUBLIC_BOOKING_AFFILIATE_ID;
 
 type Channel = "whatsapp" | "site";
 
@@ -123,7 +128,7 @@ export function LodgingCard({ slug, options, group }: { slug: string; options: P
     );
   }
 
-  const highlights = featured.highlights ?? [];
+  const highlights = cardHighlights(featured.highlights ?? [], group);
 
   return (
     <section className="rounded-card border border-turquoise/30 bg-white/5 p-3">
@@ -131,7 +136,7 @@ export function LodgingCard({ slug, options, group }: { slug: string; options: P
 
       <button
         type="button"
-        onClick={() => setDetail(placeToDetail(featured))}
+        onClick={() => setDetail(lodgingToDetail(featured))}
         className="relative mt-2 block h-44 w-full overflow-hidden rounded-lg text-left sm:h-52"
       >
         <Image
@@ -148,7 +153,7 @@ export function LodgingCard({ slug, options, group }: { slug: string; options: P
           </span>
           <p className="mt-1 font-display text-base font-bold leading-tight">{featured.name}</p>
           <p className="text-xs text-ink-dim">
-            {featured.neighborhood} · {featured.price_range}
+            {`${featured.neighborhood} · ${priceBadge(featured.price_range)}`}
           </p>
           {/* The bullet trails each item, so a wrapped line never starts with one. */}
           {highlights.length > 0 && (
@@ -201,42 +206,50 @@ export function LodgingCard({ slug, options, group }: { slug: string; options: P
         {contactButton("Reservar pelo site", siteHref, "site", !whatsappHref)}
       </div>
 
-      {others.length > 0 && (
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={() => setShowOthers((v) => !v)}
-            className="mx-auto block text-xs font-bold text-turquoise"
-          >
-            Ver outras opções
-          </button>
-          {showOthers && (
-            <div className="mt-2 flex flex-col gap-2">
-              {others.map((place) => (
-                <button
-                  key={place.id}
-                  type="button"
-                  onClick={() => {
-                    setFeaturedId(place.id);
-                    setShowOthers(false);
-                  }}
-                  className="flex items-center gap-3 rounded-lg border border-white/10 bg-graphite/40 p-2 text-left"
-                >
-                  <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-graphite">
-                    <Image src={getPlaceImage(place.name, place.photos[0])} alt={place.name} fill sizes="44px" className="object-cover" />
-                  </div>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">{place.name}</span>
-                    <span className="block text-xs text-ink-dim">
-                      {place.neighborhood} · {place.price_range}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={() => setShowOthers((v) => !v)}
+          className="mx-auto block text-xs font-bold text-turquoise"
+        >
+          Ver mais opções de hospedagem
+        </button>
+        {showOthers && (
+          <div className="mt-2 flex flex-col gap-2">
+            {others.map((place) => (
+              <button
+                key={place.id}
+                type="button"
+                onClick={() => {
+                  setFeaturedId(place.id);
+                  setShowOthers(false);
+                }}
+                className="flex items-center gap-3 rounded-lg border border-white/10 bg-graphite/40 p-2 text-left"
+              >
+                <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-graphite">
+                  <Image src={getPlaceImage(place.name, place.photos[0])} alt={place.name} fill sizes="44px" className="object-cover" />
+                </div>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold">{place.name}</span>
+                  <span className="block text-xs text-ink-dim">{`${place.neighborhood} · ${priceBadge(place.price_range)}`}</span>
+                </span>
+              </button>
+            ))}
+            <a
+              href={bookingSearchUrl({ checkIn, checkOut, guests, affiliateId: BOOKING_AFFILIATE_ID })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-white/20 px-3 py-2.5 text-left"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-bold">Ver mais no Booking.com</span>
+                <span className="block text-xs text-ink-dim">Outras hospedagens em Florianópolis, com as suas datas</span>
+              </span>
+              <span aria-hidden className="text-ink-dim">↗</span>
+            </a>
+          </div>
+        )}
+      </div>
 
       <button
         type="button"

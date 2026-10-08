@@ -24,7 +24,7 @@ export default async function RoteiroPage({ params }: { params: Promise<{ slug: 
       places={selectPublicPlaces(places)}
       liveOffers={liveOfferMap(places)}
       tips={tips}
-      lodging={resolveLodging(itinerary.lodging, places)}
+      lodging={resolveLodging(itinerary.lodging, places, (itinerary.quiz_answers as QuizAnswers).budget)}
     />
   );
 }

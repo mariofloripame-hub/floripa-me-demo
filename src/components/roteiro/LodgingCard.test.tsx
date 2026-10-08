@@ -74,7 +74,7 @@ describe("LodgingCard", () => {
 
   it("swaps to an alternative, using the site link when there is no WhatsApp", () => {
     render(<LodgingCard slug="abc" options={[featured, alt]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Ver outras opções" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ver mais opções de hospedagem" }));
     fireEvent.click(screen.getByRole("button", { name: /Hotel Mar/ }));
     expect(screen.getByRole("link", { name: "Reservar pelo site" })).toHaveAttribute("href", "https://hotelmar.com");
     expect(screen.queryByRole("link", { name: "Consultar disponibilidade" })).toBeNull();
@@ -103,10 +103,44 @@ describe("LodgingCard", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("shows the highlights over the photo", () => {
-    render(<LodgingCard slug="abc" options={[makePlace({ highlights: ["🌊 Vista para o mar", "☕ Café da manhã"] })]} />);
-    expect(screen.getByText("🌊 Vista para o mar")).toBeInTheDocument();
-    expect(screen.getByText("☕ Café da manhã")).toBeInTheDocument();
+  it("shows the 3 most relevant highlights for the tourist's profile", () => {
+    const pousada = makePlace({
+      highlights: ["🏊 Piscina", "🐾 Pet friendly", "☕ Café da manhã incluso", "👨‍👩‍👧 Ideal para famílias", "Vista mar"],
+    });
+    render(<LodgingCard slug="abc" options={[pousada]} group="familia" />);
+    expect(screen.getByText("☕ Café da manhã incluso")).toBeInTheDocument();
+    expect(screen.getByText("👨‍👩‍👧 Ideal para famílias")).toBeInTheDocument();
+    expect(screen.getByText("🏊 Piscina")).toBeInTheDocument();
+    expect(screen.queryByText("🐾 Pet friendly")).toBeNull();
+    expect(screen.queryByText("Vista mar")).toBeNull();
+  });
+
+  it("shows the budget in the quiz's words", () => {
+    render(<LodgingCard slug="abc" options={[makePlace({ neighborhood: "Campeche", price_range: "R$$" })]} />);
+    expect(screen.getByText("Campeche · 💵 Médio")).toBeInTheDocument();
+  });
+
+  it("lists the other lodgings with their budget, then Booking with the tourist's stay", () => {
+    render(<LodgingCard slug="abc" options={[featured, makePlace({ id: "lux", name: "Resort Luxo", neighborhood: "Jurerê", price_range: "R$$$" })]} />);
+    fireEvent.change(screen.getByLabelText("Entrada"), { target: { value: "2027-01-12" } });
+    fireEvent.change(screen.getByLabelText("Saída"), { target: { value: "2027-01-15" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ver mais opções de hospedagem" }));
+    expect(screen.getByText("Jurerê · 💎 Alto")).toBeInTheDocument();
+    const booking = screen.getByRole("link", { name: /Ver mais no Booking.com/ });
+    expect(booking.getAttribute("href")).toContain("checkin=2027-01-12");
+  });
+
+  it("offers Booking even when there is no other partner lodging", () => {
+    render(<LodgingCard slug="abc" options={[featured]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Ver mais opções de hospedagem" }));
+    expect(screen.getByRole("link", { name: /Ver mais no Booking.com/ })).toBeInTheDocument();
+  });
+
+  it("opens the lodging detail without the map", () => {
+    render(<LodgingCard slug="abc" options={[featured]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Pousada Sol/ }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Ver no mapa/ })).toBeNull();
   });
 
   it("spells out the guest count", () => {

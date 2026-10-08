@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import { priceBadge } from "@/lib/places/priceLabel";
+import { orderHighlights } from "@/lib/hospedagem/highlights";
 import type { Place } from "@/lib/supabase/types";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
@@ -20,6 +21,11 @@ export interface EstablishmentDetail {
   partner_offer?: string | null;
   lat: number | null;
   lng: number | null;
+  /** Lodgings: every highlight, shown as chips. */
+  highlights?: string[];
+  /** Lodgings: only the neighborhood is shown — most don't share the address before booking. */
+  neighborhood?: string;
+  hideLocation?: boolean;
 }
 
 export function placeToDetail(place: Place): EstablishmentDetail {
@@ -36,6 +42,18 @@ export function placeToDetail(place: Place): EstablishmentDetail {
     partner_offer: place.partner_offer,
     lat: place.lat,
     lng: place.lng,
+  };
+}
+
+export function lodgingToDetail(place: Place): EstablishmentDetail {
+  return {
+    ...placeToDetail(place),
+    address: "",
+    lat: null,
+    lng: null,
+    highlights: orderHighlights(place.highlights ?? []),
+    neighborhood: place.neighborhood,
+    hideLocation: true,
   };
 }
 
@@ -154,7 +172,19 @@ export function EstablishmentModal({
 
         {detail.short_description && <p className="mt-3 text-sm text-ink-dim">{detail.short_description}</p>}
 
-        {detail.address && <p className="mt-2 text-xs text-ink-dim">📍 {detail.address}</p>}
+        {detail.highlights && detail.highlights.length > 0 && (
+          <ul className="mt-3 flex flex-wrap gap-1.5">
+            {detail.highlights.map((item) => (
+              <li key={item} className="rounded-pill bg-white/10 px-2.5 py-1 text-[11px] text-ink">
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {detail.hideLocation
+          ? detail.neighborhood && <p className="mt-3 text-xs text-ink-dim">📍 {detail.neighborhood}</p>
+          : detail.address && <p className="mt-2 text-xs text-ink-dim">📍 {detail.address}</p>}
 
         {onAdd && (
           <button
@@ -168,14 +198,16 @@ export function EstablishmentModal({
         )}
 
         <div className="mt-4 flex gap-2">
-          <a
-            href={mapsUrl(detail)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 rounded-pill bg-white/10 py-2 text-center text-xs font-bold text-turquoise"
-          >
-            📍 Ver no mapa
-          </a>
+          {!detail.hideLocation && (
+            <a
+              href={mapsUrl(detail)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 rounded-pill bg-white/10 py-2 text-center text-xs font-bold text-turquoise"
+            >
+              📍 Ver no mapa
+            </a>
+          )}
           {detail.google_place_id && (
             <a
               href={reviewsUrl(detail.google_place_id)}

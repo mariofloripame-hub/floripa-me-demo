@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { EstablishmentModal, nearbyPlaceToDetail, type EstablishmentDetail } from "./EstablishmentModal";
+import { EstablishmentModal, lodgingToDetail, nearbyPlaceToDetail, type EstablishmentDetail } from "./EstablishmentModal";
+import { makePlace } from "@/lib/hospedagem/fixtures";
 import type { NearbyPlace } from "@/lib/itinerary/nearbyPlaces";
 
 function detail(overrides: Partial<EstablishmentDetail>): EstablishmentDetail {
@@ -170,5 +171,32 @@ describe("nearbyPlaceToDetail", () => {
       lat: -27.6,
       lng: -48.5,
     });
+  });
+});
+
+describe("EstablishmentModal (lodging)", () => {
+  const pousada = makePlace({
+    name: "Pousada Sol",
+    neighborhood: "Campeche",
+    address: "Rua Secreta, 123",
+    lat: -27.6,
+    lng: -48.5,
+    short_description: "Pousada pé na areia com café colonial.",
+    highlights: ["🐾 Pet friendly", "🌊 Vista para o mar", "Vista mar"],
+  });
+
+  it("shows the description and every highlight", () => {
+    render(<EstablishmentModal detail={lodgingToDetail(pousada)} onClose={() => {}} />);
+    expect(screen.getByText("Pousada pé na areia com café colonial.")).toBeInTheDocument();
+    expect(screen.getByText("🌊 Vista para o mar")).toBeInTheDocument();
+    expect(screen.getByText("🐾 Pet friendly")).toBeInTheDocument();
+    expect(screen.queryByText("Vista mar")).toBeNull();
+  });
+
+  it("shows only the neighborhood, never the address or the map", () => {
+    render(<EstablishmentModal detail={lodgingToDetail(pousada)} onClose={() => {}} />);
+    expect(screen.getByText("📍 Campeche")).toBeInTheDocument();
+    expect(screen.queryByText(/Rua Secreta/)).toBeNull();
+    expect(screen.queryByRole("link", { name: /Ver no mapa/ })).toBeNull();
   });
 });
