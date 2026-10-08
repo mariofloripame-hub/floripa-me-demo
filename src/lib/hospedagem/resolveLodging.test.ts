@@ -29,4 +29,18 @@ describe("resolveLodging", () => {
   it("never sends the owner's contact data to the browser", () => {
     expect(resolveLodging(selection, [a])[0]).not.toHaveProperty("contact_email");
   });
+
+  it("appends every other partner lodging, same budget first, then by budget", () => {
+    const lux = makePlace({ id: "lux", name: "Resort", price_range: "R$$$" });
+    const cheap = makePlace({ id: "cheap", name: "Hostel", price_range: "R$" });
+    const mid = makePlace({ id: "mid", name: "Pousada Z", price_range: "R$$" });
+    const notPartner = makePlace({ id: "np", is_partner: false });
+    const result = resolveLodging({ featured_id: "a", alternative_ids: [] }, [a, lux, cheap, mid, notPartner], "medio");
+    expect(result.map((p) => p.id)).toEqual(["a", "mid", "cheap", "lux"]);
+  });
+
+  it("still offers the other lodgings when the stored ones have left", () => {
+    const other = makePlace({ id: "other" });
+    expect(resolveLodging(selection, [other], "medio").map((p) => p.id)).toEqual(["other"]);
+  });
 });

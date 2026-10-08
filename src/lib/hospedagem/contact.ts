@@ -45,3 +45,26 @@ export function whatsappLink(raw: string | null | undefined, message: string): s
   const number = normalizeWhatsapp(raw);
   return number ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : null;
 }
+
+// Booking.com search for the island, prefilled with the tourist's stay. Works
+// without an affiliate id; with one (NEXT_PUBLIC_BOOKING_AFFILIATE_ID) the
+// completed bookings earn a commission.
+export function bookingSearchUrl({
+  checkIn,
+  checkOut,
+  guests,
+  affiliateId,
+}: {
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  affiliateId?: string;
+}): string {
+  const params = new URLSearchParams({ ss: "Florianópolis", group_adults: String(guests), no_rooms: "1", group_children: "0" });
+  if (checkIn && checkOut) {
+    params.set("checkin", checkIn);
+    params.set("checkout", checkOut);
+  }
+  if (affiliateId) params.set("aid", affiliateId);
+  return `https://www.booking.com/searchresults.pt-br.html?${params.toString()}`;
+}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildAvailabilityMessage, defaultGuests, formatStayDate, normalizeWhatsapp, validateStay, whatsappLink,
+  bookingSearchUrl, buildAvailabilityMessage, defaultGuests, formatStayDate, normalizeWhatsapp, validateStay, whatsappLink,
 } from "./contact";
 
 describe("defaultGuests", () => {
@@ -55,4 +55,28 @@ describe("whatsappLink", () => {
     expect(whatsappLink("(48) 99999-0000", "Olá! 12/01?")).toBe("https://wa.me/5548999990000?text=Ol%C3%A1!%2012%2F01%3F");
   });
   it("returns null without a usable number", () => expect(whatsappLink("", "x")).toBeNull());
+});
+
+describe("bookingSearchUrl", () => {
+  it("searches Florianópolis with the tourist's dates and guests", () => {
+    const url = new URL(bookingSearchUrl({ checkIn: "2027-01-12", checkOut: "2027-01-15", guests: 2 }));
+    expect(url.origin + url.pathname).toBe("https://www.booking.com/searchresults.pt-br.html");
+    expect(url.searchParams.get("ss")).toBe("Florianópolis");
+    expect(url.searchParams.get("checkin")).toBe("2027-01-12");
+    expect(url.searchParams.get("checkout")).toBe("2027-01-15");
+    expect(url.searchParams.get("group_adults")).toBe("2");
+    expect(url.searchParams.get("no_rooms")).toBe("1");
+    expect(url.searchParams.has("aid")).toBe(false);
+  });
+
+  it("leaves dates out when the tourist has none", () => {
+    const url = new URL(bookingSearchUrl({ checkIn: "", checkOut: "", guests: 3 }));
+    expect(url.searchParams.has("checkin")).toBe(false);
+    expect(url.searchParams.get("group_adults")).toBe("3");
+  });
+
+  it("carries the affiliate id once there is one", () => {
+    const url = new URL(bookingSearchUrl({ checkIn: "", checkOut: "", guests: 2, affiliateId: "123456" }));
+    expect(url.searchParams.get("aid")).toBe("123456");
+  });
 });

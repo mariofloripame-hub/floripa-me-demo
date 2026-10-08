@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-vi.mock("@/lib/supabase/queries", () => ({ getItineraryBySlug: vi.fn() }));
+vi.mock("@/lib/supabase/queries", () => ({ getItineraryBySlug: vi.fn(), getPlaceById: vi.fn() }));
 vi.mock("./queries", () => ({ insertLodgingLead: vi.fn(), hasRecentLodgingLead: vi.fn() }));
 
 import { recordLodgingLead, LeadNotAllowedError } from "./recordLead";
-import { getItineraryBySlug } from "@/lib/supabase/queries";
+import { getItineraryBySlug, getPlaceById } from "@/lib/supabase/queries";
+import { makePlace } from "./fixtures";
 import { hasRecentLodgingLead, insertLodgingLead } from "./queries";
 
 const client = {} as SupabaseClient;
@@ -15,6 +16,8 @@ beforeEach(() => {
   vi.mocked(insertLodgingLead).mockReset();
   vi.mocked(hasRecentLodgingLead).mockReset();
   vi.mocked(hasRecentLodgingLead).mockResolvedValue(false);
+  vi.mocked(getPlaceById).mockReset();
+  vi.mocked(getPlaceById).mockResolvedValue(null);
 });
 
 describe("recordLodgingLead", () => {
@@ -26,10 +29,24 @@ describe("recordLodgingLead", () => {
     });
   });
 
-  it("rejects a place not suggested in that roteiro", async () => {
+  it("accepts another partner lodging the tourist picked from the list", async () => {
     vi.mocked(getItineraryBySlug).mockResolvedValue({ lodging: { featured_id: "x", alternative_ids: [] } } as never);
+    vi.mocked(getPlaceById).mockResolvedValue(makePlace({ id: lead.place_id }));
+    await recordLodgingLead(client, lead);
+    expect(insertLodgingLead).toHaveBeenCalled();
+  });
+
+  it("rejects a place that is not a partner lodging", async () => {
+    vi.mocked(getItineraryBySlug).mockResolvedValue({ lodging: { featured_id: "x", alternative_ids: [] } } as never);
+    vi.mocked(getPlaceById).mockResolvedValue(makePlace({ id: lead.place_id, category: "Gastronomia" }));
     await expect(recordLodgingLead(client, lead)).rejects.toBeInstanceOf(LeadNotAllowedError);
     expect(insertLodgingLead).not.toHaveBeenCalled();
+  });
+
+  it("rejects a roteiro that never had a lodging card", async () => {
+    vi.mocked(getItineraryBySlug).mockResolvedValue({ lodging: null } as never);
+    vi.mocked(getPlaceById).mockResolvedValue(makePlace({ id: lead.place_id }));
+    await expect(recordLodgingLead(client, lead)).rejects.toBeInstanceOf(LeadNotAllowedError);
   });
 
   it("rejects an unknown roteiro", async () => {
