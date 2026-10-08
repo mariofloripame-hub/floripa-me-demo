@@ -189,17 +189,14 @@ describe("AdminPlaceForm (lodging highlights)", () => {
     expect(screen.getByLabelText("🏊 Piscina")).not.toBeChecked();
   });
 
-  it("disables the other options once 3 are ticked", () => {
-    render(<AdminPlaceForm mode="edit" place={lodging(["🌊 Vista para o mar", "🏊 Piscina"])} />);
-    expect(screen.getByLabelText("💆 Spa")).toBeEnabled();
-    fireEvent.click(screen.getByLabelText("🐾 Pet friendly"));
-    expect(screen.getByLabelText("💆 Spa")).toBeDisabled();
+  it("lets every option be ticked", () => {
+    render(<AdminPlaceForm mode="edit" place={lodging(["🌊 Vista para o mar", "🏊 Piscina", "💆 Spa"])} />);
     expect(screen.getByLabelText("🐾 Pet friendly")).toBeEnabled();
   });
 
-  it("keeps a saved highlight that is not in the list", () => {
-    render(<AdminPlaceForm mode="edit" place={lodging(["Rooftop"])} />);
-    expect(screen.getByLabelText("Rooftop")).toBeChecked();
+  it("no longer offers old free-text highlights", () => {
+    render(<AdminPlaceForm mode="edit" place={lodging(["Vista mar"])} />);
+    expect(screen.queryByLabelText("Vista mar")).toBeNull();
   });
 
   it("saves the ticked highlights", async () => {
@@ -216,7 +213,7 @@ describe("AdminPlaceForm (lodging highlights)", () => {
 
   it("does not show highlights for other categories", () => {
     render(<AdminPlaceForm mode="edit" place={place()} />);
-    expect(screen.queryByText(/Escolha até 3/)).toBeNull();
+    expect(screen.queryByLabelText("🏊 Piscina")).toBeNull();
   });
 });
 

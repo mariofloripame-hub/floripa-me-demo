@@ -14,7 +14,7 @@ import { CATEGORY_OPTIONS, REGION_OPTIONS, PRICE_RANGE_OPTIONS, validatePhotos }
 import { getPlaceImage } from "@/lib/itinerary/placeImages";
 import { priceBadge } from "@/lib/places/priceLabel";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
-import { highlightChoices, MAX_HIGHLIGHTS } from "@/lib/hospedagem/highlights";
+import { HIGHLIGHT_OPTIONS, orderHighlights } from "@/lib/hospedagem/highlights";
 import type { Place } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/Button";
 
@@ -60,7 +60,7 @@ function defaultsFor(place?: Place): FormInput {
     partner_status: place.partner_status ?? "", partner_plan: place.partner_plan ?? "",
     partner_offer: place.partner_offer ?? "",
     booking_whatsapp: place.booking_whatsapp ?? "", booking_url: place.booking_url ?? "",
-    highlights: place.highlights ?? [],
+    highlights: orderHighlights(place.highlights ?? []),
   };
 }
 
@@ -100,10 +100,6 @@ export function AdminPlaceForm(props: Props) {
   const isPartner = watch("is_partner");
   const isLodgingCategory = watch("category") === LODGING_CATEGORY;
   const selectedHighlights = watch("highlights") ?? [];
-  const highlightsFull = selectedHighlights.length >= MAX_HIGHLIGHTS;
-  const [highlightOptions] = useState(() =>
-    highlightChoices(props.mode === "edit" ? (props.place.highlights ?? []) : []),
-  );
 
   const wasLodgingCategory = useRef(isLodgingCategory);
 
@@ -251,22 +247,24 @@ export function AdminPlaceForm(props: Props) {
             <FieldError message={errors.booking_url?.message} />
 <fieldset className="flex flex-col gap-2">
               <legend className="text-xs font-bold text-teal-ink/70">
-                Destaques no card — escolha até {MAX_HIGHLIGHTS}
+                Destaques — marque todos que a hospedagem oferece
               </legend>
+              <p className="text-[11px] text-teal-ink/60">
+                O card mostra os 3 mais relevantes para cada turista; o detalhe mostra todos.
+              </p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {highlightOptions.map((option) => {
+                {HIGHLIGHT_OPTIONS.map((option) => {
                   const checked = selectedHighlights.includes(option);
                   return (
                     <label
                       key={option}
                       className={`flex cursor-pointer items-center gap-2 rounded-pill border px-3 py-1.5 text-sm ${
                         checked ? "border-teal-ink bg-teal-ink text-sand" : "border-teal-ink/15 bg-white text-teal-ink"
-                      } ${!checked && highlightsFull ? "cursor-not-allowed opacity-40" : ""}`}
+                      }`}
                     >
                       <input
                         type="checkbox"
                         value={option}
-                        disabled={!checked && highlightsFull}
                         {...register("highlights")}
                         className="sr-only"
                       />

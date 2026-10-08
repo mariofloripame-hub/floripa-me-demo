@@ -2,7 +2,7 @@ import { z } from "zod";
 import { PRICE_RANGE_OPTIONS } from "./schema";
 import { LODGING_CATEGORY } from "@/lib/hospedagem/eligibility";
 import { normalizeWhatsapp } from "@/lib/hospedagem/contact";
-import { MAX_HIGHLIGHT_LENGTH, MAX_HIGHLIGHTS, orderHighlights } from "@/lib/hospedagem/highlights";
+import { MAX_HIGHLIGHT_LENGTH, orderHighlights } from "@/lib/hospedagem/highlights";
 
 export const PARTNER_STATUS_OPTIONS = [
   { value: "", label: "Nenhum" },
@@ -57,7 +57,6 @@ export const adminPlaceFieldsSchema = z.object({
     .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Use um link começando com http:// ou https://"),
   highlights: z
     .array(z.string().trim().min(1).max(MAX_HIGHLIGHT_LENGTH))
-    .max(MAX_HIGHLIGHTS, `Escolha até ${MAX_HIGHLIGHTS} destaques`)
     .optional()
     .default([]),
 });

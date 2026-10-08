@@ -95,9 +95,9 @@ describe("lodging booking fields", () => {
     expect(adminPlaceFieldsSchema.safeParse(validPayload({ booking_whatsapp: "(48) 99999-0000" })).success).toBe(true);
   });
 
-  it("rejects more than 3 highlights", () => {
-    const four = ["🌊 Vista para o mar", "🏊 Piscina", "💆 Spa", "🐾 Pet friendly"];
-    expect(adminPlaceFieldsSchema.safeParse(validPayload({ highlights: four })).success).toBe(false);
+  it("accepts every highlight ticked", () => {
+    const all = ["🌊 Vista para o mar", "🏊 Piscina", "💆 Spa", "🐾 Pet friendly", "🅿️ Estacionamento"];
+    expect(adminPlaceFieldsSchema.safeParse(validPayload({ highlights: all })).success).toBe(true);
   });
 
   it("stores highlights in list order for Hospedagem", () => {

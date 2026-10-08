@@ -1,8 +1,7 @@
-export const MAX_HIGHLIGHTS = 3;
+export const MAX_CARD_HIGHLIGHTS = 3;
 export const MAX_HIGHLIGHT_LENGTH = 30;
 
-// Curated highlights the admin ticks for a lodging (up to 3). The card shows
-// them in this order, so put the most persuasive ones first.
+// Curated highlights the admin can tick for a lodging (as many as apply).
 export const HIGHLIGHT_OPTIONS = [
   "🌊 Vista para o mar",
   "🏖️ Pé na areia",
@@ -18,14 +17,26 @@ export const HIGHLIGHT_OPTIONS = [
 
 const OPTION_INDEX = new Map<string, number>(HIGHLIGHT_OPTIONS.map((option, index) => [option, index]));
 
-// Listed options first (in list order), then any older free-text highlight.
+// What most sells a stay, in this order, before the rest of the list.
+const TOP_HIGHLIGHTS = ["🌊 Vista para o mar", "☕ Café da manhã incluso"];
+
+const PROFILE_HIGHLIGHT: Record<string, string> = {
+  casal: "💑 Ideal para casais",
+  familia: "👨‍👩‍👧 Ideal para famílias",
+};
+
+// Only curated options survive (older free text is dropped), in list order.
 export function orderHighlights(selected: string[]): string[] {
-  const unique = [...new Set(selected.map((item) => item.trim()).filter(Boolean))];
-  const rank = (item: string) => OPTION_INDEX.get(item) ?? HIGHLIGHT_OPTIONS.length;
-  return unique.sort((a, b) => rank(a) - rank(b));
+  const known = [...new Set(selected.map((item) => item.trim()))].filter((item) => OPTION_INDEX.has(item));
+  return known.sort((a, b) => OPTION_INDEX.get(a)! - OPTION_INDEX.get(b)!);
 }
 
-// What the admin can tick: the curated list plus saved highlights that predate it.
-export function highlightChoices(saved: string[]): string[] {
-  return [...HIGHLIGHT_OPTIONS, ...saved.filter((item) => !OPTION_INDEX.has(item))];
+// The few highlights shown over the card photo: sea view, breakfast, the
+// tourist's own profile (from the quiz group), then the rest of the list.
+export function cardHighlights(highlights: string[], group: string | undefined): string[] {
+  const ordered = orderHighlights(highlights);
+  const priority = [...TOP_HIGHLIGHTS, ...(group && PROFILE_HIGHLIGHT[group] ? [PROFILE_HIGHLIGHT[group]] : [])];
+  const first = priority.filter((item) => ordered.includes(item));
+  const rest = ordered.filter((item) => !first.includes(item));
+  return [...first, ...rest].slice(0, MAX_CARD_HIGHLIGHTS);
 }
